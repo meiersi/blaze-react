@@ -1,11 +1,8 @@
 /*
   to generate lib.js, install virtual-dom and process file:
 
-     $ npm install virtual-dom
-     $ npm install x-is-array
-     $ npm install is-object
-     $ browserify lib.require.js -o lib.js
-
+     $ npm install
+     $ grunt
    the ./diff module is vtree/diff with a few changes to
    allow diff to run in an asynchronous thread in the presence of
    memoized nodes.
@@ -119,8 +116,8 @@ module.exports = { diff:          require('./diff')
                  , forcePatch:    forcePatch
                  , VNode:         require('vtree/vnode')
                  , VText:         require('vtree/vtext')
-                 , patch:         require('virtual-dom/patch')
-                 , createElement: require('virtual-dom/create-element')
+                 , patch:         require('vdom/patch')
+                 , createElement: require('vdom/create-element')
                  };
 
 // the global variable we're using in the bindings
