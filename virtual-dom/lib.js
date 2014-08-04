@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*
    vtree/diff module modified to defer rendering thunks. this makes it possible to
    implement thunks that cannot be called directly as a function, but have
@@ -387,7 +387,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"./handle-thunk":2,"is-object":5,"vtree/is-thunk":18,"vtree/is-vnode":20,"vtree/is-vtext":21,"vtree/is-widget":22,"vtree/vpatch":25,"x-is-array":27}],2:[function(require,module,exports){
+},{"./handle-thunk":2,"is-object":5,"vtree/is-thunk":23,"vtree/is-vnode":25,"vtree/is-vtext":26,"vtree/is-widget":27,"vtree/vpatch":30,"x-is-array":32}],2:[function(require,module,exports){
 var isVNode = require("vtree/is-vnode")
 var isVText = require("vtree/is-vtext")
 var isWidget = require("vtree/is-widget")
@@ -407,8 +407,8 @@ function renderThunk(thunk, previous) {
     return thunk.vnode ? null : thunk;
 }
 
-},{"vtree/is-thunk":18,"vtree/is-vnode":20,"vtree/is-vtext":21,"vtree/is-widget":22}],3:[function(require,module,exports){
-/* 
+},{"vtree/is-thunk":23,"vtree/is-vnode":25,"vtree/is-vtext":26,"vtree/is-widget":27}],3:[function(require,module,exports){
+/*
   to generate lib.js, install virtual-dom and process file:
 
      $ npm install virtual-dom
@@ -529,15 +529,15 @@ module.exports = { diff:          require('./diff')
                  , forcePatch:    forcePatch
                  , VNode:         require('vtree/vnode')
                  , VText:         require('vtree/vtext')
-                 , patch:         require('virtual-dom/patch')
-                 , createElement: require('virtual-dom/create-element')
+                 , patch:         require('vdom/patch')
+                 , createElement: require('vdom/create-element')
                  };
 
 // the global variable we're using in the bindings
 h$vdom = module.exports;
 h$registerExtensibleRetention(scanTree);
 
-},{"./diff":1,"virtual-dom/create-element":6,"virtual-dom/patch":16,"vtree/is-thunk":18,"vtree/is-vnode":20,"vtree/vnode":24,"vtree/vpatch":25,"vtree/vtext":26,"x-is-array":27}],4:[function(require,module,exports){
+},{"./diff":1,"vdom/create-element":7,"vdom/patch":21,"vtree/is-thunk":23,"vtree/is-vnode":25,"vtree/vnode":29,"vtree/vpatch":30,"vtree/vtext":31,"x-is-array":32}],4:[function(require,module,exports){
 
 },{}],5:[function(require,module,exports){
 module.exports = isObject
@@ -547,13 +547,6 @@ function isObject(x) {
 }
 
 },{}],6:[function(require,module,exports){
-var createElement = require("vdom/create-element")
-
-module.exports = createElement
-
-},{"vdom/create-element":9}],7:[function(require,module,exports){
-module.exports=require(5)
-},{}],8:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("vtree/is-vhook")
 
@@ -647,7 +640,7 @@ function getPrototype(value) {
     }
 }
 
-},{"is-object":7,"vtree/is-vhook":19}],9:[function(require,module,exports){
+},{"is-object":10,"vtree/is-vhook":13}],7:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -695,7 +688,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"./apply-properties":8,"global/document":11,"vtree/handle-thunk":17,"vtree/is-vnode":20,"vtree/is-vtext":21,"vtree/is-widget":22}],10:[function(require,module,exports){
+},{"./apply-properties":6,"global/document":9,"vtree/handle-thunk":11,"vtree/is-vnode":14,"vtree/is-vtext":15,"vtree/is-widget":16}],8:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -782,7 +775,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -800,8 +793,129 @@ if (typeof document !== 'undefined') {
     module.exports = doccy;
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":4}],12:[function(require,module,exports){
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"min-document":4}],10:[function(require,module,exports){
+module.exports=require(5)
+},{}],11:[function(require,module,exports){
+var isVNode = require("./is-vnode")
+var isVText = require("./is-vtext")
+var isWidget = require("./is-widget")
+var isThunk = require("./is-thunk")
+
+module.exports = handleThunk
+
+function handleThunk(a, b) {
+    var renderedA = a
+    var renderedB = b
+
+    if (isThunk(b)) {
+        renderedB = renderThunk(b, a)
+    }
+
+    if (isThunk(a)) {
+        renderedA = renderThunk(a, null)
+    }
+
+    return {
+        a: renderedA,
+        b: renderedB
+    }
+}
+
+function renderThunk(thunk, previous) {
+    var renderedThunk = thunk.vnode
+
+    if (!renderedThunk) {
+        renderedThunk = thunk.vnode = thunk.render(previous)
+    }
+
+    if (!(isVNode(renderedThunk) ||
+            isVText(renderedThunk) ||
+            isWidget(renderedThunk))) {
+        throw new Error("thunk did not return a valid node");
+    }
+
+    return renderedThunk
+}
+
+},{"./is-thunk":12,"./is-vnode":14,"./is-vtext":15,"./is-widget":16}],12:[function(require,module,exports){
+module.exports = isThunk
+
+function isThunk(t) {
+    return t && t.type === "Thunk"
+}
+
+},{}],13:[function(require,module,exports){
+module.exports = isHook
+
+function isHook(hook) {
+    return hook && typeof hook.hook === "function" &&
+        !hook.hasOwnProperty("hook")
+}
+
+},{}],14:[function(require,module,exports){
+var version = require("./version")
+
+module.exports = isVirtualNode
+
+function isVirtualNode(x) {
+    return x && x.type === "VirtualNode" && x.version === version
+}
+
+},{"./version":17}],15:[function(require,module,exports){
+var version = require("./version")
+
+module.exports = isVirtualText
+
+function isVirtualText(x) {
+    return x && x.type === "VirtualText" && x.version === version
+}
+
+},{"./version":17}],16:[function(require,module,exports){
+module.exports = isWidget
+
+function isWidget(w) {
+    return w && w.type === "Widget"
+}
+
+},{}],17:[function(require,module,exports){
+module.exports = "1"
+
+},{}],18:[function(require,module,exports){
+var version = require("./version")
+
+VirtualPatch.NONE = 0
+VirtualPatch.VTEXT = 1
+VirtualPatch.VNODE = 2
+VirtualPatch.WIDGET = 3
+VirtualPatch.PROPS = 4
+VirtualPatch.ORDER = 5
+VirtualPatch.INSERT = 6
+VirtualPatch.REMOVE = 7
+VirtualPatch.THUNK = 8
+
+module.exports = VirtualPatch
+
+function VirtualPatch(type, vNode, patch) {
+    this.type = Number(type)
+    this.vNode = vNode
+    this.patch = patch
+}
+
+VirtualPatch.prototype.version = version
+VirtualPatch.prototype.type = "VirtualPatch"
+
+},{"./version":17}],19:[function(require,module,exports){
+var nativeIsArray = Array.isArray
+var toString = Object.prototype.toString
+
+module.exports = nativeIsArray || isArray
+
+function isArray(obj) {
+    return toString.call(obj) === "[object Array]"
+}
+
+},{}],20:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("vtree/is-widget")
@@ -971,7 +1085,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"./apply-properties":8,"./create-element":9,"./update-widget":14,"vtree/is-widget":22,"vtree/vpatch":25}],13:[function(require,module,exports){
+},{"./apply-properties":6,"./create-element":7,"./update-widget":22,"vtree/is-widget":16,"vtree/vpatch":18}],21:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -1049,7 +1163,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":10,"./patch-op":12,"global/document":11,"x-is-array":15}],14:[function(require,module,exports){
+},{"./dom-index":8,"./patch-op":20,"global/document":9,"x-is-array":19}],22:[function(require,module,exports){
 var isWidget = require("vtree/is-widget")
 
 module.exports = updateWidget
@@ -1066,107 +1180,19 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"vtree/is-widget":22}],15:[function(require,module,exports){
-var nativeIsArray = Array.isArray
-var toString = Object.prototype.toString
-
-module.exports = nativeIsArray || isArray
-
-function isArray(obj) {
-    return toString.call(obj) === "[object Array]"
-}
-
-},{}],16:[function(require,module,exports){
-var patch = require("vdom/patch")
-
-module.exports = patch
-
-},{"vdom/patch":13}],17:[function(require,module,exports){
-var isVNode = require("./is-vnode")
-var isVText = require("./is-vtext")
-var isWidget = require("./is-widget")
-var isThunk = require("./is-thunk")
-
-module.exports = handleThunk
-
-function handleThunk(a, b) {
-    var renderedA = a
-    var renderedB = b
-
-    if (isThunk(b)) {
-        renderedB = renderThunk(b, a)
-    }
-
-    if (isThunk(a)) {
-        renderedA = renderThunk(a, null)
-    }
-
-    return {
-        a: renderedA,
-        b: renderedB
-    }
-}
-
-function renderThunk(thunk, previous) {
-    var renderedThunk = thunk.vnode
-
-    if (!renderedThunk) {
-        renderedThunk = thunk.vnode = thunk.render(previous)
-    }
-
-    if (!(isVNode(renderedThunk) ||
-            isVText(renderedThunk) ||
-            isWidget(renderedThunk))) {
-        throw new Error("thunk did not return a valid node");
-    }
-
-    return renderedThunk
-}
-
-},{"./is-thunk":18,"./is-vnode":20,"./is-vtext":21,"./is-widget":22}],18:[function(require,module,exports){
-module.exports = isThunk
-
-function isThunk(t) {
-    return t && t.type === "Thunk"
-}
-
-},{}],19:[function(require,module,exports){
-module.exports = isHook
-
-function isHook(hook) {
-    return hook && typeof hook.hook === "function" &&
-        !hook.hasOwnProperty("hook")
-}
-
-},{}],20:[function(require,module,exports){
-var version = require("./version")
-
-module.exports = isVirtualNode
-
-function isVirtualNode(x) {
-    return x && x.type === "VirtualNode" && x.version === version
-}
-
-},{"./version":23}],21:[function(require,module,exports){
-var version = require("./version")
-
-module.exports = isVirtualText
-
-function isVirtualText(x) {
-    return x && x.type === "VirtualText" && x.version === version
-}
-
-},{"./version":23}],22:[function(require,module,exports){
-module.exports = isWidget
-
-function isWidget(w) {
-    return w && w.type === "Widget"
-}
-
-},{}],23:[function(require,module,exports){
-module.exports = "1"
-
+},{"vtree/is-widget":16}],23:[function(require,module,exports){
+module.exports=require(12)
 },{}],24:[function(require,module,exports){
+module.exports=require(13)
+},{}],25:[function(require,module,exports){
+module.exports=require(14)
+},{"./version":28}],26:[function(require,module,exports){
+module.exports=require(15)
+},{"./version":28}],27:[function(require,module,exports){
+module.exports=require(16)
+},{}],28:[function(require,module,exports){
+module.exports=require(17)
+},{}],29:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -1231,31 +1257,9 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-vhook":19,"./is-vnode":20,"./is-widget":22,"./version":23}],25:[function(require,module,exports){
-var version = require("./version")
-
-VirtualPatch.NONE = 0
-VirtualPatch.VTEXT = 1
-VirtualPatch.VNODE = 2
-VirtualPatch.WIDGET = 3
-VirtualPatch.PROPS = 4
-VirtualPatch.ORDER = 5
-VirtualPatch.INSERT = 6
-VirtualPatch.REMOVE = 7
-VirtualPatch.THUNK = 8
-
-module.exports = VirtualPatch
-
-function VirtualPatch(type, vNode, patch) {
-    this.type = Number(type)
-    this.vNode = vNode
-    this.patch = patch
-}
-
-VirtualPatch.prototype.version = version
-VirtualPatch.prototype.type = "VirtualPatch"
-
-},{"./version":23}],26:[function(require,module,exports){
+},{"./is-vhook":24,"./is-vnode":25,"./is-widget":27,"./version":28}],30:[function(require,module,exports){
+module.exports=require(18)
+},{"./version":28}],31:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -1267,6 +1271,6 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":23}],27:[function(require,module,exports){
-module.exports=require(15)
+},{"./version":28}],32:[function(require,module,exports){
+module.exports=require(19)
 },{}]},{},[3]);

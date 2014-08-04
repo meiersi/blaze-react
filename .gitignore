@@ -12,3 +12,6 @@
 \#*
 .#*
 /lib/cache/build
+.cabal-sandbox
+cabal.config
+cabal.sandbox.config

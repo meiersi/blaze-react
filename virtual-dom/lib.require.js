@@ -119,8 +119,8 @@ module.exports = { diff:          require('./diff')
                  , forcePatch:    forcePatch
                  , VNode:         require('vtree/vnode')
                  , VText:         require('vtree/vtext')
-                 , patch:         require('virtual-dom/patch')
-                 , createElement: require('virtual-dom/create-element')
+                 , patch:         require('vdom/patch')
+                 , createElement: require('vdom/create-element')
                  };
 
 // the global variable we're using in the bindings
