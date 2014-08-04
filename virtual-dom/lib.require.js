@@ -1,11 +1,8 @@
 /*
   to generate lib.js, install virtual-dom and process file:
 
-     $ npm install virtual-dom
-     $ npm install x-is-array
-     $ npm install is-object
-     $ browserify lib.require.js -o lib.js
-
+     $ npm install
+     $ grunt
    the ./diff module is vtree/diff with a few changes to
    allow diff to run in an asynchronous thread in the presence of
    memoized nodes.
