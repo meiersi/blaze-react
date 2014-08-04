@@ -1,0 +1,14 @@
+/dist
+/vendor/
+/GNUmakefile
+*.js_hi
+*.hi
+*.o
+*.js_o
+*.jsexe
+*_stub.h
+.fuse_hidden*
+*~
+\#*
+.#*
+/lib/cache/build

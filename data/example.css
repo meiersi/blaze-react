@@ -1,0 +1,28 @@
+body {
+    background-color: #ccc;
+}
+
+div.row {
+    padding: 0;
+    margin: 0;
+    height: 5px;
+    line-height: 5px;
+    text-size: 10%;
+}
+
+div.pixel-red, div.pixel-white {
+    vertical-align: top;
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin: 0;
+    padding: 0;
+}
+
+div.pixel-red {
+    background-color: #f00;
+}
+
+div.pixel-white {
+    background-color: #fff;
+}
