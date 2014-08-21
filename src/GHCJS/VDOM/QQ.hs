@@ -23,9 +23,11 @@ import           Data.Typeable
 
 import           System.IO.Unsafe
 
+-- | Alias for the 'props' quasi-quoter.
 pr :: QuasiQuoter
 pr = props
 
+-- | Alias for the 'children' quasi-quoter.
 ch :: QuasiQuoter
 ch = children
 
@@ -55,6 +57,7 @@ quoteProps pat = jsExpQQ ('{':ffiPat++"}") (map mkName names)
     genpat _ _ = error "invalid pattern"
 
 
+-- | Quote a list of children of a 'VNode'.
 -- example: [children|x,y,z|] for haskell names x,y,z :: VNode
 children :: QuasiQuoter
 children = QuasiQuoter { quoteExp = quoteChildren }

@@ -1,4 +1,13 @@
-module GHCJS.VDOM.Internal where
+module GHCJS.VDOM.Internal
+  ( Properties(..)
+  , Children(..)
+  , VNode(..)
+  , Patch(..)
+  , JSIdent
+  , DOMNode
+  , J
+  , j
+  ) where
 
 import Language.Haskell.TH.Quote
 
