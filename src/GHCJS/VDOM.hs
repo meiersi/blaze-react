@@ -75,8 +75,10 @@ type DOMNode = JSRef DOMNode_
 ------------------------------------------------------------------------------
 
 vnode :: JSString -> Properties -> Children -> VNode
-vnode tag (Properties props) (Children children) =
-  VNode [jsu'| new h$vdom.VNode(`tag, `props, `children) |]
+vnode tag (Properties attrs) (Children children) = unsafePerformIO $ do
+    props <- Foreign.newObj
+    Foreign.setProp ("attributes" :: JSString) attrs props
+    return $! VNode [jsu'| new h$vdom.VNode(`tag, `props, `children) |]
 
 text :: JSString -> VNode
 text xs = VNode [jsu'| new h$vdom.VText(`xs) |]
@@ -102,7 +104,7 @@ setProperty key value (Properties properties) =
 -- | Set the attributes to a single key value pair.
 -- FIXME (SM): make this more generic and less surprising. It is what we just
 -- need for the blaze-html renderer.
-setAttributes :: JSString -> JSString -> Properties -> IO ()
+setAttributes :: JSString -> JSRef a -> Properties -> IO ()
 setAttributes key value (Properties properties) = do
     attributes <- Foreign.newObj
     Foreign.setProp key value attributes

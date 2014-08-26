@@ -522,6 +522,11 @@ function hasPatches(patch) {
     return false;
 }
 
+function lookupBlazeEventHandlerName(event) {
+    var name = event.target.getAttribute("data-blaze-on-event");
+    return (name === null) ? [] : [name];
+}
+
 module.exports = { diff:          require('./diff')
                  , HSThunk:       HSThunk
                  , setThunkPatch: setThunkPatch
@@ -531,6 +536,7 @@ module.exports = { diff:          require('./diff')
                  , VText:         require('vtree/vtext')
                  , patch:         require('vdom/patch')
                  , createElement: require('vdom/create-element')
+                 , lookupBlazeEventHandlerName: lookupBlazeEventHandlerName
                  };
 
 // the global variable we're using in the bindings

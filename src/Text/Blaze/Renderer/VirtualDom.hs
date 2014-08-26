@@ -72,11 +72,13 @@ renderAsVNodes showEv0 markup = do
         MapEvents f content ->
             go (showEv . f) setProps children content
 
-        OnEvent ev content ->
-            let setProps' props = do
-                   VirtualDom.setAttributes "data-on-blaze-event" (showEv ev) props
-                   setProps props
-            in go showEv setProps' children content
+        OnEvent ev h ->
+            -- let setProps' props = do
+            --        VirtualDom.setAttributes "data-on-blaze-event" (showEv ev) props
+            --        setProps props
+            -- in go showEv setProps' children content
+            -- go showEv setProps children content
+            setProperty "data-on-blaze-event" (showEv ev) h
 
         Parent tag _open _close h -> tagToVNode (staticStringToJs tag) h
         CustomParent tag h        -> tagToVNode (choiceStringToJs tag) h
