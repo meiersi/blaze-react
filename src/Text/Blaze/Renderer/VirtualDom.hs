@@ -81,7 +81,7 @@ renderAsVNodes showEv0 markup = do
         CustomLeaf tag _close     -> leafToVNode (choiceStringToJs tag)
         Content content           -> textToVNode (choiceStringToJs content)
 
-        AddAttribute _ key value h -> do
+        AddAttribute key _preparedKey value h -> do
             setAttribute (staticStringToJs key) (choiceStringToJs value) h
 
         AddCustomAttribute key value h ->

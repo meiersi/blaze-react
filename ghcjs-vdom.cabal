@@ -71,6 +71,8 @@ executable todomvc
   hs-source-dirs: todomvc
   Build-Depends:  base                >= 4    &&  < 5,
                   ghcjs-vdom,
+                  ghcjs-base,
+                  ghcjs-ffiqq,
                   containers,
                   text,
                   lens,

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 {-
@@ -12,7 +13,8 @@ module Main (main) where
 import           Prelude hiding (div)
 
 
-import           Control.Applicative ((<|>))
+import           Control.Applicative
+import           Control.Exception   (evaluate)
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
                  , to, _2, _Just, sumOf
@@ -24,9 +26,17 @@ import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
 import           Data.Time       (UTCTime)
 
+import qualified GHCJS.Foreign         as Foreign
+import           GHCJS.Foreign.QQ      (js, js_)
+import qualified GHCJS.VDOM            as VirtualDom
+
+import           System.IO             (fixIO)
+
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
-import qualified Text.Blaze.Renderer.String           as H.String
+import qualified Text.Blaze.Renderer.String           as Blaze.String
+import qualified Text.Blaze.Renderer.VirtualDom       as Blaze.VirtualDom
+
 
 ------------------------------------------------------------------------------
 -- Generic blaze-vdom application types and functions (TO BE MOVED)
@@ -267,6 +277,7 @@ handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
 -- test :: IO ()
 -- test = putStrLn $ H.Pretty.renderHtml $ render q0
 
+{-
 testCompact :: IO ()
 testCompact =
     putStrLn $ H.String.renderHtml $ renderTodoState q0
@@ -275,7 +286,7 @@ testCompact =
 
     q0 :: TodoState
     q0 = TodoState (Just (1, "OLD")) (items ++ items)
-
+-}
 
 
 ------------------------------------------------------------------------------
@@ -293,12 +304,51 @@ todoApp = App
     , appHandleEvent = handleTodoEvent
     }
 
-runApp :: App st act eh -> IO ()
-runApp = error "runApp: not yet implemented"
+
+-- generic runApp function
+--------------------------
+
+runApp :: Show eh => App st act eh -> IO ()
+runApp (App initialState _apply renderAppState _handleEvent) = do
+    -- create root element in body for the app
+    root <- [js| document.createElement('div') |]
+    [js_| document.body.appendChild(`root); |]
+
+    -- create virtual DOM node corresponding to the empty root div
+    rootVNode <- makeEmptyDiv
+
+    -- request a redraw for the initial state
+    let html = renderAppState initialState
+    putStrLn "Starting app with initial state rendered as:"
+    putStrLn $ Blaze.String.renderHtml html
+
+    newVNode <- Blaze.VirtualDom.renderHtml html
+    redraw root rootVNode newVNode
+
+    putStrLn "Started app -- TODO: install event handlers"
+  where
+    makeEmptyDiv =
+        VirtualDom.vnode "div"
+            <$> VirtualDom.newProperties
+            <*> VirtualDom.newChildren
+
+redraw :: VirtualDom.DOMNode -> VirtualDom.VNode -> VirtualDom.VNode -> IO ()
+redraw root oldVNode newVNode  = do
+    patch <- evaluate (VirtualDom.diff oldVNode newVNode)
+    atAnimationFrame (VirtualDom.applyPatch root patch)
+
+atAnimationFrame :: IO () -> IO ()
+atAnimationFrame m = do
+  cb <- fixIO $ \cb ->
+      Foreign.syncCallback Foreign.AlwaysRetain
+                           False
+                           (Foreign.release cb >> m)
+  [js_| window.requestAnimationFrame(`cb); |]
+
+
+-- our main function
+--------------------
 
 main :: IO ()
-main = do
-    -- FIXME (SM): remove this boring output
-    testCompact
-    runApp todoApp
+main = runApp todoApp
 
