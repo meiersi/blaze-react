@@ -19,7 +19,9 @@ import qualified GHCJS.Foreign         as Foreign
 import           GHCJS.Types           (JSString)
 import qualified GHCJS.VDOM            as VirtualDom
 
-import Text.Blaze.Internal
+import           Prelude               hiding (span)
+
+import           Text.Blaze.Internal
 
 -- TODO (SM): find a better representation for the rendering of Strings.
 -- Probably a DList T.Text with a following concat.
@@ -126,8 +128,13 @@ renderAsVNodes showEv0 markup = do
             let vnode = VirtualDom.vnode tag props noChildren
             VirtualDom.pushChild vnode children
 
-        textToVNode jsText =
-            VirtualDom.pushChild (VirtualDom.text jsText) children
+        textToVNode jsText = do
+            spanChildren <- VirtualDom.newChildren
+            VirtualDom.pushChild (VirtualDom.text jsText) spanChildren
+            noProps  <- VirtualDom.newProperties
+            let span = VirtualDom.vnode "span" noProps spanChildren
+            VirtualDom.pushChild span children
+
 
 
 
