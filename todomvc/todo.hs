@@ -19,7 +19,7 @@ import           Control.Concurrent.MVar
 import           Control.Exception         (evaluate)
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
-                 , to, _2, _Just, sumOf
+                 , to, _2, _Just, sumOf, andOf
                  )
 import           Control.Monad
 
@@ -58,6 +58,7 @@ data DOMEvent
       -- ^ A text value was changed to the given new value.
     | OnTextInputBlur !T.Text
       -- ^ A text input-field lost focus and it's value was the given text.
+    deriving (Show)
 
 data App state action eventHandler = App
     { appInitialState :: state
@@ -98,6 +99,13 @@ makeLenses ''TodoItem
 makeLenses ''TodoState
 
 
+-- queries
+----------
+
+allItemsDone :: TodoItems -> Bool
+allItemsDone = andOf (traverse . tdDone)
+
+
 ------------------------------------------------------------------------------
 -- State transitions
 ------------------------------------------------------------------------------
@@ -112,7 +120,11 @@ data TodoItemsAction
     = CreateItemA T.Text
     | ToggleItemA Int
     | DeleteItemA Int
-    | MarkAllAsCompleteA
+    | ToggleAllItemsA
+      -- ^ If there is one item that is not completed, then set all items to
+      -- completed. Otherwise, set all items to incomplete.
+    | ClearCompletedA
+      -- ^ Remove all completed items.
     deriving (Eq, Ord, Show, Read)
 
 -- | Serializable representations of state transitions possible for our todo
@@ -129,11 +141,12 @@ data TodoAction
 ------------
 
 applyTodoItemsAction :: TodoItemsAction -> [TodoItem] -> [TodoItem]
-applyTodoItemsAction action = case action of
-    CreateItemA desc    -> (TodoItem False desc :)
-    ToggleItemA itemIdx -> over (ix itemIdx . tdDone) not
-    DeleteItemA itemIdx -> map snd . filter ((itemIdx /=) . fst) . zip [0..]
-    MarkAllAsCompleteA  -> set (traverse . tdDone) True
+applyTodoItemsAction action items = case action of
+    CreateItemA desc    -> TodoItem False desc : items
+    ToggleItemA itemIdx -> over (ix itemIdx . tdDone) not items
+    DeleteItemA itemIdx -> map snd $ filter ((itemIdx /=) . fst) $ zip [0..] items
+    ToggleAllItemsA     -> set (traverse . tdDone) (not (allItemsDone items)) items
+    ClearCompletedA     -> filter (not . view tdDone) items
 
 applyTodoAction :: TodoAction -> TodoState -> TodoState
 applyTodoAction action st = case action of
@@ -171,7 +184,8 @@ data TodoEventHandler
     | DeleteItemEH Int        -- ^ Delete the @i@-th item
     | EditItemEH Int          -- ^ Start editing @i@-th item.
     | EditInputEH             -- ^ Handle an event from the edit input field.
-    | MarkAllAsCompleteEH     -- ^
+    | ToggleAllEH             -- ^
+    | ClearCompletedEH
     deriving (Eq, Ord, Show, Read)
 
 
@@ -191,18 +205,24 @@ renderTodoState (TodoState mbEditFocus items) = do
         -- items
         unless (null items) $ do
             H.section H.! A.id "main" $ do
-              H.input H.! A.id "toggle-all"
-                      H.! A.type_ "checkbox"
-                      H.! H.onEvent MarkAllAsCompleteEH
+              checkbox (numTodo == 0)
+                  H.! A.id "toggle-all"
+                  H.! H.onEvent ToggleAllEH
               H.label H.! A.for "toggle-all" $ "Mark all as complete"
               H.ul H.! A.id "todo-list" $
                 foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
 
             -- item footer
-            H.footer H.! A.id "footer" $
+            H.footer H.! A.id "footer" $ do
               H.span H.! A.id "todo-count" $ do
-                H.strong (H.toHtml itemsLeftToDo)
-                H.span $ (if itemsLeftToDo == 1 then " item" else " items") <> " left"
+                H.strong (H.toHtml numTodo)
+                (if numTodo == 1 then " item" else " items") <> " left"
+
+              unless (numCompleted == 0) $
+                H.button
+                    H.! A.id "clear-completed"
+                    H.! H.onEvent ClearCompletedEH
+                    $ "Clear completed (" <> H.toHtml numCompleted <> ")"
 
     -- app footer
     H.footer H.! A.id "info" $ do
@@ -219,20 +239,23 @@ renderTodoState (TodoState mbEditFocus items) = do
         void $ "A (future;-) part of "
         H.a H.! A.href "http://todomvc.com" $ "TodoMVC"
   where
-    itemsLeftToDo = sumOf (folded . tdDone . to not . to fromEnum) items
+    numTodo      = sumOf (folded . tdDone . to not . to fromEnum) items
+    numCompleted = length items - numTodo
 
 
 renderTodoItem :: EditFocus -> (Int, TodoItem) -> H.Html TodoEventHandler
 renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
-   H.li H.! (if done then A.class_ "completed" else mempty) $ do
+   H.li H.! itemClass $ do
      H.div H.! A.class_ "view" $ do
-        H.input H.! A.class_ "toggle"
-                H.! A.type_ "checkbox"
-                H.! H.onEvent (ToggleItemEH itemIdx)
-        H.label H.! H.onEvent (EditItemEH itemIdx) $ H.toHtml desc
-        H.button H.! A.class_ "destroy"
-                 H.! H.onEvent (DeleteItemEH itemIdx)
-                 $ mempty
+        checkbox done
+            H.! A.class_ "toggle"
+            H.! H.onEvent (ToggleItemEH itemIdx)
+        H.label
+            H.! H.onEvent (EditItemEH itemIdx) $ H.toHtml desc
+        H.button
+            H.! A.class_ "destroy"
+            H.! H.onEvent (DeleteItemEH itemIdx)
+            $ mempty
      case mbEditFocus of
       Just (focusIdx, focusText)
           | focusIdx == itemIdx ->
@@ -241,6 +264,18 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
                       H.! H.onEvent EditInputEH
           | otherwise -> mempty
       Nothing         -> mempty
+  where
+    itemClass
+      | isBeingEdited = A.class_ "editing"
+      | done          = A.class_ "completed"
+      | otherwise     = mempty
+
+    isBeingEdited = Just itemIdx == fmap fst mbEditFocus
+
+checkbox :: Bool -> H.Html ev
+checkbox checked
+  | checked   = H.input H.! A.type_ "checkbox" H.! A.checked "true"
+  | otherwise = H.input H.! A.type_ "checkbox"
 
 
 -- event handling
@@ -271,9 +306,13 @@ handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
         do OnTextInputChange newText <- domEvent
            return $ UpdateEditTextA newText
 
-    MarkAllAsCompleteEH -> do
+    ToggleAllEH -> do
         OnClick <- domEvent
-        return $ TodoItemsActionA MarkAllAsCompleteA
+        return $ TodoItemsActionA ToggleAllItemsA
+
+    ClearCompletedEH -> do
+        OnClick <- domEvent
+        return $ TodoItemsActionA ClearCompletedA
   where
     domEvent = Just domEvent0
 
@@ -314,7 +353,7 @@ todoApp = App
     items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
 
     q0 :: TodoState
-    q0 = TodoState (Just (1, "OLD")) (items ++ items)
+    q0 = TodoState Nothing (items ++ items)
 
 
 -- generic runApp function
@@ -369,32 +408,34 @@ runApp (App initialState apply renderAppState handleEvent) = do
             return (False, state, newVNode)
 
 
-        makeOnClickCallback =
-          Foreign.syncCallback1 Foreign.AlwaysRetain False $ \event -> do
-
-              mbEventHandlerName <- lookupEventHandlerName event
-
-              case mbEventHandlerName of
-                Nothing -> putStrLn "No event handler found."
-                Just eventHandlerName -> case readMay eventHandlerName of
-                  Nothing -> putStrLn $
-                      "Could not parse event handler name: " ++ eventHandlerName
-                  Just eventHandler -> do
-                    t <- getCurrentTime
-                    case handleEvent t OnClick eventHandler of
+        installEventHandler :: JSString -> IO DOMEvent -> IO ()
+        installEventHandler jsDomEventName mkDomEvent = do
+          cb <- Foreign.syncCallback1 Foreign.AlwaysRetain False $ \event -> do
+                  mbEventHandlerName <- lookupEventHandlerName event
+                  case mbEventHandlerName of
+                    Nothing -> putStrLn "No event handler found."
+                    Just eventHandlerName -> case readMay eventHandlerName of
                       Nothing -> putStrLn $
-                        "Event handler '" ++ show eventHandler ++ "' rejected on-click event."
-                      Just action -> do
-                        putStrLn $ "Event handler '" ++ show eventHandler ++
-                                   "' generated action: " ++ show action
-                        modifyMVar_ stateVar $ \(requestedRedraw, state, oldVNode) -> do
-                            unless requestedRedraw $ atAnimationFrame redraw
-                            return (True, apply action state, oldVNode)
+                          "Could not parse event handler name: " ++ eventHandlerName
+                      Just eventHandler -> do
+                        t        <- getCurrentTime
+                        domEvent <- mkDomEvent
+                        case handleEvent t domEvent eventHandler of
+                          Nothing -> putStrLn $
+                            "Event handler '" ++ show eventHandler ++ "' rejected '" ++ show domEvent ++ "."
+                          Just action -> do
+                            putStrLn $ "Event handler '" ++ show (t, domEvent, eventHandler) ++
+                                       "' generated action: " ++ show action
+                            modifyMVar_ stateVar $ \(requestedRedraw, state, oldVNode) -> do
+                                unless requestedRedraw $ atAnimationFrame redraw
+                                return (True, apply action state, oldVNode)
+
+          [js_| `root.addEventListener(`jsDomEventName, `cb, false)|]
 
     -- install click event handler on the root
-    cb <- makeOnClickCallback
+    installEventHandler "click"    (return OnClick)
+    installEventHandler "dblclick" (return OnDoubleClick)
 
-    [js_| `root.addEventListener("click", `cb, false)|]
 
     -- request a redraw for the initial state
     let initialHtml = renderAppState initialState
