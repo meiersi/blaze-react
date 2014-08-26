@@ -97,7 +97,7 @@ renderString =
 --
 renderMarkup :: Show ev => Markup ev -> String
 renderMarkup html =
-    renderString (\ev -> (" data-on-event=\"" ++) . escapeMarkupEntities (show ev) . ('"' :)) html ""
+    renderString (\ev -> (" data-on-blaze-event=\"" ++) . escapeMarkupEntities (show ev) . ('"' :)) html ""
 
 renderHtml :: Show ev => Markup ev -> String
 renderHtml = renderMarkup

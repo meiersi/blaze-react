@@ -73,7 +73,10 @@ renderAsVNodes showEv0 markup = do
             go (showEv . f) setProps children content
 
         OnEvent ev content ->
-            setAttribute "data-on-blaze-event" (showEv ev) content
+            let setProps' props = do
+                   VirtualDom.setAttributes "data-on-blaze-event" (showEv ev) props
+                   setProps props
+            in go showEv setProps' children content
 
         Parent tag _open _close h -> tagToVNode (staticStringToJs tag) h
         CustomParent tag h        -> tagToVNode (choiceStringToJs tag) h
@@ -82,10 +85,12 @@ renderAsVNodes showEv0 markup = do
         Content content           -> textToVNode (choiceStringToJs content)
 
         AddAttribute key _preparedKey value h -> do
-            setAttribute (staticStringToJs key) (choiceStringToJs value) h
+            setProperty (staticStringToJs key) (choiceStringToJs value) h
 
+        -- FIXME (SM): This is not going to work in all cases, as 'attributes'
+        -- must be set differently from properties.
         AddCustomAttribute key value h ->
-            setAttribute (choiceStringToJs key) (choiceStringToJs value) h
+            setProperty (choiceStringToJs key) (choiceStringToJs value) h
 
         Empty           -> return ()
         Append h1 h2    -> do
@@ -95,7 +100,7 @@ renderAsVNodes showEv0 markup = do
         choiceStringToJs cs = Foreign.toJSString (fromChoiceString cs "")
         staticStringToJs ss = Foreign.toJSString (getText ss)
 
-        setAttribute key value content =
+        setProperty key value content =
             go showEv setProps' children content
           where
             setProps' props =

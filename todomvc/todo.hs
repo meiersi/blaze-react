@@ -19,7 +19,7 @@ import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
                  , to, _2, _Just, sumOf
                  )
-import           Control.Monad (void)
+import           Control.Monad (void, unless)
 
 import           Data.Foldable   (foldMap)
 import           Data.Monoid     ((<>), mempty)

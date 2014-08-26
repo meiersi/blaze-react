@@ -26,6 +26,7 @@ module GHCJS.VDOM
     , Properties
     , newProperties
     , setProperty
+    , setAttributes
 
     , Children
     , newChildren
@@ -98,6 +99,14 @@ setProperty :: JSString -> JSString -> Properties -> IO ()
 setProperty key value (Properties properties) =
     Foreign.setProp key value properties
 
+-- | Set the attributes to a single key value pair.
+-- FIXME (SM): make this more generic and less surprising. It is what we just
+-- need for the blaze-html renderer.
+setAttributes :: JSString -> JSString -> Properties -> IO ()
+setAttributes key value (Properties properties) = do
+    attributes <- Foreign.newObj
+    Foreign.setProp key value attributes
+    Foreign.setProp ("attributes" :: JSString) attributes properties
 
 
 ------------------------------------------------------------------------------
