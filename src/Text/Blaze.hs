@@ -40,6 +40,10 @@ module Text.Blaze
     , Attribute
     , AttributeValue
 
+      -- * Installing event handlers
+    , onEvent
+    , mapEventHandlers
+
       -- * Creating attributes.
     , dataAttribute
     , customAttribute

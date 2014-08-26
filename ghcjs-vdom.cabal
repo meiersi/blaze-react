@@ -68,9 +68,11 @@ executable todomvc
   Main-Is:        todo.hs
   cpp-options: -DGHCJS_NO_CATCH_MAINLOOP
   Default-Language: Haskell2010
-  hs-source-dirs: example
+  hs-source-dirs: todomvc
   Build-Depends:  base                >= 4    &&  < 5,
                   ghcjs-vdom,
                   containers,
-                  lens
+                  text,
+                  lens,
+                  time
   ghcjs-Options:  -O -Wall

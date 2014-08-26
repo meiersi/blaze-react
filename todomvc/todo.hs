@@ -7,11 +7,12 @@
   batched in an animation frame
  -}
 
-module Main where
+module Main (main) where
 
 import           Prelude hiding (div)
 
 
+import           Control.Applicative ((<|>))
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
                  , to, _2, _Just, sumOf
@@ -21,17 +22,35 @@ import           Control.Monad (void)
 import           Data.Foldable   (foldMap)
 import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
+import           Data.Time       (UTCTime)
 
-import qualified Html                           as H
-import qualified Html.Attributes                as A
--- import qualified Html.Renderer.Pretty           as H.Pretty
-import qualified Html.Renderer.String           as H.String
+import qualified Text.Blaze.Html5                     as H
+import qualified Text.Blaze.Html5.Attributes          as A
+import qualified Text.Blaze.Renderer.String           as H.String
 
--- import           GHCJS.VDOM          as VD
--- import           GHCJS.VDOM.QQ       as VD
--- import           GHCJS.Foreign
--- import           GHCJS.Foreign.QQ
--- import           GHCJS.Types
+------------------------------------------------------------------------------
+-- Generic blaze-vdom application types and functions (TO BE MOVED)
+------------------------------------------------------------------------------
+
+-- | An incomplete list of 'DOMEvent's.
+--
+-- It has to be extended or revamped to satisfy more use-cases.
+data DOMEvent
+    = OnClick
+    | OnDoubleClick
+    | OnTextInputChange !T.Text
+      -- ^ A text value was changed to the given new value.
+    | OnTextInputBlur !T.Text
+      -- ^ A text input-field lost focus and it's value was the given text.
+
+data App state action eventHandler = App
+    { appInitialState :: state
+    , appApplyAction  :: action -> state -> state
+    , appRender       :: state -> H.Html eventHandler
+    , appHandleEvent  :: UTCTime -> DOMEvent -> eventHandler -> Maybe action
+      -- ^ How to translate an event tagged with the time at which it occurred
+      -- to an action. No access to the application state on purpose.
+    }
 
 
 ------------------------------------------------------------------------------
@@ -207,6 +226,40 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
       Nothing         -> mempty
 
 
+-- event handling
+-----------------
+
+handleTodoEvent :: UTCTime -> DOMEvent -> TodoEventHandler -> Maybe TodoAction
+handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
+    CreateItemEH -> do
+        OnTextInputBlur newDesc <- domEvent
+        return $ TodoItemsActionA (CreateItemA newDesc)
+
+    ToggleItemEH itemIdx -> do
+        OnClick <- domEvent
+        return $ TodoItemsActionA (ToggleItemA itemIdx)
+
+    DeleteItemEH itemIdx -> do
+        OnClick <- domEvent
+        return $ TodoItemsActionA (DeleteItemA itemIdx)
+
+    EditItemEH itemIdx -> do
+        OnDoubleClick <- domEvent
+        return $ EditItemA itemIdx
+
+    EditInputEH ->
+        do OnTextInputBlur _ <- domEvent
+           return $ CommitAndStopEditingA
+        <|>
+        do OnTextInputChange newText <- domEvent
+           return $ UpdateEditTextA newText
+
+    MarkAllAsCompleteEH -> do
+        OnClick <- domEvent
+        return $ TodoItemsActionA MarkAllAsCompleteA
+  where
+    domEvent = Just domEvent0
+
 
 -- Testing the renderer
 -----------------------
@@ -215,11 +268,37 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
 -- test = putStrLn $ H.Pretty.renderHtml $ render q0
 
 testCompact :: IO ()
-testCompact = putStrLn $ H.String.renderHtml $ render q0
-
-q0 :: TodoState
-q0 =
-    TodoState (Just (1, "OLD")) (items ++ items)
+testCompact =
+    putStrLn $ H.String.renderHtml $ renderTodoState q0
   where
     items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
+
+    q0 :: TodoState
+    q0 = TodoState (Just (1, "OLD")) (items ++ items)
+
+
+
+------------------------------------------------------------------------------
+-- Defining and running the app
+------------------------------------------------------------------------------
+
+todoApp :: App TodoState TodoAction TodoEventHandler
+todoApp = App
+    { appInitialState = TodoState
+        { _tsEditFocus = Nothing
+        , _tsItems     = []
+        }
+    , appApplyAction = applyTodoAction
+    , appRender      = renderTodoState
+    , appHandleEvent = handleTodoEvent
+    }
+
+runApp :: App st act eh -> IO ()
+runApp = error "runApp: not yet implemented"
+
+main :: IO ()
+main = do
+    -- FIXME (SM): remove this boring output
+    testCompact
+    runApp todoApp
 
