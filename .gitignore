@@ -15,3 +15,4 @@
 .cabal-sandbox
 cabal.config
 cabal.sandbox.config
+*.swp

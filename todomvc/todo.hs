@@ -134,6 +134,9 @@ data DOMEvent
       -- ^ A text input-field lost focus and it's value was the given text.
     deriving (Show)
 
+-- FIXME (AS): I think 'eventHandler' is a misnomer, because it's not like
+-- objects of this type contain logic for handling events. These are more like
+-- DOM markers.
 data App state action eventHandler = App
     { appInitialState :: state
     , appApplyAction  :: action -> state -> state
