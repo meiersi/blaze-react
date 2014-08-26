@@ -183,19 +183,20 @@ renderTodoState (TodoState mbEditFocus items) = do
                   H.! H.onEvent CreateItemEH
 
         -- items
-        H.section H.! A.id "main" $ do
-          H.input H.! A.id "toggle-all"
-                  H.! A.type_ "checkbox"
-                  H.! H.onEvent MarkAllAsCompleteEH
-          H.label H.! A.for "toggle-all" $ "Mark all as complete"
-          H.ul H.! A.id "todo-list" $
-            foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
+        unless (null items) $ do
+            H.section H.! A.id "main" $ do
+              H.input H.! A.id "toggle-all"
+                      H.! A.type_ "checkbox"
+                      H.! H.onEvent MarkAllAsCompleteEH
+              H.label H.! A.for "toggle-all" $ "Mark all as complete"
+              H.ul H.! A.id "todo-list" $
+                foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
 
-        -- item footer
-        H.footer H.! A.id "footer" $
-          H.span H.! A.id "todo-count" $ do
-            H.strong (H.toHtml itemsLeftToDo)
-            H.span $ (if itemsLeftToDo == 1 then " item" else " items") <> " left"
+            -- item footer
+            H.footer H.! A.id "footer" $
+              H.span H.! A.id "todo-count" $ do
+                H.strong (H.toHtml itemsLeftToDo)
+                H.span $ (if itemsLeftToDo == 1 then " item" else " items") <> " left"
 
     -- app footer
     H.footer H.! A.id "info" $ do
