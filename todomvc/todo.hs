@@ -14,21 +14,27 @@ import           Prelude hiding (div)
 
 
 import           Control.Applicative
-import           Control.Exception   (evaluate)
+import           Control.Concurrent        (threadDelay)
+import           Control.Concurrent.MVar
+import           Control.Exception         (evaluate)
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
                  , to, _2, _Just, sumOf
                  )
-import           Control.Monad (void, unless)
+import           Control.Monad
 
 import           Data.Foldable   (foldMap)
 import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
-import           Data.Time       (UTCTime)
+import           Data.Time       (UTCTime, getCurrentTime)
 
+import           GHCJS.Types           (JSRef, JSString)
 import qualified GHCJS.Foreign         as Foreign
 import           GHCJS.Foreign.QQ      (js, js_)
+import qualified GHCJS.Prim            as Prim
 import qualified GHCJS.VDOM            as VirtualDom
+
+import           Safe                  (readMay)
 
 import           System.IO             (fixIO)
 
@@ -296,55 +302,110 @@ testCompact =
 
 todoApp :: App TodoState TodoAction TodoEventHandler
 todoApp = App
-    { appInitialState = TodoState
+    { appInitialState = q0 {- TodoState
         { _tsEditFocus = Nothing
         , _tsItems     = []
-        }
+        } -}
     , appApplyAction = applyTodoAction
     , appRender      = renderTodoState
     , appHandleEvent = handleTodoEvent
     }
+  where
+    items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
+
+    q0 :: TodoState
+    q0 = TodoState (Just (1, "OLD")) (items ++ items)
 
 
 -- generic runApp function
 --------------------------
 
-runApp :: Show eh => App st act eh -> IO ()
-runApp (App initialState _apply renderAppState _handleEvent) = do
+
+atAnimationFrame :: IO () -> IO ()
+atAnimationFrame io = do
+    cb <- fixIO $ \cb ->
+        Foreign.syncCallback Foreign.AlwaysRetain
+                             False
+                             (Foreign.release cb >> io)
+    [js_| window.requestAnimationFrame(`cb); |]
+
+-- lookupEventHandlerName :: JSRef () -> IO (Maybe String)
+-- lookupEventHandlerName eventRef = do
+--     nullOrJSString <- [js| h$vdom.lookupBlazeEventHandlerName(`eventRef) |]
+--     Marshall.fromJSRef nullOrJSString
+--
+lookupEventHandlerName :: JSRef () -> IO (Maybe String)
+lookupEventHandlerName eventRef = do
+    mbNameRef <- js_lookupEventHandlerName eventRef
+    return $
+        if Prim.isNull mbNameRef
+          then Nothing
+          else Just (Prim.fromJSString mbNameRef)
+
+foreign import javascript unsafe
+  "$1.target.getAttribute(\"data-on-blaze-event\")"
+  js_lookupEventHandlerName :: JSRef () -> IO JSString
+
+runApp :: (Show eh, Read eh, Show act) => App st act eh -> IO ()
+runApp (App initialState apply renderAppState handleEvent) = do
     -- create root element in body for the app
     root <- [js| document.createElement('div') |]
     [js_| document.body.appendChild(`root); |]
 
     -- create virtual DOM node corresponding to the empty root div
-    rootVNode <- makeEmptyDiv
+    rootVNode <- VirtualDom.vnode "div"
+                   <$> VirtualDom.newProperties
+                   <*> VirtualDom.newChildren
+
+    -- create global state variable
+    stateVar <- newMVar (False, initialState, rootVNode)
+
+
+    let redraw :: IO ()
+        redraw = modifyMVar_ stateVar $ \(_requestedRedraw, state, oldVNode) -> do
+            newVNode <- Blaze.VirtualDom.renderHtml (renderAppState state)
+            patch <- evaluate (VirtualDom.diff oldVNode newVNode)
+            VirtualDom.applyPatch root patch
+            return (False, state, newVNode)
+
+
+        makeOnClickCallback =
+          Foreign.syncCallback1 Foreign.AlwaysRetain False $ \event -> do
+
+              mbEventHandlerName <- lookupEventHandlerName event
+
+              case mbEventHandlerName of
+                Nothing -> putStrLn "No event handler found."
+                Just eventHandlerName -> case readMay eventHandlerName of
+                  Nothing -> putStrLn $
+                      "Could not parse event handler name: " ++ eventHandlerName
+                  Just eventHandler -> do
+                    t <- getCurrentTime
+                    case handleEvent t OnClick eventHandler of
+                      Nothing -> putStrLn $
+                        "Event handler '" ++ show eventHandler ++ "' rejected on-click event."
+                      Just action -> do
+                        putStrLn $ "Event handler '" ++ show eventHandler ++
+                                   "' generated action: " ++ show action
+                        modifyMVar_ stateVar $ \(requestedRedraw, state, oldVNode) -> do
+                            unless requestedRedraw $ atAnimationFrame redraw
+                            return (True, apply action state, oldVNode)
+
+    -- install click event handler on the root
+    cb <- makeOnClickCallback
+
+    [js_| `root.addEventListener("click", `cb, false)|]
 
     -- request a redraw for the initial state
-    let html = renderAppState initialState
+    let initialHtml = renderAppState initialState
     putStrLn "Starting app with initial state rendered as:"
-    putStrLn $ Blaze.String.renderHtml html
+    putStrLn $ Blaze.String.renderHtml initialHtml
 
-    newVNode <- Blaze.VirtualDom.renderHtml html
-    redraw root rootVNode newVNode
+    atAnimationFrame redraw
 
     putStrLn "Started app -- TODO: install event handlers"
-  where
-    makeEmptyDiv =
-        VirtualDom.vnode "div"
-            <$> VirtualDom.newProperties
-            <*> VirtualDom.newChildren
+    forever $ threadDelay 10000000
 
-redraw :: VirtualDom.DOMNode -> VirtualDom.VNode -> VirtualDom.VNode -> IO ()
-redraw root oldVNode newVNode  = do
-    patch <- evaluate (VirtualDom.diff oldVNode newVNode)
-    atAnimationFrame (VirtualDom.applyPatch root patch)
-
-atAnimationFrame :: IO () -> IO ()
-atAnimationFrame m = do
-  cb <- fixIO $ \cb ->
-      Foreign.syncCallback Foreign.AlwaysRetain
-                           False
-                           (Foreign.release cb >> m)
-  [js_| window.requestAnimationFrame(`cb); |]
 
 
 -- our main function

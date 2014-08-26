@@ -73,8 +73,10 @@ executable todomvc
                   ghcjs-vdom,
                   ghcjs-base,
                   ghcjs-ffiqq,
+                  ghcjs-prim,
                   containers,
                   text,
                   lens,
-                  time
+                  time,
+                  safe
   ghcjs-Options:  -O -Wall
