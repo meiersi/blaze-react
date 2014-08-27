@@ -126,6 +126,7 @@ render eventHandlerCb processEv0 markup = do
                               DoubleClick -> "onDoubleClick"
 
                         Foreign.setProp event eventHandlerCb props
+                    setProps props
 
             go processEv setProps' children h
 
