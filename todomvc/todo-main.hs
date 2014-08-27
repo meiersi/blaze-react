@@ -174,15 +174,16 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
 
             errOrMbAction <- runEitherT $ do
                 domEvent <- case Foreign.fromJSString <$> mbType of
-                  Nothing         -> left "no event type"
-                  Just "click"    -> return OnClick
-                  Just "dblclick" -> return OnDoubleClick
-                  Just "blur"     -> return OnBlur
-                  Just "input"    -> do
+                  Nothing          -> left "no event type"
+                  Just "click"     -> return OnClick
+                  Just "dblclick"  -> return OnDoubleClick
+                  Just "mouseover" -> return OnMouseOver
+                  Just "blur"      -> return OnBlur
+                  Just "input"     -> do
                       targetRef <- tryGetProp "target" eventRef
                       valueRef  <- tryGetProp "value" targetRef
                       return $ OnTextInputChange (Foreign.fromJSString valueRef)
-                  Just otherType       ->
+                  Just otherType   ->
                     left $ "unhandled event-type '" <> otherType <> "'."
                 blazeIdStr <- maybe (left "data-blaze-id attribute missing") return mbBlazeId
                 blazeId    <- maybe (left "failed to parse blaze-id") return (readMay blazeIdStr)

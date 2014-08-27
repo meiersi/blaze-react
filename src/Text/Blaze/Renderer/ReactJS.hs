@@ -46,6 +46,7 @@ data EventType
     | Blur
     | KeyDown
     | Change
+    | MouseOver
 
 foreign import javascript unsafe
     "h$reactjs.mkDomNode($1, $2, $3)"
@@ -130,6 +131,7 @@ render eventHandlerCb processEv0 markup = do
                               Blur        -> "onBlur"
                               KeyDown     -> "onKeyDown"
                               Change      -> "onChange"
+                              MouseOver   -> "onMouseOver"
 
                         Foreign.setProp event eventHandlerCb props
                     setProps props

@@ -49,6 +49,7 @@ data DOMEvent
       -- ^ A text value was changed to the given new value.
     | OnBlur
       -- ^ An input element loses focus.
+    | OnMouseOver
     deriving (Show)
 
 -- FIXME (AS): I think 'eventHandler' is a misnomer, because it's not like
