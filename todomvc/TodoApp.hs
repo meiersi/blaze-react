@@ -15,6 +15,8 @@ module TodoApp
       -- * Our app
     , todoApp
 
+      -- * The time-machine App transformer
+    , withTimeMachine
     ) where
 
 import           Prelude hiding (div)
@@ -34,80 +36,6 @@ import           Data.Time       (UTCTime)
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
 
-
--------------------------------------------------------------------------------
--- Time Machine (to be moved)
--------------------------------------------------------------------------------
-
-data TMState state action = TMState
-    { _tmsInternalState :: state
-    , _tmsActionHistory :: [action]
-    , _tmsPaused        :: Bool
-    }
-
-data TMAction action
-    = TogglePauseAppA
-    | InternalA action
-    deriving (Eq, Ord, Read, Show)
-
-data TMEventHandler eventHandler
-    = TogglePauseAppEH
-    | InternalEH eventHandler
-    deriving (Eq, Ord, Read, Show)
-
-makeLenses ''TMState
-
-applyTMAction :: (a -> s -> s) -> TMAction a -> TMState s a -> TMState s a
-applyTMAction applyInternalAction action state =
-    case action of
-      TogglePauseAppA -> over tmsPaused not state
-      InternalA action'
-        | _tmsPaused state -> state
-        | otherwise        ->
-            over tmsActionHistory (action':) $
-            over tmsInternalState (applyInternalAction action') state
-
--- TODO (AS): Move the styling out into CSS
-renderTM :: Show a => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
-renderTM renderInternal state = do
-    H.div H.! A.class_ "tm-time-machine" H.! A.style "width:30%; float: right;" $ do
-      H.h1 "Time machine"
-      H.span H.! H.onEvent TogglePauseAppEH $
-        if (_tmsPaused state) then "Unpause" else "Pause"
-      H.h2 "Events"
-      H.ol $ forM_ (reverse $ _tmsActionHistory state) $ \action ->
-        H.li $ H.toHtml $ show action
-    H.div H.! A.class_ "tm-internal-app" H.! A.style "width: 60%;" $
-      H.mapEventHandlers InternalEH $ renderInternal (view tmsInternalState state)
-
-handleTMEvent
-    :: (UTCTime -> DOMEvent -> eh -> Maybe a)
-    -> UTCTime -> DOMEvent -> TMEventHandler eh -> Maybe (TMAction a)
-handleTMEvent handleInternalEvent utcTime domEvent handler =
-    case handler of
-      TogglePauseAppEH ->
-        case domEvent of
-          OnClick -> Just TogglePauseAppA
-          _       -> Nothing
-      InternalEH handler' ->
-        InternalA <$> handleInternalEvent utcTime domEvent handler'
-
-initialTMState :: s -> TMState s a
-initialTMState internalState = TMState
-    { _tmsInternalState = internalState
-    , _tmsActionHistory = []
-    , _tmsPaused        = False
-    }
-
-timeMachine
-    :: Show a => App s a eh
-    -> App (TMState s a) (TMAction a) (TMEventHandler eh)
-timeMachine internalApp = App
-    { appInitialState = initialTMState (appInitialState internalApp)
-    , appApplyAction  = applyTMAction (appApplyAction internalApp)
-    , appRender       = renderTM (appRender internalApp)
-    , appHandleEvent  = handleTMEvent (appHandleEvent internalApp)
-    }
 
 ------------------------------------------------------------------------------
 -- Generic blaze-vdom application types and functions (TO BE MOVED)
@@ -423,4 +351,79 @@ todoApp = App
     q0 :: TodoState
     q0 = TodoState Nothing (items ++ items)
 
+
+
+-------------------------------------------------------------------------------
+-- Time Machine (to be moved)
+-------------------------------------------------------------------------------
+
+data TMState state action = TMState
+    { _tmsInternalState :: state
+    , _tmsActionHistory :: [action]
+    , _tmsPaused        :: Bool
+    }
+
+data TMAction action
+    = TogglePauseAppA
+    | InternalA action
+    deriving (Eq, Ord, Read, Show)
+
+data TMEventHandler eventHandler
+    = TogglePauseAppEH
+    | InternalEH eventHandler
+    deriving (Eq, Ord, Read, Show)
+
+makeLenses ''TMState
+
+applyTMAction :: (a -> s -> s) -> TMAction a -> TMState s a -> TMState s a
+applyTMAction applyInternalAction action state =
+    case action of
+      TogglePauseAppA -> over tmsPaused not state
+      InternalA action'
+        | view tmsPaused state -> state
+        | otherwise            ->
+            over tmsActionHistory (action':) $
+            over tmsInternalState (applyInternalAction action') state
+
+-- TODO (AS): Move the styling out into CSS
+renderTM :: Show a => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
+renderTM renderInternal state = do
+    H.div H.! A.class_ "tm-time-machine" H.! A.style "width:30%; float: right;" $ do
+      H.h1 "Time machine"
+      H.span H.! H.onEvent TogglePauseAppEH $
+        if (_tmsPaused state) then "Unpause" else "Pause"
+      H.h2 "Events"
+      H.ol $ forM_ (reverse $ _tmsActionHistory state) $ \action ->
+        H.li $ H.toHtml $ show action
+    H.div H.! A.class_ "tm-internal-app" H.! A.style "width: 60%;" $
+      H.mapEventHandlers InternalEH $ renderInternal (view tmsInternalState state)
+
+handleTMEvent
+    :: (UTCTime -> DOMEvent -> eh -> Maybe a)
+    -> UTCTime -> DOMEvent -> TMEventHandler eh -> Maybe (TMAction a)
+handleTMEvent handleInternalEvent utcTime domEvent handler =
+    case handler of
+      TogglePauseAppEH ->
+        case domEvent of
+          OnClick -> Just TogglePauseAppA
+          _       -> Nothing
+      InternalEH handler' ->
+        InternalA <$> handleInternalEvent utcTime domEvent handler'
+
+initialTMState :: s -> TMState s a
+initialTMState internalState = TMState
+    { _tmsInternalState = internalState
+    , _tmsActionHistory = []
+    , _tmsPaused        = False
+    }
+
+withTimeMachine
+    :: Show a => App s a eh
+    -> App (TMState s a) (TMAction a) (TMEventHandler eh)
+withTimeMachine internalApp = App
+    { appInitialState = initialTMState (appInitialState internalApp)
+    , appApplyAction  = applyTMAction (appApplyAction internalApp)
+    , appRender       = renderTM (appRender internalApp)
+    , appHandleEvent  = handleTMEvent (appHandleEvent internalApp)
+    }
 
