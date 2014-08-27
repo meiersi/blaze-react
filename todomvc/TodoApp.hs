@@ -241,25 +241,26 @@ renderTodoState (TodoState mbEditFocus items) = do
 
 renderTodoItem :: EditFocus -> (Int, TodoItem) -> H.Html TodoEventHandler
 renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
-   H.li H.! itemClass $ do
-     H.div H.! A.class_ "view" $ do
-        checkbox done
-            H.! A.class_ "toggle"
-            H.! H.onEvent (ToggleItemEH itemIdx)
-        H.label
-            H.! H.onEvent (EditItemEH itemIdx) $ H.toHtml desc
-        H.button
-            H.! A.class_ "destroy"
-            H.! H.onEvent (DeleteItemEH itemIdx)
-            $ mempty
-     case mbEditFocus of
-      Just (focusIdx, focusText)
-          | focusIdx == itemIdx ->
-              H.input H.! A.class_ "edit"
-                      H.! A.value (H.toValue focusText)
-                      H.! H.onEvent EditInputEH
-          | otherwise -> mempty
-      Nothing         -> mempty
+   H.li H.! itemClass
+        H.! A.key (H.toValue itemIdx)
+     $ do H.div H.! A.class_ "view" $ do
+             checkbox done
+                 H.! A.class_ "toggle"
+                 H.! H.onEvent (ToggleItemEH itemIdx)
+             H.label
+                 H.! H.onEvent (EditItemEH itemIdx) $ H.toHtml desc
+             H.button
+                 H.! A.class_ "destroy"
+                 H.! H.onEvent (DeleteItemEH itemIdx)
+                 $ mempty
+          case mbEditFocus of
+           Just (focusIdx, focusText)
+               | focusIdx == itemIdx ->
+                   H.input H.! A.class_ "edit"
+                           H.! A.value (H.toValue focusText)
+                           H.! H.onEvent EditInputEH
+               | otherwise -> mempty
+           Nothing         -> mempty
   where
     itemClass
       | isBeingEdited = A.class_ "editing"

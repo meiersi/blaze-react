@@ -77,13 +77,14 @@ var invariant = require('./invariant');
  * @param {object} props               key-value list of object-properties
  * @param {ReactComponent[]} children  the node's children
  *
+ * DANGE: children will be changed and MUST no be used anymore later.
+ *
  */
 function mkDomNode(tag, props, children) {
-    'use strict';
-
     var mkTag = React.DOM[tag];
     invariant(mkTag, 'Tried to construct unsupported ReactJS DOM node %s.', tag);
-    return mkTag(props, children);
+    children.unshift(props);
+    return mkTag.apply(this, children);
 }
 
 var GhcjsApp = React.createClass({
