@@ -22,17 +22,34 @@
 ** Time Machine styles
 ******************************************************************************/
 
+.tm-internal-app {
+    width: 75%
+}
+
 .tm-time-machine {
-    width:30%;
+    width:25%;
     position: absolute;
     right: 0;
     top: 0;
-    overflow: scroll;
     height: 100%;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: #333;
+    color: #999;
 }
 
-.tm-internal-app {
-    /* width: 60% */
+.tm-history-browser {
+    height: 55%;
+    overflow: scroll;
+}
+
+.tm-app-state-browser {
+  height: 15%;
+    overflow: scroll;
+}
+
+.tm-active {
+    font-weight: bold;
 }
 
 .tm-button {
