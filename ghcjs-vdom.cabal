@@ -65,7 +65,8 @@ library
 executable todomvc
   if !flag(build-example)
       buildable: False
-  Main-Is:        todo.hs
+  Main-Is:        todo-main.hs
+  Other-Modules:  TodoApp
   cpp-options: -DGHCJS_NO_CATCH_MAINLOOP
   Default-Language: Haskell2010
   hs-source-dirs: todomvc
