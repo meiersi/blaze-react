@@ -32,10 +32,8 @@ import           Safe                  (readMay)
 
 import           System.IO             (fixIO)
 
-import           TodoApp
-                 ( App(..), DOMEvent(..), todoApp, TodoEventHandler(..)
-                 , TMEventHandler(..), withTimeMachine
-                 )
+import           TodoApp     (App(..), DOMEvent(..), todoApp, TodoEventHandler(..))
+import           TimeMachine (TMEventHandler(..), withTimeMachine)
 
 import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
 
