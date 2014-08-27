@@ -385,17 +385,16 @@ applyTMAction applyInternalAction action state =
             over tmsActionHistory (action':) $
             over tmsInternalState (applyInternalAction action') state
 
--- TODO (AS): Move the styling out into CSS
 renderTM :: Show a => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
 renderTM renderInternal state = do
-    H.div H.! A.class_ "tm-time-machine" H.! A.style "width:30%; float: right;" $ do
+    H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
-      H.span H.! H.onEvent TogglePauseAppEH $
-        if (_tmsPaused state) then "Unpause" else "Pause"
+      H.div H.! A.class_ "tm-button" H.! H.onEvent TogglePauseAppEH $
+        if (_tmsPaused state) then "Resume app" else "Pause app"
       H.h2 "Events"
       H.ol $ forM_ (reverse $ _tmsActionHistory state) $ \action ->
         H.li $ H.toHtml $ show action
-    H.div H.! A.class_ "tm-internal-app" H.! A.style "width: 60%;" $
+    H.div H.! A.class_ "tm-internal-app" $
       H.mapEventHandlers InternalEH $ renderInternal (view tmsInternalState state)
 
 handleTMEvent
