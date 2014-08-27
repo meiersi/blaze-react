@@ -149,14 +149,16 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
     rerenderVar        <- newIORef Nothing       -- IO function to actually render the DOM
 
     -- rerendering
-    let scheduleRedraw = do
+    let syncRedraw = join $ fromMaybe (return ()) <$> readIORef rerenderVar
+
+        asyncRedraw = do
             -- FIXME (meiersi): there might be race conditions
             redrawScheduled <- readIORef redrawScheduledVar
             unless redrawScheduled $ do
                 writeIORef redrawScheduledVar True
                 atAnimationFrame $ do
                     writeIORef redrawScheduledVar False
-                    join $ fromMaybe (return ()) <$> readIORef rerenderVar
+                    syncRedraw
 
     -- create event handler callback
     let mkEventHandlerCb :: IO (JSFun (ReactJS.ReactJSEvent -> IO ()))
@@ -195,7 +197,9 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
               Right (eventInfo, Just action) -> do
                   putStrLn $ "runApp - handling: " ++ show eventInfo ++ " ==> " ++ show action
                   atomicModifyIORef' stateVar (\state -> (apply action state, ()))
-                  scheduleRedraw
+                  case eventInfo of
+                    (_, OnTextInputChange _, _) -> syncRedraw
+                    _                           -> asyncRedraw
 
 
     -- create render callback for initialState
@@ -217,7 +221,7 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
             -- manually tie the knot between the event handlers
             writeIORef rerenderVar (Just (syncRedrawApp app))
             -- start the first drawing
-            scheduleRedraw
+            syncRedraw
             -- keep main thread running forever
             forever $ threadDelay 10000000
 
