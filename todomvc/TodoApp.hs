@@ -37,6 +37,8 @@ import           Data.Time       (UTCTime)
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
 
+import           Text.Show.Pretty (ppShow)
+
 
 ------------------------------------------------------------------------------
 -- Generic blaze-vdom application types and functions (TO BE MOVED)
@@ -86,7 +88,7 @@ type EditFocus = Maybe (Int, T.Text)
 data TodoState = TodoState
     { _tsEditFocus :: !EditFocus
     , _tsItems     :: !TodoItems
-    }
+    } deriving Show
 
 
 -- lenses
@@ -401,13 +403,14 @@ applyTMAction initialInternalState applyInternalAction action state =
             over tmsInternalState (applyInternalAction action') $
             state'
 
-renderTM :: Show a => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
+renderTM :: (Show a, Show s) => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
 renderTM renderInternal state = do
     H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
       H.div H.! A.class_ "tm-button" H.! H.onEvent TogglePauseAppEH $
         if (_tmsPaused state) then "Resume app" else "Pause app"
       renderHistoryBrowser
+      renderAppStateBrowser
     H.div H.! A.class_ "tm-internal-app" $
       H.mapEventHandlers InternalEH $ renderInternal (view tmsInternalState state)
   where
@@ -422,6 +425,12 @@ renderTM renderInternal state = do
           H.li H.! H.onEvent (ActionHistoryItemEH idx)
                H.!? (idx == view tmsActiveAction state, A.class_ "tm-active")
                $ H.toHtml action
+
+    renderAppStateBrowser = do
+      H.h2 "Application state"
+      H.div H.! A.class_ "tm-app-state-browser" $
+        H.toHtml $ ppShow $ view tmsInternalState state
+
 
 handleTMEvent
     :: (UTCTime -> DOMEvent -> eh -> Maybe a)
@@ -444,7 +453,7 @@ initialTMState internalState = TMState
     }
 
 withTimeMachine
-    :: Show a => App s a eh
+    :: (Show a, Show s) => App s a eh
     -> App (TMState s a) (TMAction a) (TMEventHandler eh)
 withTimeMachine internalApp = App
     { appInitialState = initialTMState (appInitialState internalApp)

@@ -49,7 +49,7 @@ library
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
 
-                       Text.Blaze.Internal 
+                       Text.Blaze.Internal
 
   build-depends:       base >=4.7 && <4.8,
                        ghcjs-ffiqq,
@@ -79,5 +79,6 @@ executable todomvc
                   text,
                   lens,
                   time,
-                  safe
+                  safe,
+                  pretty-show
   ghcjs-Options:  -O -Wall
