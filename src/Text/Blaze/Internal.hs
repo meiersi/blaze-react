@@ -26,6 +26,7 @@ module Text.Blaze.Internal
     , customParent
     , customLeaf
     , attribute
+    , boolAttribute
     , dataAttribute
     , customAttribute
     , onEvent
@@ -156,6 +157,8 @@ data MarkupM ev a
       -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
       -- receive the attribute.
     | AddAttribute StaticString StaticString ChoiceString (MarkupM ev a)
+      -- | Add a boolean attribute.
+    | AddBoolAttribute StaticString Bool (MarkupM ev a)
       -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM ev a)
       -- | Empty HTML.
@@ -242,6 +245,9 @@ attribute :: Tag             -- ^ Raw key
 attribute rawKey key value = Attribute $
     AddAttribute (unTag rawKey) (unTag key) (unAttributeValue value)
 {-# INLINE attribute #-}
+
+boolAttribute :: Tag -> Bool -> Attribute ev
+boolAttribute rawKey value = Attribute $ AddBoolAttribute (unTag rawKey) value
 
 -- | From HTML 5 onwards, the user is able to specify custom data attributes.
 --
@@ -479,6 +485,7 @@ external (Append x y) = Append (external x) (external y)
 external (Parent x y z i) = Parent x y z $ external i
 external (CustomParent x i) = CustomParent x $ external i
 external (AddAttribute x y z i) = AddAttribute x y z $ external i
+external (AddBoolAttribute x y i) = AddBoolAttribute x y $ external i
 external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
 external x = x
 {-# INLINABLE external #-}
@@ -501,6 +508,7 @@ contents (CustomParent _ c)         = contents c
 contents (Content c)                = Content c
 contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
+contents (AddBoolAttribute _ _ c)   = contents c
 contents (AddCustomAttribute _ _ c) = contents c
 contents _                          = Empty
 
@@ -517,6 +525,7 @@ null markup = case markup of
     Content c                -> emptyChoiceString c
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
+    AddBoolAttribute _ _ c   -> null c
     AddCustomAttribute _ _ c -> null c
     Empty                    -> True
   where

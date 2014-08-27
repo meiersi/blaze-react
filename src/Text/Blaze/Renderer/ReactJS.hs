@@ -118,6 +118,9 @@ render showEv0 markup = do
         AddAttribute key _preparedKey value h -> do
             setProperty (staticStringToJs key) (choiceStringToJs value) h
 
+        AddBoolAttribute key value h -> do
+            setProperty (staticStringToJs key) (Foreign.toJSBool value) h
+
         -- FIXME (SM): This is not going to work in all cases, as 'attributes'
         -- must be set differently from properties.
         AddCustomAttribute key value h ->
@@ -131,7 +134,7 @@ render showEv0 markup = do
         choiceStringToJs cs = Foreign.toJSString (fromChoiceString cs "")
         staticStringToJs ss = Foreign.toJSString (getText ss)
 
-        setProperty :: JSString -> JSString -> MarkupM ev b -> IO ()
+        setProperty :: JSString -> JSRef a -> MarkupM ev b -> IO ()
         setProperty key value content =
             go showEv setProps' children content
           where

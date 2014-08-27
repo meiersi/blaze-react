@@ -85,6 +85,10 @@ renderString =
             let attrs' = getString key . fromChoiceString value
                        . ('"' :) . attrs
             in go attrs' renderEv h
+        AddBoolAttribute key value h ->
+            let attrs' = (' ' :) . getString key . ("=\"" ++)
+                       . ((if value then "true" else "false") ++) .  ('"' :) .  attrs
+            in go attrs' renderEv h
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
                        . fromChoiceString value .  ('"' :) .  attrs
