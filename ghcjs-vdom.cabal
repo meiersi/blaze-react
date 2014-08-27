@@ -42,7 +42,7 @@ library
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
 
-                       Text.Blaze.Internal 
+                       Text.Blaze.Internal
 
   build-depends:       base >=4.7 && <4.8,
                        ghcjs-base,
@@ -72,6 +72,7 @@ executable todomvc
                   ghcjs-ffiqq,
                   ghcjs-prim,
                   lens,
+                  pretty-show,
                   safe,
                   text,
                   time

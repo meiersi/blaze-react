@@ -32,7 +32,10 @@ import           Safe                  (readMay)
 
 import           System.IO             (fixIO)
 
-import           TodoApp (App(..), DOMEvent(..), todoApp, TodoEventHandler(..))
+import           TodoApp
+                 ( App(..), DOMEvent(..), todoApp, TodoEventHandler(..)
+                 , TMEventHandler(..), withTimeMachine
+                 )
 
 import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
 
@@ -42,7 +45,27 @@ import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
 ------------------------------------------------------------------------------
 
 main :: IO ()
-main = runApp todoApp todoEventHandlerTypes
+main = runApp (withTimeMachine todoApp) (timeMachineEventHandlerTypes todoEventHandlerTypes)
+
+timeMachineEventHandlerTypes
+    :: (eh -> [ReactJS.EventType])
+    -> TMEventHandler eh
+    -> [ReactJS.EventType]
+timeMachineEventHandlerTypes innerType eh = case eh of
+    TogglePauseAppEH      -> [ReactJS.Click]
+    ActionHistoryItemEH _ -> [ReactJS.Click]
+    InternalEH eh'        -> innerType eh'
+
+
+todoEventHandlerTypes :: TodoEventHandler -> [ReactJS.EventType]
+todoEventHandlerTypes eh = case eh of
+    CreateItemEH     -> []
+    ToggleItemEH _   -> [ReactJS.Click]
+    DeleteItemEH _   -> [ReactJS.Click]
+    EditItemEH _     -> [ReactJS.DoubleClick]
+    EditInputEH      -> []
+    ToggleAllEH      -> [ReactJS.Click]
+    ClearCompletedEH -> [ReactJS.Click]
 
 
 ------------------------------------------------------------------------------
@@ -102,16 +125,6 @@ atAnimationFrame io = do
                              False
                              (Foreign.release cb >> io)
     requestAnimationFrame cb
-
-todoEventHandlerTypes :: TodoEventHandler -> [ReactJS.EventType]
-todoEventHandlerTypes eh = case eh of
-    CreateItemEH     -> []
-    ToggleItemEH _   -> [ReactJS.Click]
-    DeleteItemEH _   -> [ReactJS.Click]
-    EditItemEH _     -> [ReactJS.DoubleClick]
-    EditInputEH      -> []
-    ToggleAllEH      -> [ReactJS.Click]
-    ClearCompletedEH -> [ReactJS.Click]
 
 
 runApp

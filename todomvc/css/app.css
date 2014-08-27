@@ -14,5 +14,51 @@
  * Therefore this needs to be displayed normally by default.
  */
 #todo-list li .edit {
-  display: inline;
+    display: inline;
 }
+
+
+/******************************************************************************
+** Time Machine styles
+******************************************************************************/
+
+.tm-internal-app {
+    width: 75%
+}
+
+.tm-time-machine {
+    width:25%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: #333;
+    color: #999;
+}
+
+.tm-history-browser {
+    height: 55%;
+    overflow: scroll;
+}
+
+.tm-app-state-browser {
+  height: 15%;
+    overflow: scroll;
+}
+
+.tm-active {
+    font-weight: bold;
+}
+
+.tm-button {
+    border: 1px solid black;
+    background: white;
+    border-radius: 5px;
+    padding: 3px;
+    text-align: center;
+    width: 30%;
+}
+
+
