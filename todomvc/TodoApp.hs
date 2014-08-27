@@ -428,7 +428,7 @@ renderTM renderInternal state = do
 
     renderAppStateBrowser = do
       H.h2 "Application state"
-      H.div H.! A.class_ "tm-app-state-browser" $
+      H.div H.! A.class_ "tm-app-state-browser" $ H.pre $
         H.toHtml $ ppShow $ view tmsInternalState state
 
 
