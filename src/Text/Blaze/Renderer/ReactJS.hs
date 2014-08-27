@@ -6,7 +6,8 @@
 -- GHCJS.
 --
 module Text.Blaze.Renderer.ReactJS
-    ( renderHtml
+    ( ReactJSNode
+    , renderHtml
     ) where
 
 import Data.List (isInfixOf)
@@ -15,7 +16,7 @@ import qualified Data.ByteString.Char8 as SBC
 import qualified Data.Text             as T
 import qualified Data.ByteString       as S
 import qualified GHCJS.Foreign         as Foreign
-import           GHCJS.Types           (JSString)
+import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 
 import           Prelude               hiding (span)
 
@@ -82,31 +83,31 @@ fromChoiceString EmptyChoiceString = id
 render
     :: (ev -> JSString)          -- ^ Serialization of the event handlers.
     -> Markup ev                 -- ^ Markup to render
-    -> IO (VirtualDom.Children)  -- ^ Resulting Virtual DOM.
+    -> IO ReactJSNodes  -- ^ Resulting Virtual DOM.
 render showEv0 markup = do
-    children <- VirtualDom.newChildren
+    children <- Foreign.newArray
     go showEv0 (\_props -> return ()) children markup
     return children
   where
     go :: forall ev b.
           (ev -> JSString)
-       -> (JSObject () -> IO ())
+       -> (JSObject JSString -> IO ())
        -> (JSArray ReactJSNode)
        -> MarkupM ev b
        -> IO ()
     go showEv setProps children html0 = case html0 of
-        MapEvents _f h ->
+        MapEvents f h ->
             -- go (showEv . f) setProps children content
-            go showEv setProps children h
+            go (showEv . f) setProps children h
 
-        OnEvent ev h ->
+        OnEvent _ev h ->
             -- let setProps' props = do
             --        VirtualDom.setAttributes "data-on-blaze-event" (showEv ev) props
             --        setProps props
             -- in go showEv setProps' children content
             -- go showEv setProps children content
             -- setProperty "data-on-blaze-event" (showEv ev) h
-            go showEv setProps h
+            go showEv setProps children h
 
         Parent tag _open _close h -> tagToVNode (staticStringToJs tag) h
         CustomParent tag h        -> tagToVNode (choiceStringToJs tag) h
@@ -138,20 +139,20 @@ render showEv0 markup = do
                 Foreign.setProp key value props >> setProps props
 
         makePropertiesObject = do
-            props <- Foreign.newProps
+            props <- Foreign.newObj
             setProps props
             return props
 
         tagToVNode tag content = do
             props         <- makePropertiesObject
-            innerChildren <- VirtualDom.newChildren
+            innerChildren <- Foreign.newArray
             go showEv (\_props -> return ()) innerChildren content
-            node <- mkReactJSNode tag props innerChildren
-            VirtualDom.pushChild vnode children
+            node <- mkReactJSParent tag props innerChildren
+            Foreign.pushArray node children
 
         leafToVNode tag = do
             props <- makePropertiesObject
-            node  <- mkReactJSLeaf tag
+            node  <- mkReactJSLeaf tag props
             Foreign.pushArray node children
 
         textToVNode :: JSString -> IO ()
@@ -161,5 +162,5 @@ render showEv0 markup = do
 renderHtml :: Show ev => Markup ev -> IO (ReactJSNode)
 renderHtml html = do
     children <- render (Foreign.toJSString . show) html
-    props <- Foreign.newProps
-    return $! mkReactJSParent "div" props children
+    props <- Foreign.newObj
+    mkReactJSParent "div" props children

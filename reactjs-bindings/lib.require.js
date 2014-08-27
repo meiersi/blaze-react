@@ -24,24 +24,33 @@ function mkDomNode(tag, props, children) {
     'use strict';
 
     var mkTag = React.DOM[tag];
-    invariant
-      (!mkTag, 'Tried to construct unsupported ReactJS DOM node %s.', tag);
+    invariant(mkTag, 'Tried to construct unsupported ReactJS DOM node %s.', tag);
     return mkTag(props, children);
 }
 
-var AppComponent = React.createClass({
-        displayName: "GhcJSApp",
-        render: function() { return this.props.onRender(); }
+var GhcjsApp = React.createClass({
+        displayName: "GhcjsApp",
+        render:      function() {
+                         // FIXME (SM): Undo this resetting of this or report
+                         // this bug to GHCJS.
+                         //
+                         // Find a better way for a callback to return a
+                         // value.
+                         //
+                         var smuggler = {};
+                         this.props.onRender.apply(window, [smuggler]);
+                         return smuggler.node;
+                     }
     });
 
 function mountApp(domNode, renderCb) {
-    return { renderCb: renderCb,
+    return { onRender: renderCb,
              domNode : domNode
            };
 }
 
 function syncRedrawApp(app) {
-    React.renderComponent(AppComponent({onRender: renderCb}), app.domNode);
+    React.renderComponent(GhcjsApp({onRender: app.onRender}), app.domNode);
 }
 
 module.exports =

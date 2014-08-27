@@ -23,11 +23,13 @@
  */
 
 var invariant = function(condition, format, a, b, c, d, e, f) {
-  if (__DEV__) {
+  // TODO (SM): make this work as intended.
+  //
+  // if (__DEV__) {
     if (format === undefined) {
       throw new Error('invariant requires an error message argument');
     }
-  }
+  // }
 
   if (!condition) {
     var error;

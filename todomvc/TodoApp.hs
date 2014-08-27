@@ -269,9 +269,10 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
     isBeingEdited = Just itemIdx == fmap fst mbEditFocus
 
 checkbox :: Bool -> H.Html ev
-checkbox checked
-  | checked   = H.input H.! A.type_ "checkbox" H.! A.checked "true"
-  | otherwise = H.input H.! A.type_ "checkbox"
+checkbox checked =
+    H.input H.! A.type_ "checkbox"
+            H.! A.checked (if checked then "true" else "false")
+
 
 
 -- event handling

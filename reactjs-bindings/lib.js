@@ -24,11 +24,13 @@
  */
 
 var invariant = function(condition, format, a, b, c, d, e, f) {
-  if (__DEV__) {
+  // TODO (SM): make this work as intended.
+  //
+  // if (__DEV__) {
     if (format === undefined) {
       throw new Error('invariant requires an error message argument');
     }
-  }
+  // }
 
   if (!condition) {
     var error;
@@ -65,8 +67,8 @@ module.exports = invariant;
  */
 
 
-var isVirtualNode = require('react');
-var invariant     = require('./invariant');
+var React     = require('react');
+var invariant = require('./invariant');
 
 /**
  * Construct a new React.DOM node.
@@ -80,12 +82,40 @@ function mkDomNode(tag, props, children) {
     'use strict';
 
     var mkTag = React.DOM[tag];
-    invariant
-      (!mkTag, 'Tried to construct unsupported ReactJS DOM node %s.', tag);
+    invariant(mkTag, 'Tried to construct unsupported ReactJS DOM node %s.', tag);
     return mkTag(props, children);
 }
 
-module.exports = { mkDomNode:  mkDomNode };
+var GhcjsApp = React.createClass({
+        displayName: "GhcjsApp",
+        render:      function() {
+                         // FIXME (SM): Undo this resetting of this or report
+                         // this bug to GHCJS.
+                         //
+                         // Find a better way for a callback to return a
+                         // value.
+                         //
+                         var smuggler = {};
+                         this.props.onRender.apply(window, [smuggler]);
+                         return smuggler.node;
+                     }
+    });
+
+function mountApp(domNode, renderCb) {
+    return { onRender: renderCb,
+             domNode : domNode
+           };
+}
+
+function syncRedrawApp(app) {
+    React.renderComponent(GhcjsApp({onRender: app.onRender}), app.domNode);
+}
+
+module.exports =
+    { mkDomNode:     mkDomNode,
+      mountApp:      mountApp,
+      syncRedrawApp: syncRedrawApp
+    };
 
 // the global variable we're using in the bindings
 h$reactjs = module.exports;

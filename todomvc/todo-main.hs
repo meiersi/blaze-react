@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 {-
   virtual-dom bindings demo, rendering a large pixel grid with a bouncing red
@@ -16,16 +15,15 @@ import           Prelude hiding (div)
 import           Control.Applicative
 import           Control.Concurrent        (threadDelay)
 import           Control.Concurrent.MVar
-import           Control.Exception         (evaluate)
+import           Control.Exception         (evaluate, bracket)
 import           Control.Monad
 
 import           Data.Time             (getCurrentTime)
 
-import           GHCJS.Types           (JSRef, JSString)
+import           GHCJS.Types           (JSRef, JSString, JSFun, JSObject)
 import qualified GHCJS.Foreign         as Foreign
 import           GHCJS.Foreign.QQ      (js, js_)
 import qualified GHCJS.Prim            as Prim
-import qualified GHCJS.VDOM            as VirtualDom
 
 import           Safe                  (readMay)
 
@@ -33,7 +31,7 @@ import           System.IO             (fixIO)
 
 import           TodoApp (App(..), DOMEvent(..), todoApp)
 
-import qualified Text.Blaze.Renderer.VirtualDom       as Blaze.VirtualDom
+import qualified Text.Blaze.Renderer.ReactJS    as Blaze.ReactJS
 
 
 ------------------------------------------------------------------------------
@@ -48,13 +46,24 @@ main = runApp todoApp
 -- Generic 'runApp' function based on reactjs
 ------------------------------------------------------------------------------
 
+
+-- ISSUES:
+--   * 'this' in callbacks
+--   * how to return a value from a sync callback
+
+
 -- | A type-tag for an actual Browser DOM node.
 data DOMNode_
 data ReactJSApp_
 
 foreign import javascript unsafe
     "h$reactjs.mountApp($1, $2)"
-    mountReactApp :: JSRef DOMNode_ -> JSFun () -> IO ReactJSApp_
+    mountReactApp
+        :: JSRef DOMNode_                          -- ^ Browser DOM node
+        -> JSFun (JSObject Blaze.ReactJS.ReactJSNode -> IO ())
+           -- ^ render callback that stores the created nodes in the 'node'
+           -- property of the given object.
+        -> IO (JSRef ReactJSApp_)
 
 foreign import javascript unsafe
     "h$reactjs.syncRedrawApp($1)"
@@ -68,12 +77,15 @@ runApp (App initialState _apply renderAppState _handleEvent) = do
     [js_| document.body.appendChild(`root); |]
 
     -- create render callback for initialState
-    let mkRenderCb = do
-            Foreign.syncCallback Foreign.AlwaysRetain False $ do
-                ReactJS.renderHtml (renderAppState initialState)
+    let mkRenderCb :: IO (JSFun (JSObject Blaze.ReactJS.ReactJSNode -> IO ()))
+        mkRenderCb = do
+            Foreign.syncCallback1 Foreign.AlwaysRetain False $ \objRef -> do
+                node <- Blaze.ReactJS.renderHtml (renderAppState initialState)
+                Foreign.setProp ("node" :: JSString) node objRef
+
 
     -- mount and redraw app
-    bracket mkRenderCb Foreign.release $ \renderCb ->
+    bracket mkRenderCb Foreign.release $ \renderCb -> do
         app <- mountReactApp root renderCb
         syncRedrawApp app
 
