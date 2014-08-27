@@ -65,13 +65,14 @@ executable todomvc
   Default-Language: Haskell2010
   hs-source-dirs: todomvc
   Build-Depends:  base                >= 4    &&  < 5,
+                  containers,
+                  either,
                   ghcjs-vdom,
                   ghcjs-base,
                   ghcjs-ffiqq,
                   ghcjs-prim,
-                  containers,
-                  text,
                   lens,
-                  time,
-                  safe
+                  safe,
+                  text,
+                  time
   ghcjs-Options:  -O -Wall

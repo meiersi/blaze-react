@@ -13,6 +13,7 @@ module TodoApp
     , DOMEvent(..)
 
       -- * Our app
+    , TodoEventHandler(..)
     , todoApp
 
       -- * The time-machine App transformer

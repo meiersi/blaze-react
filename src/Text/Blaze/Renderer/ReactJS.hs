@@ -7,16 +7,21 @@
 --
 module Text.Blaze.Renderer.ReactJS
     ( ReactJSNode
+    , ReactJSEvent
+    , EventType(..)
     , renderHtml
     ) where
 
-import Data.List (isInfixOf)
+
+import           Control.Monad         (forM_)
 
 import qualified Data.ByteString.Char8 as SBC
+import           Data.List             (isInfixOf)
 import qualified Data.Text             as T
 import qualified Data.ByteString       as S
+
 import qualified GHCJS.Foreign         as Foreign
-import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
+import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject, JSFun)
 
 import           Prelude               hiding (span)
 
@@ -27,10 +32,17 @@ import           Text.Blaze.Internal
 -- FFI to ReactJS
 ------------------------------------------------------------------------------
 
+data ReactJSEvent_
+type ReactJSEvent = JSRef ReactJSEvent_
+
 data ReactJSNode_
 type ReactJSNode = JSRef ReactJSNode_
 
 type ReactJSNodes = JSArray ReactJSNode
+
+data EventType
+    = Click
+    | DoubleClick
 
 foreign import javascript unsafe
     "h$reactjs.mkDomNode($1, $2, $3)"
@@ -81,33 +93,41 @@ fromChoiceString EmptyChoiceString = id
 -- This function is morally pure.
 --
 render
-    :: (ev -> JSString)          -- ^ Serialization of the event handlers.
-    -> Markup ev                 -- ^ Markup to render
+    :: JSFun (ReactJSEvent -> IO ())
+       -- ^ The one event handler callback to use when registering events.
+    -> (ev -> (JSString, [EventType]))
+       -- ^ Serialization of the event markers together with the list of
+       -- events that they should register for.
+    -> Markup ev        -- ^ Markup to render
     -> IO ReactJSNodes  -- ^ Resulting Virtual DOM.
-render showEv0 markup = do
+render eventHandlerCb processEv0 markup = do
     children <- Foreign.newArray
-    go showEv0 (\_props -> return ()) children markup
+    go processEv0 (\_props -> return ()) children markup
     return children
   where
     go :: forall ev b.
-          (ev -> JSString)
+          (ev -> (JSString, [EventType]))
        -> (JSObject JSString -> IO ())
        -> (JSArray ReactJSNode)
        -> MarkupM ev b
        -> IO ()
-    go showEv setProps children html0 = case html0 of
+    go processEv setProps children html0 = case html0 of
         MapEvents f h ->
-            -- go (showEv . f) setProps children content
-            go (showEv . f) setProps children h
+            go (processEv . f) setProps children h
 
-        OnEvent _ev h ->
-            -- let setProps' props = do
-            --        VirtualDom.setAttributes "data-on-blaze-event" (showEv ev) props
-            --        setProps props
-            -- in go showEv setProps' children content
-            -- go showEv setProps children content
-            -- setProperty "data-on-blaze-event" (showEv ev) h
-            go showEv setProps children h
+        OnEvent ev h -> case processEv ev of
+          (_,      []        ) -> go processEv setProps children h
+          (marker, eventTypes) -> do
+            let setProps' props = do
+                    Foreign.setProp ("data-blaze-id" :: JSString) marker props
+                    forM_ eventTypes $ \eventType -> do
+                        let event = case eventType of
+                              Click       -> "onClick" :: JSString
+                              DoubleClick -> "onDoubleClick"
+
+                        Foreign.setProp event eventHandlerCb props
+
+            go processEv setProps' children h
 
         Parent tag _open _close h -> tagToVNode (staticStringToJs tag) h
         CustomParent tag h        -> tagToVNode (choiceStringToJs tag) h
@@ -128,15 +148,15 @@ render showEv0 markup = do
 
         Empty           -> return ()
         Append h1 h2    -> do
-            go showEv setProps children h1
-            go showEv setProps children h2
+            go processEv setProps children h1
+            go processEv setProps children h2
       where
         choiceStringToJs cs = Foreign.toJSString (fromChoiceString cs "")
         staticStringToJs ss = Foreign.toJSString (getText ss)
 
         setProperty :: JSString -> JSRef a -> MarkupM ev b -> IO ()
         setProperty key value content =
-            go showEv setProps' children content
+            go processEv setProps' children content
           where
             setProps' props =
                 Foreign.setProp key value props >> setProps props
@@ -149,7 +169,7 @@ render showEv0 markup = do
         tagToVNode tag content = do
             props         <- makePropertiesObject
             innerChildren <- Foreign.newArray
-            go showEv (\_props -> return ()) innerChildren content
+            go processEv (\_props -> return ()) innerChildren content
             node <- mkReactJSParent tag props innerChildren
             Foreign.pushArray node children
 
@@ -162,8 +182,15 @@ render showEv0 markup = do
         textToVNode jsText = Foreign.pushArray jsText children
 
 
-renderHtml :: Show ev => Markup ev -> IO (ReactJSNode)
-renderHtml html = do
-    children <- render (Foreign.toJSString . show) html
+renderHtml
+    :: Show ev
+    => JSFun (ReactJSEvent -> IO ())
+    -> (ev -> [EventType])
+    -> Markup ev
+    -> IO (ReactJSNode)
+renderHtml eventHandlerCb toEventTypes html = do
+    children <- render eventHandlerCb processEv html
     props <- Foreign.newObj
     mkReactJSParent "div" props children
+  where
+    processEv ev = (Foreign.toJSString (show ev), toEventTypes ev)

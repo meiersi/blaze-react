@@ -14,11 +14,14 @@ import           Prelude hiding (div)
 
 import           Control.Applicative
 import           Control.Concurrent        (threadDelay)
-import           Control.Concurrent.MVar
-import           Control.Exception         (evaluate, bracket)
+import           Control.Exception         (bracket)
 import           Control.Monad
 
+import           Data.IORef
+import           Data.Maybe            (fromMaybe)
+import           Data.Monoid           ((<>))
 import           Data.Time             (getCurrentTime)
+import qualified Data.Text             as T
 
 import           GHCJS.Types           (JSRef, JSString, JSFun, JSObject)
 import qualified GHCJS.Foreign         as Foreign
@@ -29,9 +32,9 @@ import           Safe                  (readMay)
 
 import           System.IO             (fixIO)
 
-import           TodoApp (App(..), DOMEvent(..), todoApp)
+import           TodoApp (App(..), DOMEvent(..), todoApp, TodoEventHandler(..))
 
-import qualified Text.Blaze.Renderer.ReactJS    as Blaze.ReactJS
+import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
 
 
 ------------------------------------------------------------------------------
@@ -39,7 +42,7 @@ import qualified Text.Blaze.Renderer.ReactJS    as Blaze.ReactJS
 ------------------------------------------------------------------------------
 
 main :: IO ()
-main = runApp todoApp
+main = runApp todoApp todoEventHandlerTypes
 
 
 ------------------------------------------------------------------------------
@@ -60,7 +63,7 @@ foreign import javascript unsafe
     "h$reactjs.mountApp($1, $2)"
     mountReactApp
         :: JSRef DOMNode_                          -- ^ Browser DOM node
-        -> JSFun (JSObject Blaze.ReactJS.ReactJSNode -> IO ())
+        -> JSFun (JSObject ReactJS.ReactJSNode -> IO ())
            -- ^ render callback that stores the created nodes in the 'node'
            -- property of the given object.
         -> IO (JSRef ReactJSApp_)
@@ -69,34 +72,132 @@ foreign import javascript unsafe
     "h$reactjs.syncRedrawApp($1)"
     syncRedrawApp :: JSRef ReactJSApp_ -> IO ()
 
+foreign import javascript unsafe
+    "$1.preventDefault()"
+    preventDefault :: ReactJS.ReactJSEvent -> IO ()
 
-runApp :: (Show eh, Read eh, Show act) => App st act eh -> IO ()
-runApp (App initialState _apply renderAppState _handleEvent) = do
-    -- create root element in body for the app
-    root <- [js| document.createElement('div') |]
-    [js_| document.body.appendChild(`root); |]
+foreign import javascript unsafe
+    "$1.stopPropagation()"
+    stopPropagation :: ReactJS.ReactJSEvent -> IO ()
 
-    -- create render callback for initialState
-    let mkRenderCb :: IO (JSFun (JSObject Blaze.ReactJS.ReactJSNode -> IO ()))
-        mkRenderCb = do
-            Foreign.syncCallback1 Foreign.AlwaysRetain False $ \objRef -> do
-                node <- Blaze.ReactJS.renderHtml (renderAppState initialState)
-                Foreign.setProp ("node" :: JSString) node objRef
+foreign import javascript unsafe
+  "$1.currentTarget.getAttribute(\"data-blaze-id\")"
+  rawLookupBlazeId :: ReactJS.ReactJSEvent -> IO JSString
 
+lookupBlazeId :: ReactJS.ReactJSEvent -> IO (Maybe String)
+lookupBlazeId eventRef = do
+    mbNameRef <- rawLookupBlazeId eventRef
+    return $ if Prim.isNull mbNameRef
+               then Nothing
+               else Just (Prim.fromJSString mbNameRef)
 
-    -- mount and redraw app
-    bracket mkRenderCb Foreign.release $ \renderCb -> do
-        app <- mountReactApp root renderCb
-        syncRedrawApp app
+foreign import javascript unsafe
+    "window.requestAnimationFrame($1)"
+    requestAnimationFrame :: JSFun (IO ()) -> IO ()
 
-{-
 atAnimationFrame :: IO () -> IO ()
 atAnimationFrame io = do
     cb <- fixIO $ \cb ->
         Foreign.syncCallback Foreign.AlwaysRetain
                              False
                              (Foreign.release cb >> io)
-    [js_| window.requestAnimationFrame(`cb); |]
+    requestAnimationFrame cb
+
+todoEventHandlerTypes :: TodoEventHandler -> [ReactJS.EventType]
+todoEventHandlerTypes eh = case eh of
+    CreateItemEH     -> []
+    ToggleItemEH _   -> [ReactJS.Click]
+    DeleteItemEH _   -> [ReactJS.Click]
+    EditItemEH _     -> [ReactJS.DoubleClick]
+    EditInputEH      -> []
+    ToggleAllEH      -> [ReactJS.Click]
+    ClearCompletedEH -> [ReactJS.Click]
+
+
+runApp
+    :: (Show eh, Read eh, Show act)
+    => App st act eh
+    -> (eh -> [ReactJS.EventType])
+    -> IO ()
+runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
+    -- create root element in body for the app
+    root <- [js| document.createElement('div') |]
+    [js_| document.body.appendChild(`root); |]
+
+    -- state variables
+    stateVar           <- newIORef initialState  -- The state of the app
+    redrawScheduledVar <- newIORef False         -- True if a redraw was scheduled
+    rerenderVar        <- newIORef Nothing       -- IO function to actually render the DOM
+
+    -- rerendering
+    let scheduleRedraw = do
+            -- FIXME (meiersi): there might be race conditions
+            redrawScheduled <- readIORef redrawScheduledVar
+            unless redrawScheduled $ do
+                writeIORef redrawScheduledVar True
+                atAnimationFrame $ do
+                    writeIORef redrawScheduledVar False
+                    join $ fromMaybe (return ()) <$> readIORef rerenderVar
+
+    -- create event handler callback
+    let mkEventHandlerCb :: IO (JSFun (ReactJS.ReactJSEvent -> IO ()))
+        mkEventHandlerCb = Foreign.syncCallback1 Foreign.AlwaysRetain False $ \eventRef -> do
+            -- prevent default action and cancel propagation
+            preventDefault eventRef
+            stopPropagation eventRef
+
+            -- extract necessary context
+            mbType    <- Foreign.getPropMaybe ("type" :: JSString) eventRef
+            mbBlazeId <- lookupBlazeId eventRef
+            t         <- getCurrentTime
+
+            let errOrMbAction = do
+                    domEvent <- case Foreign.fromJSString <$> mbType of
+                      Nothing         -> Left "no event type"
+                      Just "click"    -> return OnClick
+                      Just "dblclick" -> return OnDoubleClick
+                      Just otherType       ->
+                        Left $ "unhandled event-type '" <> otherType <> "'."
+                    blazeIdStr <- maybe (Left "data-blaze-id attribute missing") return mbBlazeId
+                    blazeId    <- maybe (Left "failed to parse blaze-id") return (readMay blazeIdStr)
+                    -- TODO (meiersi): use time from event object
+                    return ((t, domEvent, blazeId), handleEvent t domEvent blazeId)
+
+            case errOrMbAction of
+              Left err ->
+                  putStrLn $ "runApp - event handling error: " ++ T.unpack err
+              Right (eventInfo, Nothing) ->
+                  putStrLn $ "runApp - event rejected: " ++ show eventInfo
+              Right (eventInfo, Just action) -> do
+                  putStrLn $ "runApp - handling: " ++ show eventInfo ++ " ==> " ++ show action
+                  atomicModifyIORef' stateVar (\state -> (apply action state, ()))
+                  scheduleRedraw
+
+
+    -- create render callback for initialState
+    let mkRenderCb
+            :: JSFun (ReactJS.ReactJSEvent -> IO ())
+            -> IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
+        mkRenderCb eventHandlerCb = do
+            Foreign.syncCallback1 Foreign.AlwaysRetain False $ \objRef -> do
+                state <- readIORef stateVar
+                node <- ReactJS.renderHtml eventHandlerCb toEventTypes (renderAppState state)
+                Foreign.setProp ("node" :: JSString) node objRef
+
+
+
+    -- mount and redraw app
+    bracket mkEventHandlerCb Foreign.release $ \eventHandlerCb ->
+        bracket (mkRenderCb eventHandlerCb) Foreign.release $ \renderCb -> do
+            app <- mountReactApp root renderCb
+            -- manually tie the knot between the event handlers
+            writeIORef rerenderVar (Just (syncRedrawApp app))
+            -- start the first drawing
+            scheduleRedraw
+            -- keep main thread running forever
+            forever $ threadDelay 10000000
+
+{-
 
 lookupEventHandlerName :: JSRef () -> IO (Maybe String)
 lookupEventHandlerName eventRef = do
