@@ -72,6 +72,7 @@ executable todomvc
                   ghcjs-ffiqq,
                   ghcjs-prim,
                   lens,
+                  mtl,
                   pretty-show,
                   safe,
                   text,

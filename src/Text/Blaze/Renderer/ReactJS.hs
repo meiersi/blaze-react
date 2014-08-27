@@ -43,6 +43,9 @@ type ReactJSNodes = JSArray ReactJSNode
 data EventType
     = Click
     | DoubleClick
+    | Blur
+    | KeyDown
+    | Change
 
 foreign import javascript unsafe
     "h$reactjs.mkDomNode($1, $2, $3)"
@@ -124,6 +127,9 @@ render eventHandlerCb processEv0 markup = do
                         let event = case eventType of
                               Click       -> "onClick" :: JSString
                               DoubleClick -> "onDoubleClick"
+                              Blur        -> "onBlur"
+                              KeyDown     -> "onKeyDown"
+                              Change      -> "onChange"
 
                         Foreign.setProp event eventHandlerCb props
                     setProps props

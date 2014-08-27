@@ -47,8 +47,8 @@ data DOMEvent
     | OnDoubleClick
     | OnTextInputChange !T.Text
       -- ^ A text value was changed to the given new value.
-    | OnTextInputBlur !T.Text
-      -- ^ A text input-field lost focus and it's value was the given text.
+    | OnBlur
+      -- ^ An input element loses focus.
     deriving (Show)
 
 -- FIXME (AS): I think 'eventHandler' is a misnomer, because it's not like
@@ -81,8 +81,9 @@ type EditFocus = Maybe (Int, T.Text)
 
 -- | The state of our todo list editing app.
 data TodoState = TodoState
-    { _tsEditFocus :: !EditFocus
-    , _tsItems     :: !TodoItems
+    { _tsNewItemDesc :: !T.Text
+    , _tsEditFocus   :: !EditFocus
+    , _tsItems       :: !TodoItems
     } deriving Show
 
 
@@ -111,8 +112,7 @@ allItemsDone = andOf (traverse . tdDone)
 -- | Serializable representations of state transitions possible for a list of
 -- todo items.
 data TodoItemsAction
-    = CreateItemA T.Text
-    | ToggleItemA Int
+    = ToggleItemA Int
     | DeleteItemA Int
     | ToggleAllItemsA
       -- ^ If there is one item that is not completed, then set all items to
@@ -125,6 +125,8 @@ data TodoItemsAction
 -- item management app.
 data TodoAction
     = TodoItemsActionA TodoItemsAction
+    | CreateItemA
+    | UpdateNewItemDescA T.Text
     | EditItemA Int
     | UpdateEditTextA T.Text
     | CommitAndStopEditingA
@@ -136,7 +138,6 @@ data TodoAction
 
 applyTodoItemsAction :: TodoItemsAction -> [TodoItem] -> [TodoItem]
 applyTodoItemsAction action items = case action of
-    CreateItemA desc    -> TodoItem False desc : items
     ToggleItemA itemIdx -> over (ix itemIdx . tdDone) not items
     DeleteItemA itemIdx -> map snd $ filter ((itemIdx /=) . fst) $ zip [0..] items
     ToggleAllItemsA     -> set (traverse . tdDone) (not (allItemsDone items)) items
@@ -164,6 +165,13 @@ applyTodoAction action st = case action of
 
     UpdateEditTextA newText -> set (tsEditFocus . _Just . _2) newText st
 
+    CreateItemA
+        | T.null (view tsNewItemDesc st) -> st
+        | otherwise                      ->
+              over tsItems (TodoItem False (view tsNewItemDesc st) :)
+            $ set tsNewItemDesc "" st
+    UpdateNewItemDescA newText -> set tsNewItemDesc newText st
+
 
 ------------------------------------------------------------------------------
 -- Rendering
@@ -184,7 +192,7 @@ data TodoEventHandler
 
 
 renderTodoState :: TodoState -> H.Html TodoEventHandler
-renderTodoState (TodoState mbEditFocus items) = do
+renderTodoState (TodoState newItemDesc mbEditFocus items) = do
     -- app
     H.section H.! A.id "todoapp" $
       H.div $ do
@@ -193,7 +201,8 @@ renderTodoState (TodoState mbEditFocus items) = do
           H.h1 "todos"
           H.input H.! A.id "new-todo"
                   H.! A.placeholder "What needs to be done?"
-                  H.! A.value mempty
+                  H.! A.autofocus True
+                  H.! A.value (H.toValue newItemDesc)
                   H.! H.onEvent CreateItemEH
 
         -- items
@@ -256,6 +265,7 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
                | focusIdx == itemIdx ->
                    H.input H.! A.class_ "edit"
                            H.! A.value (H.toValue focusText)
+                           H.! A.autofocus True
                            H.! H.onEvent EditInputEH
                | otherwise -> mempty
            Nothing         -> mempty
@@ -278,8 +288,11 @@ checkbox checked = H.input H.! A.type_ "checkbox" H.! A.checked checked
 handleTodoEvent :: UTCTime -> DOMEvent -> TodoEventHandler -> Maybe TodoAction
 handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
     CreateItemEH -> do
-        OnTextInputBlur newDesc <- domEvent
-        return $ TodoItemsActionA (CreateItemA newDesc)
+        do OnBlur <- domEvent
+           return $ CreateItemA
+        <|>
+        do OnTextInputChange newText <- domEvent
+           return $ UpdateNewItemDescA newText
 
     ToggleItemEH itemIdx -> do
         OnClick <- domEvent
@@ -294,7 +307,7 @@ handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
         return $ EditItemA itemIdx
 
     EditInputEH ->
-        do OnTextInputBlur _ <- domEvent
+        do OnBlur <- domEvent
            return $ CommitAndStopEditingA
         <|>
         do OnTextInputChange newText <- domEvent
@@ -347,5 +360,5 @@ todoApp = App
     items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
 
     q0 :: TodoState
-    q0 = TodoState Nothing (items ++ items)
+    q0 = TodoState "" Nothing (items ++ items)
 

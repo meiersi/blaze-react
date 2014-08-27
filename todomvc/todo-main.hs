@@ -16,6 +16,8 @@ import           Control.Applicative
 import           Control.Concurrent        (threadDelay)
 import           Control.Exception         (bracket)
 import           Control.Monad
+import           Control.Monad.Trans        (lift)
+import           Control.Monad.Trans.Either (runEitherT, EitherT(..), left)
 
 import           Data.IORef
 import           Data.Maybe            (fromMaybe)
@@ -57,11 +59,11 @@ timeMachineEventHandlerTypes innerType eh = case eh of
 
 todoEventHandlerTypes :: TodoEventHandler -> [ReactJS.EventType]
 todoEventHandlerTypes eh = case eh of
-    CreateItemEH     -> []
+    CreateItemEH     -> [ReactJS.Change, ReactJS.Blur]
     ToggleItemEH _   -> [ReactJS.Click]
     DeleteItemEH _   -> [ReactJS.Click]
     EditItemEH _     -> [ReactJS.DoubleClick]
-    EditInputEH      -> []
+    EditInputEH      -> [ReactJS.Change, ReactJS.Blur]
     ToggleAllEH      -> [ReactJS.Click]
     ClearCompletedEH -> [ReactJS.Click]
 
@@ -110,7 +112,7 @@ lookupBlazeId eventRef = do
     mbNameRef <- rawLookupBlazeId eventRef
     return $ if Prim.isNull mbNameRef
                then Nothing
-               else Just (Prim.fromJSString mbNameRef)
+               else Just (Foreign.fromJSString mbNameRef)
 
 foreign import javascript unsafe
     "window.requestAnimationFrame($1)"
@@ -124,6 +126,12 @@ atAnimationFrame io = do
                              (Foreign.release cb >> io)
     requestAnimationFrame cb
 
+tryGetProp :: JSString -> JSRef a -> EitherT T.Text IO (JSRef b)
+tryGetProp name obj = do
+    mbProp <- lift $ Foreign.getPropMaybe name obj
+    maybe (left err) return mbProp
+  where
+    err = "failed to get property '" <> Foreign.fromJSString name <> "'."
 
 runApp
     :: (Show eh, Read eh, Show act)
@@ -162,17 +170,22 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
             mbBlazeId <- lookupBlazeId eventRef
             t         <- getCurrentTime
 
-            let errOrMbAction = do
-                    domEvent <- case Foreign.fromJSString <$> mbType of
-                      Nothing         -> Left "no event type"
-                      Just "click"    -> return OnClick
-                      Just "dblclick" -> return OnDoubleClick
-                      Just otherType       ->
-                        Left $ "unhandled event-type '" <> otherType <> "'."
-                    blazeIdStr <- maybe (Left "data-blaze-id attribute missing") return mbBlazeId
-                    blazeId    <- maybe (Left "failed to parse blaze-id") return (readMay blazeIdStr)
-                    -- TODO (meiersi): use time from event object
-                    return ((t, domEvent, blazeId), handleEvent t domEvent blazeId)
+            errOrMbAction <- runEitherT $ do
+                domEvent <- case Foreign.fromJSString <$> mbType of
+                  Nothing         -> left "no event type"
+                  Just "click"    -> return OnClick
+                  Just "dblclick" -> return OnDoubleClick
+                  Just "blur"     -> return OnBlur
+                  Just "input"    -> do
+                      targetRef <- tryGetProp "target" eventRef
+                      valueRef  <- tryGetProp "value" targetRef
+                      return $ OnTextInputChange (Foreign.fromJSString valueRef)
+                  Just otherType       ->
+                    left $ "unhandled event-type '" <> otherType <> "'."
+                blazeIdStr <- maybe (left "data-blaze-id attribute missing") return mbBlazeId
+                blazeId    <- maybe (left "failed to parse blaze-id") return (readMay blazeIdStr)
+                -- TODO (meiersi): use time from event object
+                return ((t, domEvent, blazeId), handleEvent t domEvent blazeId)
 
             case errOrMbAction of
               Left err ->
