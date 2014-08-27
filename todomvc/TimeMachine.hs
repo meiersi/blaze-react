@@ -111,7 +111,7 @@ handleTMEvent handleInternalEvent utcTime domEvent handler =
     case (handler, domEvent) of
       (TogglePauseAppEH, OnClick) -> Just TogglePauseAppA
       (TogglePauseAppEH, _      ) -> Nothing
-      (ActionHistoryItemEH idx, OnClick) -> Just $ RevertAppHistoryA idx
+      (ActionHistoryItemEH idx, OnMouseOver) -> Just $ RevertAppHistoryA idx
       (ActionHistoryItemEH _, _        ) -> Nothing
       (InternalEH handler', _) ->
         InternalA <$> handleInternalEvent utcTime domEvent handler'

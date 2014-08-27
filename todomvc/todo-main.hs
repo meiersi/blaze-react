@@ -53,7 +53,7 @@ timeMachineEventHandlerTypes
     -> [ReactJS.EventType]
 timeMachineEventHandlerTypes innerType eh = case eh of
     TogglePauseAppEH      -> [ReactJS.Click]
-    ActionHistoryItemEH _ -> [ReactJS.Click]
+    ActionHistoryItemEH _ -> [ReactJS.MouseOver]
     InternalEH eh'        -> innerType eh'
 
 
