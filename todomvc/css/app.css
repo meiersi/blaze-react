@@ -39,17 +39,17 @@
 }
 
 .tm-history-browser {
-    height: 55%;
+    height: 45%;
     overflow: scroll;
 }
 
 .tm-app-state-browser {
-  height: 15%;
+  height: 30%;
     overflow: scroll;
 }
 
-.tm-active {
-    font-weight: bold;
+.tm-active-item {
+    color: #eee;
 }
 
 .tm-button {

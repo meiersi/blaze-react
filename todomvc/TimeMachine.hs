@@ -95,7 +95,7 @@ renderTM renderInternal state = do
       H.div H.! A.class_ "tm-history-browser" $ do
         H.ol $ forM_ actionsWithIndices $ \(idx, action) ->
           H.li H.! H.onEvent (ActionHistoryItemEH idx)
-               H.!? (idx == view tmsActiveAction state, A.class_ "tm-active")
+               H.!? (idx == view tmsActiveAction state, A.class_ "tm-active-item")
                $ H.toHtml action
 
     renderAppStateBrowser = do
