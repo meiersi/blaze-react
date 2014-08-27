@@ -38,14 +38,12 @@ flag build-example
   manual: True
 
 library
-  js-sources: jsbits/utils.js
-              jsbits/vdom.js
-              virtual-dom/lib.js
+  js-sources: jsbits/reactjs-global.js
+              reactjs-bindings/lib.js
   ghcjs-options: -O -Wall
-  exposed-modules:     GHCJS.VDOM
-                       Text.Blaze
+  exposed-modules:     Text.Blaze
                        Text.Blaze.Renderer.String
-                       Text.Blaze.Renderer.VirtualDom
+                       Text.Blaze.Renderer.ReactJS
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
 

@@ -45,9 +45,39 @@ main = runApp todoApp
 
 
 ------------------------------------------------------------------------------
--- Generic 'runApp' function based on virtual-dom
+-- Generic 'runApp' function based on reactjs
 ------------------------------------------------------------------------------
 
+-- | A type-tag for an actual Browser DOM node.
+data DOMNode_
+data ReactJSApp_
+
+foreign import javascript unsafe
+    "h$reactjs.mountApp($1, $2)"
+    mountReactApp :: JSRef DOMNode_ -> JSFun () -> IO ReactJSApp_
+
+foreign import javascript unsafe
+    "h$reactjs.syncRedrawApp($1)"
+    syncRedrawApp :: JSRef ReactJSApp_ -> IO ()
+
+
+runApp :: (Show eh, Read eh, Show act) => App st act eh -> IO ()
+runApp (App initialState _apply renderAppState _handleEvent) = do
+    -- create root element in body for the app
+    root <- [js| document.createElement('div') |]
+    [js_| document.body.appendChild(`root); |]
+
+    -- create render callback for initialState
+    let mkRenderCb = do
+            Foreign.syncCallback Foreign.AlwaysRetain False $ do
+                ReactJS.renderHtml (renderAppState initialState)
+
+    -- mount and redraw app
+    bracket mkRenderCb Foreign.release $ \renderCb ->
+        app <- mountReactApp root renderCb
+        syncRedrawApp app
+
+{-
 atAnimationFrame :: IO () -> IO ()
 atAnimationFrame io = do
     cb <- fixIO $ \cb ->
@@ -128,4 +158,4 @@ runApp (App initialState apply renderAppState handleEvent) = do
     -- ensure that the callbacks still work. This is suboptimal.
     forever $ threadDelay 10000000
 
-
+-}
