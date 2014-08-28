@@ -3,48 +3,47 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
+-- | A clock app which demonstrates the ability to spawn threads which
+-- transform the state when they return.
 module Blaze.React.Examples.Clock
-    ( clockApp
+    ( app
     ) where
 
 import           Prelude hiding (div)
 
-import           Blaze.React (App(..))
+import           Blaze.React        (App(..))
 
 import           Control.Applicative
 import           Control.Concurrent (threadDelay)
-import           Control.Lens    (makeLenses, set)
+import           Control.Lens       (makeLenses, set)
 
-import           Data.Monoid     ((<>))
-import           Data.Time       (UTCTime, getCurrentTime)
+import           Data.Monoid        ((<>))
+import           Data.Time          (UTCTime, getCurrentTime)
 
-import qualified Text.Blaze.Html5                     as H
+import qualified Text.Blaze.Html5   as H
 
 
 -------------------------------------------------------------------------------
--- Types
+-- State
 -------------------------------------------------------------------------------
 
 data ClockState = ClockState
     { _csTime :: !(Maybe UTCTime)
     } deriving Show
 
-data ClockAction = TickA UTCTime deriving Show
-data ClockEventHandler
-
-deriving instance Show ClockEventHandler
-deriving instance Read ClockEventHandler
-
 makeLenses ''ClockState
-
-
--------------------------------------------------------------------------------
--- Logic
--------------------------------------------------------------------------------
 
 renderClockState :: ClockState -> H.Html ClockAction
 renderClockState (ClockState (Just time)) = "The time is: " <> H.toHtml (show time)
 renderClockState (ClockState Nothing)     = "Loading..."
+
+-------------------------------------------------------------------------------
+-- Transitions
+-------------------------------------------------------------------------------
+
+data ClockAction
+    = TickA UTCTime
+    deriving Show
 
 applyClockAction :: ClockAction -> ClockState -> (ClockState, [IO ClockAction])
 applyClockAction action state = case action of
@@ -55,8 +54,12 @@ scheduleTick = do
   threadDelay 1000000
   TickA <$> getCurrentTime
 
-clockApp :: App ClockState ClockAction
-clockApp = App
+-------------------------------------------------------------------------------
+-- App
+-------------------------------------------------------------------------------
+
+app :: App ClockState ClockAction
+app = App
     { appInitialState    = ClockState { _csTime = Nothing }
     , appInitialRequests = [scheduleTick]
     , appApplyAction     = applyClockAction
