@@ -1,8 +1,12 @@
 
-.PHONY: build
+.PHONY: build dev-tools
+
+build: reactjs-bindings/lib.js
+	cabal build
 
 reactjs-bindings/lib.js: reactjs-bindings/lib.require.js
 	cd reactjs-bindings; grunt
 
-build: reactjs-bindings/lib.js
-	cabal build
+dev-tools:
+	cd reactjs-bindings; npm install
+
