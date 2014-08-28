@@ -10,16 +10,13 @@ module TodoApp
     (
       -- * Generic infrastructure (TODO (SM): Move)
       App(..)
-    , DOMEvent(..)
 
       -- * Our app
-    , TodoEventHandler(..)
     , todoApp
     ) where
 
 import           Prelude hiding (div)
 
-import           Control.Applicative
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
                  , to, _1, _2, _Just, sumOf, andOf
@@ -29,7 +26,6 @@ import           Control.Monad
 import           Data.Foldable   (foldMap)
 import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
-import           Data.Time       (UTCTime)
 
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
@@ -39,30 +35,11 @@ import qualified Text.Blaze.Html5.Attributes          as A
 -- Generic blaze-vdom application types and functions (TO BE MOVED)
 ------------------------------------------------------------------------------
 
--- | An incomplete list of 'DOMEvent's.
---
--- It has to be extended or revamped to satisfy more use-cases.
-data DOMEvent
-    = OnClick
-    | OnDoubleClick
-    | OnTextInputChange !T.Text
-      -- ^ A text value was changed to the given new value.
-    | OnBlur
-      -- ^ An input element loses focus.
-    | OnMouseOver
-    deriving (Show)
-
--- FIXME (AS): I think 'eventHandler' is a misnomer, because it's not like
--- objects of this type contain logic for handling events. These are more like
--- DOM markers.
-data App state action eventHandler = App
-    { appInitialState    :: state
+data App state action = App
+    { appInitialState :: state
     , appInitialRequests :: [IO action]
     , appApplyAction     :: action -> state -> (state, [IO action])
-    , appRender          :: state -> H.Html eventHandler
-    , appHandleEvent     :: UTCTime -> DOMEvent -> eventHandler -> Maybe action
-      -- ^ How to translate an event tagged with the time at which it occurred
-      -- to an action. No access to the application state on purpose.
+    , appRender       :: state -> H.Html action
     }
 
 
@@ -181,21 +158,7 @@ applyTodoAction action st = case action of
 -- Rendering
 ------------------------------------------------------------------------------
 
--- | Serializable references to event handlers.
-data TodoEventHandler
-    = CreateItemEH
-      -- ^ Raised on an input element whose text should be used to create a
-      -- new item at the front of the list.
-    | ToggleItemEH Int        -- ^ Toggle the @i@-th item
-    | DeleteItemEH Int        -- ^ Delete the @i@-th item
-    | EditItemEH Int          -- ^ Start editing @i@-th item.
-    | EditInputEH             -- ^ Handle an event from the edit input field.
-    | ToggleAllEH             -- ^
-    | ClearCompletedEH
-    deriving (Eq, Ord, Show, Read)
-
-
-renderTodoState :: TodoState -> H.Html TodoEventHandler
+renderTodoState :: TodoState -> H.Html TodoAction
 renderTodoState (TodoState newItemDesc mbEditFocus items) = do
     -- app
     H.section H.! A.id "todoapp" $
@@ -207,14 +170,15 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
                   H.! A.placeholder "What needs to be done?"
                   H.! A.autofocus True
                   H.! A.value (H.toValue newItemDesc)
-                  H.! H.onEvent CreateItemEH
+                  H.! H.onTextInputChange UpdateNewItemDescA
+                  H.! H.onBlur CreateItemA
 
         -- items
         unless (null items) $ do
             H.section H.! A.id "main" $ do
               checkbox (numTodo == 0)
                   H.! A.id "toggle-all"
-                  H.! H.onEvent ToggleAllEH
+                  H.! H.onClick (TodoItemsActionA ToggleAllItemsA)
               H.label H.! A.for "toggle-all" $ "Mark all as complete"
               H.ul H.! A.id "todo-list" $
                 foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
@@ -228,7 +192,7 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
               unless (numCompleted == 0) $
                 H.button
                     H.! A.id "clear-completed"
-                    H.! H.onEvent ClearCompletedEH
+                    H.! H.onClick (TodoItemsActionA ClearCompletedA)
                     $ "Clear completed (" <> H.toHtml numCompleted <> ")"
 
     -- app footer
@@ -250,27 +214,29 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
     numCompleted = length items - numTodo
 
 
-renderTodoItem :: EditFocus -> (Int, TodoItem) -> H.Html TodoEventHandler
+renderTodoItem :: EditFocus -> (Int, TodoItem) -> H.Html TodoAction
 renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
    H.li H.! itemClass
         H.! A.key (H.toValue itemIdx)
      $ do H.div H.! A.class_ "view" $ do
-             checkbox done
-                 H.! A.class_ "toggle"
-                 H.! H.onEvent (ToggleItemEH itemIdx)
-             H.label
-                 H.! H.onEvent (EditItemEH itemIdx) $ H.toHtml desc
-             H.button
-                 H.! A.class_ "destroy"
-                 H.! H.onEvent (DeleteItemEH itemIdx)
-                 $ mempty
+            checkbox done
+                H.! A.class_ "toggle"
+                H.! H.onClick (TodoItemsActionA (ToggleItemA itemIdx))
+            H.label
+                H.! H.onDoubleClick (EditItemA itemIdx)
+                $ H.toHtml desc
+            H.button
+                H.! A.class_ "destroy"
+                H.! H.onClick (TodoItemsActionA (DeleteItemA itemIdx))
+                $ mempty
           case mbEditFocus of
            Just (focusIdx, focusText)
                | focusIdx == itemIdx ->
                    H.input H.! A.class_ "edit"
                            H.! A.value (H.toValue focusText)
                            H.! A.autofocus True
-                           H.! H.onEvent EditInputEH
+                           H.! H.onTextInputChange UpdateEditTextA
+                           H.! H.onBlur CommitAndStopEditingA
                | otherwise -> mempty
            Nothing         -> mempty
   where
@@ -285,85 +251,26 @@ checkbox :: Bool -> H.Html ev
 checkbox checked = H.input H.! A.type_ "checkbox" H.! A.checked checked
 
 
-
--- event handling
------------------
-
-handleTodoEvent :: UTCTime -> DOMEvent -> TodoEventHandler -> Maybe TodoAction
-handleTodoEvent _t domEvent0 eventHandler = case eventHandler of
-    CreateItemEH -> do
-        do OnBlur <- domEvent
-           return $ CreateItemA
-        <|>
-        do OnTextInputChange newText <- domEvent
-           return $ UpdateNewItemDescA newText
-
-    ToggleItemEH itemIdx -> do
-        OnClick <- domEvent
-        return $ TodoItemsActionA (ToggleItemA itemIdx)
-
-    DeleteItemEH itemIdx -> do
-        OnClick <- domEvent
-        return $ TodoItemsActionA (DeleteItemA itemIdx)
-
-    EditItemEH itemIdx -> do
-        OnDoubleClick <- domEvent
-        return $ EditItemA itemIdx
-
-    EditInputEH ->
-        do OnBlur <- domEvent
-           return $ CommitAndStopEditingA
-        <|>
-        do OnTextInputChange newText <- domEvent
-           return $ UpdateEditTextA newText
-
-    ToggleAllEH -> do
-        OnClick <- domEvent
-        return $ TodoItemsActionA ToggleAllItemsA
-
-    ClearCompletedEH -> do
-        OnClick <- domEvent
-        return $ TodoItemsActionA ClearCompletedA
-  where
-    domEvent = Just domEvent0
-
-
--- Testing the renderer
------------------------
-
--- test :: IO ()
--- test = putStrLn $ H.Pretty.renderHtml $ render q0
-
-{-
-testCompact :: IO ()
-testCompact =
-    putStrLn $ H.String.renderHtml $ renderTodoState q0
-  where
-    items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
-
-    q0 :: TodoState
-    q0 = TodoState (Just (1, "OLD")) (items ++ items)
--}
-
-
 ------------------------------------------------------------------------------
 -- Defining and running the app
 ------------------------------------------------------------------------------
 
-todoApp :: App TodoState TodoAction TodoEventHandler
+todoApp :: App TodoState TodoAction
 todoApp = App
-    { appInitialState    = q0 {- TodoState
-        { _tsEditFocus = Nothing
-        , _tsItems     = []
-        } -}
+    { appInitialState = q0
     , appInitialRequests = []
-    , appApplyAction     = applyTodoAction
-    , appRender          = renderTodoState
-    , appHandleEvent     = handleTodoEvent
+    , appApplyAction = applyTodoAction
+    , appRender      = renderTodoState
     }
   where
-    items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
-
+    -- some mildly interesting initial state
     q0 :: TodoState
-    q0 = TodoState "" Nothing (items ++ items)
+    q0 = TodoState "" Nothing items
+
+    items = [ TodoItem True  "Write ReactJS bindings"
+            , TodoItem False "prepare talk"
+            , TodoItem True  ":-)"
+            , TodoItem False "give talk"
+            ]
+
 

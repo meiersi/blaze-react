@@ -1,7 +1,7 @@
 
 {-# LANGUAGE OverloadedStrings, GeneralizedNewtypeDeriving, Rank2Types,
              FlexibleInstances, ExistentialQuantification,
-             DeriveDataTypeable, MultiParamTypeClasses,
+             DeriveDataTypeable, MultiParamTypeClasses, DeriveFunctor,
              FunctionalDependencies #-}
 -- | The BlazeMarkup core, consisting of functions that offer the power to
 -- generate custom markup elements. It also offers user-centric functions,
@@ -20,7 +20,16 @@ module Text.Blaze.Internal
     , Tag
     , Attribute
     , AttributeValue
-    , mapEventHandlers
+
+      -- * Event handling
+    , mapActions
+
+    , EventHandler(..)
+    , onClick           , onClickM
+    , onDoubleClick     , onDoubleClickM
+    , onMouseOver       , onMouseOverM
+    , onBlur            , onBlurM
+    , onTextInputChange , onTextInputChangeM
 
       -- * Creating custom tags and attributes.
     , customParent
@@ -29,7 +38,6 @@ module Text.Blaze.Internal
     , boolAttribute
     , dataAttribute
     , customAttribute
-    , onEvent
 
       -- * Converting values to Markup.
     , text
@@ -133,19 +141,29 @@ instance IsString ChoiceString where
     fromString = String
     {-# INLINE fromString #-}
 
+-- | One specific and incomplete specifications of event-handlers geared
+-- towards their use with ReactJS.
+data EventHandler a
+    = OnTextInputChange (T.Text -> IO a)
+    | OnClick (IO a)
+    | OnDoubleClick (IO a)
+    | OnBlur (IO a)
+    | OnMouseOver (IO a)
+    deriving (Functor)
+
 -- | The core Markup datatype. The 'ev' type-parameter tracks the type of
 -- events that can be raised when this Markup is rendered.
 --
-data MarkupM ev a
-      -- | Map all events raised by the inner Html.
-    = forall ev'. MapEvents (ev' -> ev) (MarkupM ev' a)
+data MarkupM act a
+      -- | Map all actions created by the inner Html.
+    = forall act'. MapActions (act' -> act) (MarkupM act' a)
       -- | Install event handlers for the given event on all immediate
       -- children.
-    | OnEvent ev (MarkupM ev a)
+    | OnEvent (EventHandler act) (MarkupM act a)
       -- | Tag, open tag, end tag, content
-    | forall b. Parent StaticString StaticString StaticString (MarkupM ev b)
+    | forall b. Parent StaticString StaticString StaticString (MarkupM act b)
       -- | Custom parent
-    | forall b. CustomParent ChoiceString (MarkupM ev b)
+    | forall b. CustomParent ChoiceString (MarkupM act b)
       -- | Tag, open tag, end tag
     | Leaf StaticString StaticString StaticString
       -- | Custom leaf
@@ -153,14 +171,14 @@ data MarkupM ev a
       -- | HTML content
     | Content ChoiceString
       -- | Concatenation of two HTML pieces
-    | forall b c. Append (MarkupM ev b) (MarkupM ev c)
+    | forall b c. Append (MarkupM act b) (MarkupM act c)
       -- | Add an attribute to the inner HTML. Raw key, key, value, HTML to
       -- receive the attribute.
-    | AddAttribute StaticString StaticString ChoiceString (MarkupM ev a)
+    | AddAttribute StaticString StaticString ChoiceString (MarkupM act a)
       -- | Add a boolean attribute.
-    | AddBoolAttribute StaticString Bool (MarkupM ev a)
+    | AddBoolAttribute StaticString Bool (MarkupM act a)
       -- | Add a custom attribute to the inner HTML.
-    | AddCustomAttribute ChoiceString ChoiceString (MarkupM ev a)
+    | AddCustomAttribute ChoiceString ChoiceString (MarkupM act a)
       -- | Empty HTML.
     | Empty
     deriving (Typeable)
@@ -217,11 +235,51 @@ instance Monoid (Attribute ev) where
 newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
     deriving (IsString, Monoid)
 
--- | Change all event handlers of some markup. We typically use this to nest
--- some markup generating one kind of events inside some markup generating
--- more kinds of events.
-mapEventHandlers :: (ev' -> ev) -> Markup ev' -> Markup ev
-mapEventHandlers = MapEvents
+
+-- event handling
+-----------------
+
+mapActions :: (act -> act') -> Markup act -> Markup act'
+mapActions = MapActions
+
+-- | Register an event handler.
+onEvent :: EventHandler act -> Attribute act
+onEvent eh = Attribute (OnEvent eh)
+{-# INLINE onEvent #-}
+
+onClickM :: IO act -> Attribute act
+onClickM = onEvent . OnClick
+
+onDoubleClickM :: IO act -> Attribute act
+onDoubleClickM = onEvent . OnDoubleClick
+
+onMouseOverM :: IO act -> Attribute act
+onMouseOverM = onEvent . OnMouseOver
+
+onBlurM :: IO act -> Attribute act
+onBlurM = onEvent . OnBlur
+
+onTextInputChangeM :: (T.Text -> IO act) -> Attribute act
+onTextInputChangeM = onEvent . OnTextInputChange
+
+onClick :: act -> Attribute act
+onClick = onClickM . return
+
+onDoubleClick :: act -> Attribute act
+onDoubleClick = onDoubleClickM . return
+
+onMouseOver :: act -> Attribute act
+onMouseOver = onMouseOverM . return
+
+onBlur :: act -> Attribute act
+onBlur = onBlurM . return
+
+onTextInputChange :: (T.Text -> act) -> Attribute act
+onTextInputChange f = onTextInputChangeM (return . f)
+
+
+-- custom tags
+--------------
 
 -- | Create a custom parent element
 customParent :: Tag       -- ^ Element tag
@@ -286,12 +344,6 @@ customAttribute tag value = Attribute $ AddCustomAttribute
     (Static $ unTag tag)
     (unAttributeValue value)
 {-# INLINE customAttribute #-}
-
--- | Register an event handler.
-onEvent :: ev -> Attribute ev
-onEvent ev = Attribute (OnEvent ev)
-{-# INLINE onEvent #-}
-
 
 -- | Render text. Functions like these can be used to supply content in HTML.
 --
@@ -478,7 +530,7 @@ instance Attributable (MarkupM ev a -> MarkupM ev b) ev where
 -- combinators.
 --
 external :: MarkupM ev a -> MarkupM ev a
-external (MapEvents f x) = MapEvents f (external x)
+external (MapActions f x) = MapActions f (external x)
 external (OnEvent ev x) = OnEvent ev (external x)
 external (Content x) = Content $ External x
 external (Append x y) = Append (external x) (external y)
@@ -501,7 +553,7 @@ external x = x
 -- > Hello World!
 --
 contents :: MarkupM ev a -> MarkupM ev' b
-contents (MapEvents _ c)            = contents c
+contents (MapActions _ c)            = contents c
 contents (OnEvent _ c)              = contents c
 contents (Parent _ _ _ c)           = contents c
 contents (CustomParent _ c)         = contents c
@@ -516,7 +568,7 @@ contents _                          = Empty
 -- string).
 null :: MarkupM ev a -> Bool
 null markup = case markup of
-    MapEvents _ c            -> null c
+    MapActions _ c            -> null c
     OnEvent _ c              -> null c
     Parent _ _ _ _           -> False
     CustomParent _ _         -> False

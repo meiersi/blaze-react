@@ -7,16 +7,18 @@
 --
 module Text.Blaze.Renderer.ReactJS
     ( ReactJSNode
-    , ReactJSEvent
-    , EventType(..)
     , renderHtml
     ) where
 
 
-import           Control.Monad         (forM_)
+import           Control.Applicative
+import           Control.Monad              (forM_)
+import           Control.Monad.Trans        (lift)
+import           Control.Monad.Trans.Either (runEitherT, EitherT(..), left)
 
 import qualified Data.ByteString.Char8 as SBC
 import           Data.List             (isInfixOf)
+import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
 import qualified Data.ByteString       as S
 
@@ -40,13 +42,6 @@ type ReactJSNode = JSRef ReactJSNode_
 
 type ReactJSNodes = JSArray ReactJSNode
 
-data EventType
-    = Click
-    | DoubleClick
-    | Blur
-    | KeyDown
-    | Change
-    | MouseOver
 
 foreign import javascript unsafe
     "h$reactjs.mkDomNode($1, $2, $3)"
@@ -56,6 +51,14 @@ foreign import javascript unsafe
 foreign import javascript unsafe
     "h$reactjs.mkDomNode($1, $2, [])"
     mkReactJSLeaf :: JSString -> JSObject JSString -> IO ReactJSNode
+
+foreign import javascript unsafe
+    "$1.preventDefault()"
+    preventDefault :: ReactJSEvent -> IO ()
+
+foreign import javascript unsafe
+    "$1.stopPropagation()"
+    stopPropagation :: ReactJSEvent -> IO ()
 
 
 ------------------------------------------------------------------------------
@@ -97,46 +100,32 @@ fromChoiceString EmptyChoiceString = id
 -- This function is morally pure.
 --
 render
-    :: JSFun (ReactJSEvent -> IO ())
-       -- ^ The one event handler callback to use when registering events.
-    -> (ev -> (JSString, [EventType]))
-       -- ^ Serialization of the event markers together with the list of
-       -- events that they should register for.
-    -> Markup ev        -- ^ Markup to render
-    -> IO ReactJSNodes  -- ^ Resulting Virtual DOM.
-render eventHandlerCb processEv0 markup = do
+    :: forall act.
+       Show act
+    => (act -> Bool -> IO ())  -- ^ Callback for actions raised by event handlers.
+    -> Markup act
+    -> IO ReactJSNodes
+render handleAct0 markup = do
     children <- Foreign.newArray
-    go processEv0 (\_props -> return ()) children markup
+    go handleAct0 (\_props -> return ()) children markup
     return children
   where
-    go :: forall ev b.
-          (ev -> (JSString, [EventType]))
+    go :: forall act' b.
+          (act' -> Bool -> IO ())
        -> (JSObject JSString -> IO ())
        -> (JSArray ReactJSNode)
-       -> MarkupM ev b
+       -> MarkupM act' b
        -> IO ()
-    go processEv setProps children html0 = case html0 of
-        MapEvents f h ->
-            go (processEv . f) setProps children h
+    go handleAct setProps children html0 = case html0 of
+        MapActions f h ->
+            go (handleAct . f) setProps children h
 
-        OnEvent ev h -> case processEv ev of
-          (_,      []        ) -> go processEv setProps children h
-          (marker, eventTypes) -> do
+        OnEvent handler h -> do
             let setProps' props = do
-                    Foreign.setProp ("data-blaze-id" :: JSString) marker props
-                    forM_ eventTypes $ \eventType -> do
-                        let event = case eventType of
-                              Click       -> "onClick" :: JSString
-                              DoubleClick -> "onDoubleClick"
-                              Blur        -> "onBlur"
-                              KeyDown     -> "onKeyDown"
-                              Change      -> "onChange"
-                              MouseOver   -> "onMouseOver"
-
-                        Foreign.setProp event eventHandlerCb props
+                    registerEventHandler (handleAct <$> handler) props
                     setProps props
 
-            go processEv setProps' children h
+            go handleAct setProps' children h
 
         Parent tag _open _close h -> tagToVNode (staticStringToJs tag) h
         CustomParent tag h        -> tagToVNode (choiceStringToJs tag) h
@@ -157,15 +146,15 @@ render eventHandlerCb processEv0 markup = do
 
         Empty           -> return ()
         Append h1 h2    -> do
-            go processEv setProps children h1
-            go processEv setProps children h2
+            go handleAct setProps children h1
+            go handleAct setProps children h2
       where
         choiceStringToJs cs = Foreign.toJSString (fromChoiceString cs "")
         staticStringToJs ss = Foreign.toJSString (getText ss)
 
-        setProperty :: JSString -> JSRef a -> MarkupM ev b -> IO ()
+        -- setProperty :: JSString -> JSRef a -> MarkupM (EventHandler act') b -> IO ()
         setProperty key value content =
-            go processEv setProps' children content
+            go handleAct setProps' children content
           where
             setProps' props =
                 Foreign.setProp key value props >> setProps props
@@ -178,7 +167,7 @@ render eventHandlerCb processEv0 markup = do
         tagToVNode tag content = do
             props         <- makePropertiesObject
             innerChildren <- Foreign.newArray
-            go processEv (\_props -> return ()) innerChildren content
+            go handleAct (\_props -> return ()) innerChildren content
             node <- mkReactJSParent tag props innerChildren
             Foreign.pushArray node children
 
@@ -192,14 +181,71 @@ render eventHandlerCb processEv0 markup = do
 
 
 renderHtml
-    :: Show ev
-    => JSFun (ReactJSEvent -> IO ())
-    -> (ev -> [EventType])
-    -> Markup ev
+    :: Show act
+    => (act -> Bool -> IO ())
+    -> Markup act
     -> IO (ReactJSNode)
-renderHtml eventHandlerCb toEventTypes html = do
-    children <- render eventHandlerCb processEv html
+renderHtml handleAction html = do
+    children <- render handleAction html
     props <- Foreign.newObj
     mkReactJSParent "div" props children
+
+
+------------------------------------------------------------------------------
+-- Event handler callback construction
+------------------------------------------------------------------------------
+
+tryGetProp :: JSString -> JSRef a -> EitherT T.Text IO (JSRef b)
+tryGetProp name obj = do
+    mbProp <- lift $ Foreign.getPropMaybe name obj
+    maybe (left err) return mbProp
   where
-    processEv ev = (Foreign.toJSString (show ev), toEventTypes ev)
+    err = "failed to get property '" <> Foreign.fromJSString name <> "'."
+
+registerEventHandler
+    :: EventHandler (Bool -> IO ())
+    -> JSObject JSString
+       -- ^ Properties to register the event handler in
+    -> IO ()
+registerEventHandler eh props = case eh of
+    OnClick mkAct           -> register False "onClick"       "click"     (\_eventRef -> return $ mkAct)
+    OnDoubleClick mkAct     -> register False "onDoubleClick" "dblclick"  (\_eventRef -> return $ mkAct)
+    OnBlur mkAct            -> register False "onBlur"        "blur"      (\_eventRef -> return $ mkAct)
+    OnMouseOver mkAct       -> register False "onMouseOver"   "mouseover" (\_eventRef -> return $ mkAct)
+    OnTextInputChange mkAct -> register True  "onChange"      "input" $ \eventRef -> do
+        targetRef <- tryGetProp "target" eventRef
+        valueRef  <- tryGetProp "value" targetRef
+        return $ mkAct (Foreign.fromJSString valueRef)
+  where
+    register
+        :: Bool
+        -> JSString  -- ^ Property name under which to register the callback.
+        -> T.Text    -- ^ Expected event type
+        -> (ReactJSEvent -> EitherT T.Text IO (IO (Bool -> IO ())))
+           -- ^ Callback to actually handle the event.
+        -> IO ()
+    register requireSyncRedraw reactJsProp expectedType extractHandler = do
+        -- FIXME (SM): memory leak to to AlwaysRetain. Need to hook-up ReactJS
+        -- event handler table with GHCJS GC.
+        cb <- Foreign.syncCallback1 Foreign.AlwaysRetain False $ \eventRef -> do
+
+            -- prevent default action and cancel propagation
+            preventDefault eventRef
+            stopPropagation eventRef
+
+            -- try to extract handler
+            errOrHandler <- runEitherT $ do
+                eventType <- Foreign.fromJSString <$> tryGetProp "type" eventRef
+                if eventType == expectedType
+                  then extractHandler eventRef
+                  else left $ "event type '" <> eventType <>
+                              "' /= expected type '" <> expectedType <> "'."
+
+            case errOrHandler of
+              Left err      -> putStrLn $ "blaze-react - event handling error: " ++ T.unpack err
+              Right handler -> do
+                  -- run the handler
+                  triggerRedraw <- handler
+                  triggerRedraw requireSyncRedraw
+
+        Foreign.setProp reactJsProp cb props
