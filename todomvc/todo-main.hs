@@ -113,8 +113,9 @@ runApp (App initialState initialRequests apply renderAppState) = do
             handleRequests requests
             if requireSyncRedraw then syncRedraw else asyncRedraw
         handleRequests requests = do
-          action <- forM_ requests $ \req -> forkIO $ req
-          handleAction action False
+          forM_ requests $ \req -> forkIO $ do
+            action <- req
+            handleAction action False
 
 
         mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
@@ -133,5 +134,7 @@ runApp (App initialState initialRequests apply renderAppState) = do
         writeIORef rerenderVar (Just (syncRedrawApp app))
         -- start the first drawing
         syncRedraw
+        -- handle the initial requests
+        handleRequests initialRequests
         -- keep main thread running forever
         forever $ threadDelay 10000000

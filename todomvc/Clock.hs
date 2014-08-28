@@ -18,7 +18,7 @@ import           Data.Time       (UTCTime, getCurrentTime)
 
 import qualified Text.Blaze.Html5                     as H
 
-import           TodoApp (App(..), DOMEvent(..))
+import           TodoApp (App(..))
 
 
 -------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ makeLenses ''ClockState
 -- Logic
 -------------------------------------------------------------------------------
 
-renderClockState :: ClockState -> H.Html ClockEventHandler
+renderClockState :: ClockState -> H.Html ClockAction
 renderClockState (ClockState (Just time)) = "The time is: " <> H.toHtml (show time)
 renderClockState (ClockState Nothing)     = "Loading..."
 
@@ -55,15 +55,11 @@ scheduleTick = do
   threadDelay 1000000
   TickA <$> getCurrentTime
 
-handleClockEvent :: UTCTime -> DOMEvent -> ClockEventHandler -> Maybe ClockAction
-handleClockEvent _time _domEvent _eventHandler = Nothing
-
-clockApp :: App ClockState ClockAction ClockEventHandler
+clockApp :: App ClockState ClockAction
 clockApp = App
     { appInitialState    = ClockState { _csTime = Nothing }
     , appInitialRequests = [scheduleTick]
     , appApplyAction     = applyClockAction
     , appRender          = renderClockState
-    , appHandleEvent     = handleClockEvent
     }
 
