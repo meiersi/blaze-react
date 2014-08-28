@@ -8,8 +8,7 @@
  -}
 
 module TimeMachine
-    ( TMEventHandler(..)
-    , withTimeMachine
+    ( withTimeMachine
     ) where
 
 import           Prelude hiding (div)
@@ -19,14 +18,13 @@ import           Control.Lens    (makeLenses, view, set, over, _1)
 import           Control.Monad
 
 import           Data.List       (foldl')
-import           Data.Time       (UTCTime)
 
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
 
 import           Text.Show.Pretty (ppShow)
 
-import           TodoApp (App(..), DOMEvent(..))
+import           TodoApp (App(..))
 
 
 -------------------------------------------------------------------------------
@@ -50,12 +48,6 @@ data TMAction action
     | RevertAppHistoryA Int
     | InternalA action
     | AsyncInternalA action
-    deriving (Eq, Ord, Read, Show)
-
-data TMEventHandler eventHandler
-    = TogglePauseAppEH
-    | ActionHistoryItemEH Int
-    | InternalEH eventHandler
     deriving (Eq, Ord, Read, Show)
 
 makeLenses ''TMState
@@ -105,16 +97,16 @@ applyTMAction initialInternalState applyInternalAction action state =
           reqs' = fmap AsyncInternalA <$> reqs
       in (state', reqs')
 
-renderTM :: (Show a, Show s) => (s -> H.Html eh) -> TMState s a -> H.Html (TMEventHandler eh)
+renderTM :: (Show a, Show s) => (s -> H.Html a) -> TMState s a -> H.Html (TMAction a)
 renderTM renderInternal state = do
     H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
-      H.div H.! A.class_ "tm-button" H.! H.onEvent TogglePauseAppEH $
+      H.div H.! A.class_ "tm-button" H.! H.onClick TogglePauseAppA $
         if (_tmsPaused state) then "Resume app" else "Pause app"
       renderHistoryBrowser
       renderAppStateBrowser
     H.div H.! A.class_ "tm-internal-app" $
-      H.mapEventHandlers InternalEH $ renderInternal (view tmsInternalState state)
+      H.mapActions InternalA $ renderInternal (view tmsInternalState state)
   where
     actionsWithIndices :: [(Int, String)]
     actionsWithIndices =
@@ -124,7 +116,7 @@ renderTM renderInternal state = do
       H.h2 "Events"
       H.div H.! A.class_ "tm-history-browser" $ do
         H.ol $ forM_ actionsWithIndices $ \(idx, action) ->
-          H.li H.! H.onEvent (ActionHistoryItemEH idx)
+          H.li H.! H.onMouseOver (RevertAppHistoryA idx)
                H.!? (idx == view tmsActiveAction state, A.class_ "tm-active-item")
                $ H.toHtml action
 
@@ -132,19 +124,6 @@ renderTM renderInternal state = do
       H.h2 "Application state"
       H.div H.! A.class_ "tm-app-state-browser" $ H.pre $
         H.toHtml $ ppShow $ view tmsInternalState state
-
-
-handleTMEvent
-    :: (UTCTime -> DOMEvent -> eh -> Maybe a)
-    -> UTCTime -> DOMEvent -> TMEventHandler eh -> Maybe (TMAction a)
-handleTMEvent handleInternalEvent utcTime domEvent handler =
-    case (handler, domEvent) of
-      (TogglePauseAppEH, OnClick) -> Just TogglePauseAppA
-      (TogglePauseAppEH, _      ) -> Nothing
-      (ActionHistoryItemEH idx, OnMouseOver) -> Just $ RevertAppHistoryA idx
-      (ActionHistoryItemEH _, _        ) -> Nothing
-      (InternalEH handler', _) ->
-        InternalA <$> handleInternalEvent utcTime domEvent handler'
 
 initialTMState :: s -> TMState s a
 initialTMState internalState = TMState
@@ -156,13 +135,12 @@ initialTMState internalState = TMState
     }
 
 withTimeMachine
-    :: (Show a, Show s) => App s a eh
-    -> App (TMState s a) (TMAction a) (TMEventHandler eh)
+    :: (Show a, Show s) => App s a
+    -> App (TMState s a) (TMAction a)
 withTimeMachine internalApp = App
     { appInitialState    = initialTMState (appInitialState internalApp)
     , appInitialRequests = fmap AsyncInternalA <$> appInitialRequests internalApp
     , appApplyAction     = applyTMAction (appInitialState internalApp) (appApplyAction internalApp)
     , appRender          = renderTM (appRender internalApp)
-    , appHandleEvent     = handleTMEvent (appHandleEvent internalApp)
     }
 
