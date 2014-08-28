@@ -13,7 +13,7 @@ import           Prelude hiding (div)
 
 
 import           Control.Applicative
-import           Control.Concurrent        (threadDelay)
+import           Control.Concurrent        (threadDelay, forkIO)
 import           Control.Exception         (bracket)
 import           Control.Monad
 import           Control.Monad.Trans        (lift)
@@ -34,6 +34,7 @@ import           Safe                  (readMay)
 
 import           System.IO             (fixIO)
 
+import           Clock       (clockApp)
 import           TodoApp     (App(..), DOMEvent(..), todoApp, TodoEventHandler(..))
 import           TimeMachine (TMEventHandler(..), withTimeMachine)
 
@@ -45,6 +46,7 @@ import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
 ------------------------------------------------------------------------------
 
 main :: IO ()
+-- main = runApp (withTimeMachine clockApp) (timeMachineEventHandlerTypes (const []))
 main = runApp (withTimeMachine todoApp) (timeMachineEventHandlerTypes todoEventHandlerTypes)
 
 timeMachineEventHandlerTypes
@@ -138,7 +140,7 @@ runApp
     => App st act eh
     -> (eh -> [ReactJS.EventType])
     -> IO ()
-runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
+runApp (App initialState initialRequests apply renderAppState handleEvent) toEventTypes = do
     -- create root element in body for the app
     root <- [js| document.createElement('div') |]
     [js_| document.body.appendChild(`root); |]
@@ -159,6 +161,13 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
                 atAnimationFrame $ do
                     writeIORef redrawScheduledVar False
                     syncRedraw
+
+    let handleAction requireSyncRedraw action = do
+          requests <- atomicModifyIORef' stateVar (\state -> apply action state)
+          handleRequests requests
+          if requireSyncRedraw then syncRedraw else asyncRedraw
+        handleRequests requests =
+          forM_ requests $ \req -> forkIO $ req >>= handleAction False
 
     -- create event handler callback
     let mkEventHandlerCb :: IO (JSFun (ReactJS.ReactJSEvent -> IO ()))
@@ -197,10 +206,9 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
                   putStrLn $ "runApp - event rejected: " ++ show eventInfo
               Right (eventInfo, Just action) -> do
                   putStrLn $ "runApp - handling: " ++ show eventInfo ++ " ==> " ++ show action
-                  atomicModifyIORef' stateVar (\state -> (apply action state, ()))
                   case eventInfo of
-                    (_, OnTextInputChange _, _) -> syncRedraw
-                    _                           -> asyncRedraw
+                    (_, OnTextInputChange _, _) -> handleAction True action
+                    _                           -> handleAction False action
 
 
     -- create render callback for initialState
@@ -223,6 +231,8 @@ runApp (App initialState apply renderAppState handleEvent) toEventTypes = do
             writeIORef rerenderVar (Just (syncRedrawApp app))
             -- start the first drawing
             syncRedraw
+            -- fork the initial requests
+            handleRequests initialRequests
             -- keep main thread running forever
             forever $ threadDelay 10000000
 

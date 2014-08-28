@@ -22,7 +22,7 @@ import           Prelude hiding (div)
 import           Control.Applicative
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
-                 , to, _2, _Just, sumOf, andOf
+                 , to, _1, _2, _Just, sumOf, andOf
                  )
 import           Control.Monad
 
@@ -56,10 +56,11 @@ data DOMEvent
 -- objects of this type contain logic for handling events. These are more like
 -- DOM markers.
 data App state action eventHandler = App
-    { appInitialState :: state
-    , appApplyAction  :: action -> state -> state
-    , appRender       :: state -> H.Html eventHandler
-    , appHandleEvent  :: UTCTime -> DOMEvent -> eventHandler -> Maybe action
+    { appInitialState    :: state
+    , appInitialRequests :: [IO action]
+    , appApplyAction     :: action -> state -> (state, [IO action])
+    , appRender          :: state -> H.Html eventHandler
+    , appHandleEvent     :: UTCTime -> DOMEvent -> eventHandler -> Maybe action
       -- ^ How to translate an event tagged with the time at which it occurred
       -- to an action. No access to the application state on purpose.
     }
@@ -144,34 +145,36 @@ applyTodoItemsAction action items = case action of
     ToggleAllItemsA     -> set (traverse . tdDone) (not (allItemsDone items)) items
     ClearCompletedA     -> filter (not . view tdDone) items
 
-applyTodoAction :: TodoAction -> TodoState -> TodoState
+applyTodoAction :: TodoAction -> TodoState -> (TodoState, [IO TodoAction])
 applyTodoAction action st = case action of
-    TodoItemsActionA action' -> over tsItems (applyTodoItemsAction action') st
+    TodoItemsActionA action' -> noRequests $ over tsItems (applyTodoItemsAction action') st
 
     EditItemA itemIdx ->
         case preview (tsItems . ix itemIdx) st of
-          Nothing   -> st
+          Nothing                    -> noRequests st
           Just (TodoItem _done desc) ->
-              set tsEditFocus (Just (itemIdx, desc))
+              set (_1 . tsEditFocus) (Just (itemIdx, desc))
             $ applyTodoAction CommitAndStopEditingA
             $ st
 
     CommitAndStopEditingA ->
         case view tsEditFocus st of
-          Nothing                 -> st
-          Just (itemIdx, newDesc) ->
+          Nothing                 -> noRequests $ st
+          Just (itemIdx, newDesc) -> noRequests $
              set tsEditFocus Nothing
            $ set (tsItems . ix itemIdx . tdDesc) newDesc
            $ st
 
-    UpdateEditTextA newText -> set (tsEditFocus . _Just . _2) newText st
+    UpdateEditTextA newText -> noRequests $ set (tsEditFocus . _Just . _2) newText st
 
     CreateItemA
-        | T.null (view tsNewItemDesc st) -> st
-        | otherwise                      ->
+        | T.null (view tsNewItemDesc st) -> noRequests st
+        | otherwise                      -> noRequests $
               over tsItems (TodoItem False (view tsNewItemDesc st) :)
             $ set tsNewItemDesc "" st
-    UpdateNewItemDescA newText -> set tsNewItemDesc newText st
+    UpdateNewItemDescA newText -> noRequests $ set tsNewItemDesc newText st
+  where
+    noRequests x = (x, [])
 
 
 ------------------------------------------------------------------------------
@@ -349,13 +352,14 @@ testCompact =
 
 todoApp :: App TodoState TodoAction TodoEventHandler
 todoApp = App
-    { appInitialState = q0 {- TodoState
+    { appInitialState    = q0 {- TodoState
         { _tsEditFocus = Nothing
         , _tsItems     = []
         } -}
-    , appApplyAction = applyTodoAction
-    , appRender      = renderTodoState
-    , appHandleEvent = handleTodoEvent
+    , appInitialRequests = []
+    , appApplyAction     = applyTodoAction
+    , appRender          = renderTodoState
+    , appHandleEvent     = handleTodoEvent
     }
   where
     items = [TodoItem True "DoNe", TodoItem False "Woaaaaah!"]
