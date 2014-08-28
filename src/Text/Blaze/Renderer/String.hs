@@ -57,24 +57,24 @@ fromChoiceString EmptyChoiceString = id
 -- | Render some 'Markup' to an appending 'String'.
 --
 renderString
-    :: (ev -> String -> String)
-    -> Markup ev  -- ^ Markup to render
+    :: Markup ev  -- ^ Markup to render
     -> String     -- ^ String to append
     -> String     -- ^ Resulting String
 renderString =
     go id
   where
-    go :: (String -> String) -> (ev -> String -> String) -> MarkupM ev b -> String -> String
-    go attrs renderEv html = case html of
-        MapEvents f content ->
-            go attrs (renderEv . f) content
-        OnEvent ev content ->
-            go (renderEv ev . attrs) renderEv content
+    go :: (String -> String) -> MarkupM ev b -> String -> String
+    go attrs html = case html of
+        MapActions _f content ->
+            go attrs content
+        OnEvent _ev content ->
+            -- TODO (meiersi): add more details about the event handler registered.
+            go attrs content
         Parent _ open close content ->
-            getString open . attrs . ('>' :) . go id renderEv content . getString close
+            getString open . attrs . ('>' :) . go id content . getString close
         CustomParent tag content ->
             ('<' :) . fromChoiceString tag . attrs . ('>' :) .
-            go id renderEv content .
+            go id content .
             ("</" ++) . fromChoiceString tag . ('>' :)
         Leaf _ begin end ->
             getString begin . attrs . getString end
@@ -84,24 +84,24 @@ renderString =
         AddAttribute _ key value h ->
             let attrs' = getString key . fromChoiceString value
                        . ('"' :) . attrs
-            in go attrs' renderEv h
+            in go attrs' h
         AddBoolAttribute key value h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
                        . ((if value then "true" else "false") ++) .  ('"' :) .  attrs
-            in go attrs' renderEv h
+            in go attrs' h
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
                        . fromChoiceString value .  ('"' :) .  attrs
-            in go attrs' renderEv h
+            in go attrs' h
         Content content -> fromChoiceString content
-        Append h1 h2    -> go attrs renderEv h1 . go attrs renderEv h2
+        Append h1 h2    -> go attrs h1 . go attrs h2
         Empty           -> id
 
 -- | Render markup to a lazy 'String'.
 --
 renderMarkup :: Show ev => Markup ev -> String
 renderMarkup html =
-    renderString (\ev -> (" data-on-blaze-event=\"" ++) . escapeMarkupEntities (show ev) . ('"' :)) html ""
+    renderString html ""
 
 renderHtml :: Show ev => Markup ev -> String
 renderHtml = renderMarkup

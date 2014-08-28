@@ -37,12 +37,12 @@ library
                        Text.Blaze.Internal
 
   build-depends:       base >=4.7 && <4.8,
+                       bytestring,
+                       either,
                        ghcjs-base,
                        ghcjs-prim,
-                       split,
-                       text,
-                       bytestring,
-                       template-haskell
+                       mtl,
+                       text
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -59,12 +59,10 @@ executable todomvc
   Build-Depends:  base                >= 4    &&  < 5,
                   blaze-react,
                   containers,
-                  either,
                   ghcjs-base,
                   ghcjs-ffiqq,
                   ghcjs-prim,
                   lens,
-                  mtl,
                   pretty-show,
                   safe,
                   text,
