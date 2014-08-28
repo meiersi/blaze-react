@@ -7,11 +7,12 @@
   The time-machine app transformer
  -}
 
-module TimeMachine
+module Blaze.React.Examples.TimeMachine
     ( withTimeMachine
     ) where
 
-import           Prelude hiding (div)
+
+import           Blaze.React (App(..))
 
 import           Control.Applicative
 import           Control.Lens    (makeLenses, view, set, over, _1)
@@ -19,17 +20,20 @@ import           Control.Monad
 
 import           Data.List       (foldl')
 
+import           Prelude hiding (div)
+
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
-
 import           Text.Show.Pretty (ppShow)
-
-import           TodoApp (App(..))
 
 
 -------------------------------------------------------------------------------
 -- Time Machine
 -------------------------------------------------------------------------------
+
+
+-- state
+--------
 
 data TMState state action = TMState
     { _tmsInternalState :: state
@@ -43,14 +47,18 @@ data TMState state action = TMState
       -- ^ This is where async internal actions go while the app is paused
     }
 
+makeLenses ''TMState
+
+
+-- state transitions
+--------------------
+
 data TMAction action
     = TogglePauseAppA
     | RevertAppHistoryA Int
     | InternalA action
     | AsyncInternalA action
     deriving (Eq, Ord, Read, Show)
-
-makeLenses ''TMState
 
 applyTMAction
     :: forall s a. s -> (a -> s -> (s, [IO a]))
@@ -97,6 +105,10 @@ applyTMAction initialInternalState applyInternalAction action state =
           reqs' = fmap AsyncInternalA <$> reqs
       in (state', reqs')
 
+
+-- rendering
+------------
+
 renderTM :: (Show a, Show s) => (s -> H.Html a) -> TMState s a -> H.Html (TMAction a)
 renderTM renderInternal state = do
     H.div H.! A.class_ "tm-time-machine" $ do
@@ -125,17 +137,13 @@ renderTM renderInternal state = do
       H.div H.! A.class_ "tm-app-state-browser" $ H.pre $
         H.toHtml $ ppShow $ view tmsInternalState state
 
-initialTMState :: s -> TMState s a
-initialTMState internalState = TMState
-    { _tmsInternalState = internalState
-    , _tmsActionHistory = []
-    , _tmsActiveAction  = 0       -- ^ 0 indicates the initial state.
-    , _tmsPaused        = False
-    , _tmsActionBuffer  = []
-    }
+
+-- the application transformer
+------------------------------
 
 withTimeMachine
-    :: (Show a, Show s) => App s a
+    :: (Show a, Show s)
+    => App s a
     -> App (TMState s a) (TMAction a)
 withTimeMachine internalApp = App
     { appInitialState    = initialTMState (appInitialState internalApp)
@@ -144,3 +152,11 @@ withTimeMachine internalApp = App
     , appRender          = renderTM (appRender internalApp)
     }
 
+initialTMState :: s -> TMState s a
+initialTMState internalState = TMState
+    { _tmsInternalState = internalState
+    , _tmsActionHistory = []
+    , _tmsActiveAction  = 0       -- ^ 0 indicates the initial state.
+    , _tmsPaused        = False
+    , _tmsActionBuffer  = []
+    }

@@ -7,7 +7,7 @@ description:         ReactJS is a library by Facebook that supports
 
                      The bindings expose an API based on blaze-html for
                      rendering and simple state machines for managing
-                     application updates. 
+                     application updates.
 
 
 license:             MIT
@@ -36,13 +36,23 @@ library
 
                        Text.Blaze.Internal
 
+                       Blaze.React
+                       Blaze.React.Run.ReactJS
+                       Blaze.React.Examples.Todo
+                       Blaze.React.Examples.Clock
+                       Blaze.React.Examples.TimeMachine
+
   build-depends:       base >=4.7 && <4.8,
                        bytestring,
                        either,
                        ghcjs-base,
+                       ghcjs-ffiqq,
                        ghcjs-prim,
+                       lens,
                        mtl,
-                       text
+                       pretty-show,
+                       text,
+                       time
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -52,19 +62,9 @@ executable todomvc
   if !flag(build-example)
       buildable: False
   Main-Is:        todo-main.hs
-  Other-Modules:  TodoApp
   cpp-options: -DGHCJS_NO_CATCH_MAINLOOP
   Default-Language: Haskell2010
   hs-source-dirs: todomvc
   Build-Depends:  base                >= 4    &&  < 5,
-                  blaze-react,
-                  containers,
-                  ghcjs-base,
-                  ghcjs-ffiqq,
-                  ghcjs-prim,
-                  lens,
-                  pretty-show,
-                  safe,
-                  text,
-                  time
+                  blaze-react
   ghcjs-Options:  -O -Wall

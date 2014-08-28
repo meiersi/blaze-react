@@ -3,11 +3,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Clock
+module Blaze.React.Examples.Clock
     ( clockApp
     ) where
 
 import           Prelude hiding (div)
+
+import           Blaze.React (App(..))
 
 import           Control.Applicative
 import           Control.Concurrent (threadDelay)
@@ -17,8 +19,6 @@ import           Data.Monoid     ((<>))
 import           Data.Time       (UTCTime, getCurrentTime)
 
 import qualified Text.Blaze.Html5                     as H
-
-import           TodoApp (App(..))
 
 
 -------------------------------------------------------------------------------

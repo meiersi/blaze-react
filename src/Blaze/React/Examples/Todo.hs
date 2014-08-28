@@ -6,16 +6,13 @@
   Runtime-independent formulation of the TodoMVC app.
  -}
 
-module TodoApp
-    (
-      -- * Generic infrastructure (TODO (SM): Move)
-      App(..)
-
-      -- * Our app
-    , todoApp
+module Blaze.React.Examples.Todo
+    ( app
     ) where
 
 import           Prelude hiding (div)
+
+import           Blaze.React (App(..))
 
 import           Control.Lens
                  ( makeLenses, view, preview, traverse, folded, set, over, ix
@@ -32,19 +29,7 @@ import qualified Text.Blaze.Html5.Attributes          as A
 
 
 ------------------------------------------------------------------------------
--- Generic blaze-vdom application types and functions (TO BE MOVED)
-------------------------------------------------------------------------------
-
-data App state action = App
-    { appInitialState :: state
-    , appInitialRequests :: [IO action]
-    , appApplyAction     :: action -> state -> (state, [IO action])
-    , appRender       :: state -> H.Html action
-    }
-
-
-------------------------------------------------------------------------------
--- Application state representation
+-- State representation
 ------------------------------------------------------------------------------
 
 data TodoItem = TodoItem
@@ -255,8 +240,8 @@ checkbox checked = H.input H.! A.type_ "checkbox" H.! A.checked checked
 -- Defining and running the app
 ------------------------------------------------------------------------------
 
-todoApp :: App TodoState TodoAction
-todoApp = App
+app :: App TodoState TodoAction
+app = App
     { appInitialState = q0
     , appInitialRequests = []
     , appApplyAction = applyTodoAction
@@ -268,7 +253,7 @@ todoApp = App
     q0 = TodoState "" Nothing items
 
     items = [ TodoItem True  "Write ReactJS bindings"
-            , TodoItem False "prepare talk"
+            , TodoItem True  "prepare talk"
             , TodoItem True  ":-)"
             , TodoItem False "give talk"
             ]
