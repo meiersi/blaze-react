@@ -5,7 +5,8 @@ module Blaze.React
 import qualified Text.Blaze.Html5 as H
 
 data App state action = App
-    { appInitialState :: state
-    , appApplyAction  :: action -> state -> state
-    , appRender       :: state -> H.Html action
+    { appInitialState    :: state
+    , appInitialRequests :: [IO action]
+    , appApplyAction     :: action -> state -> (state, [IO action])
+    , appRender          :: state -> H.Html action
     }

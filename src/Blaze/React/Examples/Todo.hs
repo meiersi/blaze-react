@@ -252,9 +252,10 @@ checkbox checked = H.input H.! A.type_ "checkbox" H.! A.checked checked
 
 app :: App TodoState TodoAction
 app = App
-    { appInitialState = q0
-    , appApplyAction = execState . applyTodoAction
-    , appRender      = renderTodoState
+    { appInitialState    = q0
+    , appInitialRequests = []
+    , appApplyAction     = \act st -> (execState (applyTodoAction act) st, [])
+    , appRender          = renderTodoState
     }
   where
     -- some mildly interesting initial state

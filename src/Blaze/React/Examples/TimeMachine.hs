@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-
   The time-machine app transformer
@@ -13,7 +14,8 @@ module Blaze.React.Examples.TimeMachine
 
 import           Blaze.React (App(..))
 
-import           Control.Lens    (makeLenses, view, set, over)
+import           Control.Applicative
+import           Control.Lens    (makeLenses, view, set, over, _1)
 import           Control.Monad
 
 import           Data.List       (foldl')
@@ -23,7 +25,6 @@ import           Prelude hiding (div)
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
 import           Text.Show.Pretty (ppShow)
-
 
 
 -------------------------------------------------------------------------------
@@ -42,6 +43,8 @@ data TMState state action = TMState
       -- ^ Index of the current position in the action list. 1-indexed,
       -- where 0 indicates that the app is in the initial state.
     , _tmsPaused        :: Bool
+    , _tmsActionBuffer  :: [action]
+      -- ^ This is where async internal actions go while the app is paused
     }
 
 makeLenses ''TMState
@@ -54,27 +57,53 @@ data TMAction action
     = TogglePauseAppA
     | RevertAppHistoryA Int
     | InternalA action
+    | AsyncInternalA action
     deriving (Eq, Ord, Read, Show)
 
-
-applyTMAction :: s -> (a -> s -> s) -> TMAction a -> TMState s a -> TMState s a
+applyTMAction
+    :: forall s a. s -> (a -> s -> (s, [IO a]))
+    -> TMAction a -> TMState s a -> (TMState s a, [IO (TMAction a)])
 applyTMAction initialInternalState applyInternalAction action state =
     case action of
-      TogglePauseAppA -> over tmsPaused not state
-      RevertAppHistoryA idx ->
+      TogglePauseAppA
+        | paused    -> set (_1 . tmsPaused) False $ flushActionBuffer state
+        | otherwise -> noRequests $ set tmsPaused True state
+      RevertAppHistoryA idx -> noRequests $
         let history'       = take idx $ view tmsActionHistory state
-            internalState' = foldl' (flip applyInternalAction) initialInternalState history'
+            internalState' = foldl' (\st act -> fst $ applyInternalAction act st)
+                                initialInternalState history'
         in set tmsInternalState internalState' $ set tmsActiveAction idx $ state
+      AsyncInternalA action'
+        | paused    -> noRequests $ over tmsActionBuffer (++ [action']) state
+        | otherwise -> applyInternalAction' state action'
       InternalA action'
-        | view tmsPaused state -> state
-        | otherwise            ->
-            let state' = if (_tmsActiveAction state) == length (_tmsActionHistory state)
-                           then state
-                           else over tmsActionHistory (take (_tmsActiveAction state)) state
-            in over tmsActionHistory (++ [action']) $
-            over tmsActiveAction (+ 1) $
-            over tmsInternalState (applyInternalAction action') $
-            state'
+        | paused    -> noRequests state
+        | otherwise -> applyInternalAction' state action'
+  where
+    paused = view tmsPaused state
+
+    noRequests x = (x, [])
+
+    flushActionBuffer :: TMState s a -> (TMState s a, [IO (TMAction a)])
+    flushActionBuffer = go []
+      where
+        go reqs st = case view tmsActionBuffer st of
+          []     -> (st, reqs)
+          (x:xs) -> let (st', reqs') = applyInternalAction' st x
+                    in go (reqs ++ reqs') $ set tmsActionBuffer xs $ st'
+
+    -- | Apply an internal action to the internal state, adding it to the
+    -- history, bumping the active action pointer, and possibly truncating
+    -- the history first.
+    applyInternalAction' :: TMState s a -> a -> (TMState s a, [IO (TMAction a)])
+    applyInternalAction' (TMState internalState history activeAction p b) act =
+      let history'
+            | activeAction == length history = history ++ [act]
+            | otherwise                      = take activeAction history ++ [act]
+          (internalState', reqs) = applyInternalAction act internalState
+          state' = TMState internalState' history' (activeAction + 1) p b
+          reqs' = fmap AsyncInternalA <$> reqs
+      in (state', reqs')
 
 
 -- rendering
@@ -109,8 +138,6 @@ renderTM renderInternal state = do
         H.toHtml $ ppShow $ view tmsInternalState state
 
 
-
-
 -- the application transformer
 ------------------------------
 
@@ -119,9 +146,10 @@ withTimeMachine
     => App s a
     -> App (TMState s a) (TMAction a)
 withTimeMachine internalApp = App
-    { appInitialState = initialTMState (appInitialState internalApp)
-    , appApplyAction  = applyTMAction (appInitialState internalApp) (appApplyAction internalApp)
-    , appRender       = renderTM (appRender internalApp)
+    { appInitialState    = initialTMState (appInitialState internalApp)
+    , appInitialRequests = fmap AsyncInternalA <$> appInitialRequests internalApp
+    , appApplyAction     = applyTMAction (appInitialState internalApp) (appApplyAction internalApp)
+    , appRender          = renderTM (appRender internalApp)
     }
 
 initialTMState :: s -> TMState s a
@@ -130,4 +158,5 @@ initialTMState internalState = TMState
     , _tmsActionHistory = []
     , _tmsActiveAction  = 0       -- ^ 0 indicates the initial state.
     , _tmsPaused        = False
+    , _tmsActionBuffer  = []
     }

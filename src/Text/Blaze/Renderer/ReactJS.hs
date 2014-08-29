@@ -12,7 +12,6 @@ module Text.Blaze.Renderer.ReactJS
 
 
 import           Control.Applicative
-import           Control.Monad              (forM_)
 import           Control.Monad.Trans        (lift)
 import           Control.Monad.Trans.Either (runEitherT, EitherT(..), left)
 
@@ -23,7 +22,7 @@ import qualified Data.Text             as T
 import qualified Data.ByteString       as S
 
 import qualified GHCJS.Foreign         as Foreign
-import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject, JSFun)
+import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 
 import           Prelude               hiding (span)
 

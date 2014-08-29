@@ -8,7 +8,7 @@ module Blaze.React.Run.ReactJS (runApp) where
 import           Blaze.React               (App(..))
 
 import           Control.Applicative
-import           Control.Concurrent        (threadDelay)
+import           Control.Concurrent        (threadDelay, forkIO)
 import           Control.Exception         (bracket)
 import           Control.Monad
 
@@ -67,7 +67,7 @@ atAnimationFrame io = do
     requestAnimationFrame cb
 
 runApp :: (Show act) => App st act -> IO ()
-runApp (App initialState apply renderAppState) = do
+runApp (App initialState initialRequests apply renderAppState) = do
     -- create root element in body for the app
     root <- [js| document.createElement('div') |]
     [js_| document.body.appendChild(`root); |]
@@ -93,8 +93,13 @@ runApp (App initialState apply renderAppState) = do
     let handleAction action requireSyncRedraw = do
             putStrLn $ "runApp - applying action: " ++ show action ++
                        (if requireSyncRedraw then " (sync redraw)" else "")
-            atomicModifyIORef' stateVar (\state -> (apply action state, ()))
+            requests <- atomicModifyIORef' stateVar (\state -> apply action state)
+            handleRequests requests
             if requireSyncRedraw then syncRedraw else asyncRedraw
+        handleRequests requests = do
+          forM_ requests $ \req -> forkIO $ do
+            action <- req
+            handleAction action False
 
 
         mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
@@ -113,6 +118,8 @@ runApp (App initialState apply renderAppState) = do
         writeIORef rerenderVar (Just (syncRedrawApp app))
         -- start the first drawing
         syncRedraw
+        -- handle the initial requests
+        handleRequests initialRequests
         -- keep main thread running forever
         forever $ threadDelay 10000000
 

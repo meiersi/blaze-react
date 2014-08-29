@@ -7,7 +7,7 @@ description:         ReactJS is a library by Facebook that supports
 
                      The bindings expose an API based on blaze-html for
                      rendering and simple state machines for managing
-                     application updates. 
+                     application updates.
 
 
 license:             MIT
@@ -39,6 +39,7 @@ library
                        Blaze.React
                        Blaze.React.Run.ReactJS
                        Blaze.React.Examples.Todo
+                       Blaze.React.Examples.Clock
                        Blaze.React.Examples.TimeMachine
 
   build-depends:       base >=4.7 && <4.8,
@@ -50,7 +51,9 @@ library
                        lens,
                        mtl,
                        pretty-show,
-                       text
+                       text,
+                       transformers,
+                       time
   hs-source-dirs:      src
   default-language:    Haskell2010
 
