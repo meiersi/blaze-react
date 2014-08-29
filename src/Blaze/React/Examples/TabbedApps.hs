@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 module Blaze.React.Examples.TabbedApps
     (
       NamedApp
@@ -78,9 +79,7 @@ renderSomeApp (SomeApp _name st _apply render) =
 data TabbedAction
     = SwitchApp !Int
     | AppAction !Int SomeAction
-    deriving (Show)
-
-
+    deriving (Show, Typeable)
 
 data TabbedState = TabbedState
    { _tsFocus     :: Int
