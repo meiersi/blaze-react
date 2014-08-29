@@ -2,6 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- | A clock app which demonstrates the ability to spawn threads which
 -- transform the state when they return.
@@ -19,6 +20,7 @@ import           Control.Lens       (makeLenses, set)
 
 import           Data.Monoid        ((<>))
 import           Data.Time          (UTCTime, getCurrentTime)
+import           Data.Typeable      (Typeable)
 
 import qualified Text.Blaze.Html5   as H
 
@@ -43,7 +45,7 @@ renderClockState (ClockState Nothing)     = "Loading..."
 
 data ClockAction
     = TickA UTCTime
-    deriving Show
+    deriving (Show, Typeable)
 
 applyClockAction :: ClockAction -> ClockState -> (ClockState, [IO ClockAction])
 applyClockAction action state = case action of

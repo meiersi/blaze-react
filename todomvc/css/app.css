@@ -17,6 +17,22 @@
     display: inline;
 }
 
+/******************************************************************************
+** Multiplexer styles
+******************************************************************************/
+
+.tabbed-app-picker {
+    background-color: #333;
+    color: #999;
+}
+
+.tabbed-active-item {
+    color: #eee;
+}
+
+.tabbed-app-picker span {
+    padding-left: 3em;
+}
 
 /******************************************************************************
 ** Time Machine styles

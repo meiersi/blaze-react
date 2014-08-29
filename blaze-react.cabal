@@ -41,6 +41,7 @@ library
                        Blaze.React.Examples.Todo
                        Blaze.React.Examples.Clock
                        Blaze.React.Examples.TimeMachine
+                       Blaze.React.Examples.TabbedApps 
 
   build-depends:       base >=4.7 && <4.8,
                        bytestring,

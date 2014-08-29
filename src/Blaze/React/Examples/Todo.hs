@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 {-
   Runtime-independent formulation of the TodoMVC app.
@@ -27,6 +28,7 @@ import           Data.Foldable   (foldMap)
 import           Data.Maybe      (fromMaybe)
 import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
+import           Data.Typeable   (Typeable)
 
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
@@ -87,7 +89,7 @@ data TodoItemsAction
       -- completed. Otherwise, set all items to incomplete.
     | ClearCompletedA
       -- ^ Remove all completed items.
-    deriving (Eq, Ord, Show, Read)
+    deriving (Eq, Ord, Show, Read, Typeable)
 
 -- | Serializable representations of state transitions possible for our todo
 -- item management app.
@@ -98,7 +100,7 @@ data TodoAction
     | EditItemA Int
     | UpdateEditTextA T.Text
     | CommitAndStopEditingA
-    deriving (Eq, Ord, Show, Read)
+    deriving (Eq, Ord, Show, Read, Typeable)
 
 
 -- execution

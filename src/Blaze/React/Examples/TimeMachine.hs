@@ -2,6 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 {-
   The time-machine app transformer
@@ -19,6 +20,7 @@ import           Control.Lens    (makeLenses, view, set, over, _1)
 import           Control.Monad
 
 import           Data.List       (foldl')
+import           Data.Typeable   (Typeable)
 
 import           Prelude hiding (div)
 
@@ -45,7 +47,7 @@ data TMState state action = TMState
     , _tmsPaused        :: Bool
     , _tmsActionBuffer  :: [action]
       -- ^ This is where async internal actions go while the app is paused
-    }
+    } deriving (Show)
 
 makeLenses ''TMState
 
@@ -58,7 +60,7 @@ data TMAction action
     | RevertAppHistoryA Int
     | InternalA action
     | AsyncInternalA action
-    deriving (Eq, Ord, Read, Show)
+    deriving (Eq, Ord, Read, Show, Typeable)
 
 applyTMAction
     :: forall s a. s -> (a -> s -> (s, [IO a]))
