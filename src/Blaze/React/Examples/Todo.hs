@@ -14,13 +14,17 @@ import           Prelude hiding (div)
 
 import           Blaze.React (App(..))
 
+import           Control.Applicative
 import           Control.Lens
-                 ( makeLenses, view, preview, traverse, folded, set, over, ix
-                 , to, _2, _Just, sumOf, andOf
+                 ( makeLenses, view, traverse, folded, set, over, ix
+                 , to, _2, _Just, sumOf, andOf, (%=), (.=), preuse, use
                  )
 import           Control.Monad
+import           Control.Monad.Trans.State.Strict (State, execState)
+import           Control.Monad.Trans.Maybe        (MaybeT(MaybeT), runMaybeT)
 
 import           Data.Foldable   (foldMap)
+import           Data.Maybe      (fromMaybe)
 import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
 
@@ -100,41 +104,49 @@ data TodoAction
 -- execution
 ------------
 
-applyTodoItemsAction :: TodoItemsAction -> [TodoItem] -> [TodoItem]
+applyTodoItemsAction :: TodoItemsAction -> TodoItems -> TodoItems
 applyTodoItemsAction action items = case action of
     ToggleItemA itemIdx -> over (ix itemIdx . tdDone) not items
     DeleteItemA itemIdx -> map snd $ filter ((itemIdx /=) . fst) $ zip [0..] items
     ToggleAllItemsA     -> set (traverse . tdDone) (not (allItemsDone items)) items
     ClearCompletedA     -> filter (not . view tdDone) items
 
-applyTodoAction :: TodoAction -> TodoState -> TodoState
-applyTodoAction action st = case action of
-    TodoItemsActionA action' -> over tsItems (applyTodoItemsAction action') st
+-- NOTE (meiersi): for production use we'd want to use a more expressive monad
+-- that also logs reasons for exceptions. We probably also want to check
+-- invariants at specific points to simplify formulating tests.
+applyTodoAction :: TodoAction -> State TodoState ()
+applyTodoAction action = case action of
+    TodoItemsActionA action' ->
+        tsItems %= applyTodoItemsAction action'
 
-    EditItemA itemIdx ->
-        case preview (tsItems . ix itemIdx) st of
-          Nothing   -> st
-          Just (TodoItem _done desc) ->
-              set tsEditFocus (Just (itemIdx, desc))
-            $ applyTodoAction CommitAndStopEditingA
-            $ st
+    EditItemA itemIdx -> do
+        commitAndStopEditing
+        discardErrors $ do
+            itemDesc <- MaybeT $ preuse (tsItems . ix itemIdx . tdDesc)
+            tsEditFocus .= Just (itemIdx, itemDesc)
 
-    CommitAndStopEditingA ->
-        case view tsEditFocus st of
-          Nothing                 -> st
-          Just (itemIdx, newDesc) ->
-             set tsEditFocus Nothing
-           $ set (tsItems . ix itemIdx . tdDesc) newDesc
-           $ st
+    CommitAndStopEditingA -> commitAndStopEditing
 
-    UpdateEditTextA newText -> set (tsEditFocus . _Just . _2) newText st
+    UpdateEditTextA newText ->
+        tsEditFocus . _Just . _2 .= newText
 
-    CreateItemA
-        | T.null (view tsNewItemDesc st) -> st
-        | otherwise                      ->
-              over tsItems (TodoItem False (view tsNewItemDesc st) :)
-            $ set tsNewItemDesc "" st
-    UpdateNewItemDescA newText -> set tsNewItemDesc newText st
+    CreateItemA -> do
+        newItemDesc <- use tsNewItemDesc
+        unless (T.null newItemDesc) $ do
+            tsItems       %= (TodoItem False newItemDesc :)
+            tsNewItemDesc .= ""
+
+    UpdateNewItemDescA newText ->
+        tsNewItemDesc .= newText
+  where
+    discardErrors :: Functor m => MaybeT m () -> m ()
+    discardErrors m = fromMaybe () <$> runMaybeT m
+
+    commitAndStopEditing :: State TodoState ()
+    commitAndStopEditing = discardErrors $ do
+        (itemIdx, newDesc) <- MaybeT $ use tsEditFocus
+        tsEditFocus                   .= Nothing
+        tsItems . ix itemIdx . tdDesc .= newDesc
 
 
 ------------------------------------------------------------------------------
@@ -241,7 +253,7 @@ checkbox checked = H.input H.! A.type_ "checkbox" H.! A.checked checked
 app :: App TodoState TodoAction
 app = App
     { appInitialState = q0
-    , appApplyAction = applyTodoAction
+    , appApplyAction = execState . applyTodoAction
     , appRender      = renderTodoState
     }
   where
@@ -254,5 +266,4 @@ app = App
             , TodoItem True  ":-)"
             , TodoItem False "give talk"
             ]
-
 
