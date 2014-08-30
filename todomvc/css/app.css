@@ -40,6 +40,17 @@
     padding-left: 0.5em;
 }
 
+.tabbed-create-button {
+    color: lime;
+}
+
+.tabbed-create-menu {
+    background-color: #333;
+    color: #999;
+    width: 30%;
+    position:fixed;
+}
+
 /******************************************************************************
 ** Time Machine styles
 ******************************************************************************/

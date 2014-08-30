@@ -10,9 +10,8 @@ import qualified Blaze.React.Run.ReactJS          as ReactJS
 
 
 main :: IO ()
-main = ReactJS.runApp $
-    tabbed 0
-      [ namedApp "TodoMVC" Todo.app
-      , namedApp "TodoMVC (with TimeMachine™)" $ withTimeMachine Todo.app
-      , namedApp "Clock (with TimeMachine™)" $ withTimeMachine Clock.app
-      ]
+main = ReactJS.runApp $ tabbed
+    [ namedApp "TodoMVC" Todo.app
+    , namedApp "TodoMVC (with TimeMachine™)" $ withTimeMachine Todo.app
+    , namedApp "Clock (with TimeMachine™)" $ withTimeMachine Clock.app
+    ]
