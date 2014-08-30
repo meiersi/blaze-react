@@ -18,7 +18,7 @@
 }
 
 /******************************************************************************
-** Multiplexer styles
+** Tabbed app styles
 ******************************************************************************/
 
 .tabbed-app-picker {
@@ -30,8 +30,14 @@
     color: #eee;
 }
 
-.tabbed-app-picker span {
+.tabbed-app-picker div {
+    display: inline;
     padding-left: 3em;
+}
+
+.tabbed-delete-button {
+    color: rgb(210,0,0);
+    padding-left: 0.5em;
 }
 
 /******************************************************************************

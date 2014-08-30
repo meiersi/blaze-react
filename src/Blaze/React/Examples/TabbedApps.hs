@@ -32,7 +32,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 
 data SomeApp = forall st act. (Typeable act, Show act, Show st) => SomeApp
-    { saName   :: !T.Text
+    { saName    :: !T.Text
     , _saState  :: !st
     , _saApply  :: !(act -> st -> (st, [IO act]))
     , _saRender :: !(st -> H.Html act)
@@ -78,6 +78,7 @@ renderSomeApp (SomeApp _name st _apply render) =
 
 data TabbedAction
     = SwitchApp !Int
+    | DestroyApp !Int
     | AppAction !Int SomeAction
     deriving (Show, Typeable)
 
@@ -98,6 +99,14 @@ applyTabbedAction act st = case act of
       | nullOf (tsApps . ix appIdx) st -> (st, [])
       | otherwise                      -> (set tsFocus appIdx st, [])
 
+    DestroyApp appIdx ->
+      let updateFocus focus
+            | focus < appIdx = focus
+            | focus > appIdx = focus - 1
+            | focus == 0     = focus
+            | otherwise      = focus - 1
+      in (over tsFocus updateFocus $ over tsApps (deleteAt appIdx) st, [])
+
     AppAction appIdx someAction ->
       case preview (tsApps . ix appIdx) st of
         Nothing      -> (st, [])
@@ -106,6 +115,12 @@ applyTabbedAction act st = case act of
           in ( set (tsApps . ix appIdx) someApp' st
              , fmap (AppAction appIdx) <$> reqs
              )
+  where
+    -- Why isn't this in Data.List?
+    deleteAt :: Int -> [a] -> [a]
+    deleteAt _ []     = []
+    deleteAt 0 (_:xs) = xs
+    deleteAt n (x:xs) = x : deleteAt (n - 1) xs
 
 
 renderTabbedState :: TabbedState -> H.Html TabbedAction
@@ -114,12 +129,15 @@ renderTabbedState (TabbedState focusedAppIdx apps) = do
       foldMap appItem $ zip [0..] apps
     H.div H.! A.class_ "tabbed-internal-app" $
       case preview (ix focusedAppIdx) apps of
-        Nothing  -> "invariant violation: no app focused"
+        Nothing
+          | null apps -> "Please open an application using the menu above"
+          | otherwise -> "invariant violation: no app focused"
         Just app -> H.mapActions (AppAction focusedAppIdx) $ renderSomeApp app
   where
     appItem (appIdx, app) =
-      H.span H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item")
-             H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
+      H.div H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item") $ do
+        H.span H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
+        H.span H.! A.class_ "tabbed-delete-button" H.! H.onClick (DestroyApp appIdx) $ "[X]"
 
 
 ------------------------------------------------------------------------------
