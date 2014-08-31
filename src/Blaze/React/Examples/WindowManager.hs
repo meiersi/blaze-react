@@ -107,6 +107,10 @@ data WMAction
     deriving (Show, Typeable)
 
 data WMState = WMState
+    -- FIXME (asayers): we need to give windows a stable reference for use
+    -- in AppAction constructors. Right now, if you close a window which
+    -- has created a request, the resulting action will be applied to the
+    -- next window in the list. Not good.
     { _wmsWindows         :: [WindowState]
     , _wmsApps            :: [NamedApp]
     , _wmsShowCreateMenu  :: !Bool
@@ -160,22 +164,11 @@ renderWMState :: WMState -> H.Html WMAction
 renderWMState (WMState windows apps showCreateMenu) = do
     H.div H.! A.class_ "tabbed-app-picker" $ do
       H.span H.! A.class_ "tabbed-create-button" H.! H.onClick ToggleCreateMenu $ "[+]"
-    --   foldMap appItem $ zip [0..] apps
     when showCreateMenu $ H.div H.! A.class_ "tabbed-create-menu" $
       H.ul $ foldMap createItem $ zip [0..] apps
     H.div H.! A.class_ "tabbed-internal-app" $
       layoutWorkspace $ renderWindowForEmbedding <$> zip [0..] windows
-      -- case preview (ix focusedAppIdx) apps of
-      --   Nothing
-      --     | null apps -> "Please open an application using the menu above"
-      --     | otherwise -> "invariant violation: no app focused"
-      --   Just app -> H.mapActions (AppAction focusedAppIdx) $ renderWindow app
   where
-    -- appItem (appIdx, app) =
-    --   H.div H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item") $ do
-    --     H.span H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
-    --     H.span H.! A.class_ "tabbed-delete-button" H.! H.onClick (DestroyApp appIdx) $ "[X]"
-
     layoutWorkspace :: [H.Html WMAction] -> H.Html WMAction
     layoutWorkspace windows =
         H.div H.! A.class_ "wm-workspace" $ case windows of
