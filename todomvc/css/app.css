@@ -35,11 +35,6 @@
     padding-left: 3em;
 }
 
-.tabbed-delete-button {
-    color: rgb(210,0,0);
-    padding-left: 0.5em;
-}
-
 .tabbed-create-button {
     color: lime;
 }
@@ -48,7 +43,35 @@
     background-color: #333;
     color: #999;
     width: 30%;
-    position:fixed;
+    position:absolute;
+}
+
+/* .wm-workspace tr, td { */
+/*     border: 1px solid black; */
+/* } */
+
+.wm-left-col {
+    width: 50%;
+}
+.wm-right-col {
+    width: 50%;
+    float: right;
+}
+
+
+.wm-window {
+    border: 1px solid black;
+    overflow: scroll;
+}
+
+.wm-close-button {
+    color: rgb(210,0,0);
+    padding-left: 0.5em;
+}
+
+.wm-title-bar {
+    background-color: #333;
+    color: #999;
 }
 
 /******************************************************************************

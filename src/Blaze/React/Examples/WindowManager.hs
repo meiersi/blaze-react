@@ -3,6 +3,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+
 module Blaze.React.Examples.WindowManager
     (
       NamedApp
@@ -17,6 +18,7 @@ import           Control.Applicative
 import           Control.Lens         hiding (act)
 import           Control.Monad        (when)
 
+import           Data.Monoid      (mconcat)
 import qualified Data.Text        as T
 import           Data.Foldable    (foldMap)
 import           Data.Typeable    (Typeable, cast)
@@ -32,13 +34,13 @@ import qualified Text.Blaze.Html5.Attributes as A
 data NamedApp = forall st act.
     (Typeable act, Show act, Show st) => NamedApp !T.Text (App st act)
 
-namedAppInitialRequests :: Int -> NamedApp -> [IO TabbedAction]
+namedAppInitialRequests :: Int -> NamedApp -> [IO WMAction]
 namedAppInitialRequests appIdx (NamedApp _ (App _q0 reqs0 _apply _render)) =
-    map (fmap (AppAction appIdx . SomeAction)) reqs0
+    map (fmap (AppAction appIdx . WindowAction)) reqs0
 
-namedAppToSomeApp :: NamedApp -> SomeApp
-namedAppToSomeApp (NamedApp name (App q0 _reqs0 apply render)) =
-    SomeApp name q0 apply render
+namedAppToWindow :: NamedApp -> WindowState
+namedAppToWindow (NamedApp name (App q0 _reqs0 apply render)) =
+    WindowState name q0 apply render
 
 instance Show NamedApp where
     showsPrec prec (NamedApp name _) =
@@ -51,103 +53,100 @@ instance Show NamedApp where
 -- Runtime type information for the win! :-)
 
 
-data SomeApp = forall st act. (Typeable act, Show act, Show st) => SomeApp
-    { saName    :: !T.Text
-    , _saState  :: !st
-    , _saApply  :: !(act -> st -> (st, [IO act]))
-    , _saRender :: !(st -> H.Html act)
+data WindowState = forall st act. (Typeable act, Show act, Show st) => WindowState
+    { winName    :: !T.Text
+    , _winState  :: !st
+    , _winApply  :: !(act -> st -> (st, [IO act]))
+    , _winRender :: !(st -> H.Html act)
     }
 
-data SomeAction = forall act. (Typeable act, Show act) => SomeAction act
+data WindowAction = forall act. (Typeable act, Show act) => WindowAction act
 
 
 -- instances
 ------------
 
-instance Show SomeApp where
-    showsPrec prec (SomeApp name st _ _) =
-        showsPrec prec ("SomeApp" :: T.Text, name, st)
+instance Show WindowState where
+    showsPrec prec (WindowState name st _ _) =
+        showsPrec prec ("WindowState" :: T.Text, name, st)
 
-instance Show SomeAction where
-    showsPrec prec (SomeAction act) = showsPrec prec act
+instance Show WindowAction where
+    showsPrec prec (WindowAction act) = showsPrec prec act
 
 
 -- operations
 -------------
 
-fromSomeAction :: Typeable act => SomeAction -> Maybe act
-fromSomeAction (SomeAction act) = cast act
+fromWindowAction :: Typeable act => WindowAction -> Maybe act
+fromWindowAction (WindowAction act) = cast act
 
-applySomeAction :: SomeAction -> SomeApp -> (SomeApp, [IO SomeAction])
-applySomeAction someAct someApp@(SomeApp name st apply render) =
-    case fromSomeAction someAct of
+applyWindowAction :: WindowAction -> WindowState -> (WindowState, [IO WindowAction])
+applyWindowAction someAct someApp@(WindowState name st apply render) =
+    case fromWindowAction someAct of
       Nothing  -> (someApp, []) -- ignore actions from other apps
                                 -- TODO (meiersi): log this as a bug
       Just act ->
         let (st', reqs) = apply act st
-        in  (SomeApp name st' apply render, map (fmap SomeAction) reqs)
+        in  (WindowState name st' apply render, map (fmap WindowAction) reqs)
 
-renderSomeApp :: SomeApp -> H.Html SomeAction
-renderSomeApp (SomeApp _name st _apply render) =
-    H.mapActions SomeAction $ render st
+renderWindow :: WindowState -> H.Html WindowAction
+renderWindow (WindowState _name st _apply render) =
+    H.mapActions WindowAction $ render st
 
 
 ------------------------------------------------------------------------------
 -- Combining multiple apps using a tabbed switcher
 ------------------------------------------------------------------------------
 
-data TabbedAction
-    = SwitchApp  !Int
-    | DestroyApp !Int
-    | CreateApp  !Int
+data WMAction
+    -- = SwitchWorkspace  !Int
+    = DestroyWindow !Int   -- ^ windowIdx
+    | CreateWindow  !Int   -- ^ appIdx
     | ToggleCreateMenu
-    | AppAction  !Int SomeAction
+    | AppAction  !Int WindowAction
     deriving (Show, Typeable)
 
-data TabbedState = TabbedState
-   { _tsFocus          :: !Int
-   , _tsApps           :: [SomeApp]
-   , _tsAvailableApps  :: [NamedApp]
-   , _tsShowCreateMenu :: !Bool
-   -- invariants:
-   --   - 0 <= tsFocus < length tsApps
-   } deriving (Show)
+data WMState = WMState
+    { _wmsWindows         :: [WindowState]
+    , _wmsApps            :: [NamedApp]
+    , _wmsShowCreateMenu  :: !Bool
+    } deriving (Show)
 
-makeLenses ''TabbedState
+-- data WorkspaceState = WorkspaceState
+--    { _wssWindows        :: [Int]   -- ^ the windows which are in this workspace
+--    } deriving (Show)
+
+makeLenses ''WMState
+-- makeLenses ''WorkspaceState
 
 
-applyTabbedAction
-    :: TabbedAction -> TabbedState -> (TabbedState, [IO TabbedAction])
-applyTabbedAction act st = case act of
-    SwitchApp appIdx
-      | nullOf (tsApps . ix appIdx) st -> (st, [])
-      | otherwise                      -> (set tsFocus appIdx st, [])
+applyWMAction
+    :: WMAction -> WMState -> (WMState, [IO WMAction])
+applyWMAction act st = case act of
+    -- SwitchWorkspace workspaceIdx
+    --   | nullOf (wmsWorkspaces . ix workspaceIdx) st -> (st, [])
+    --   | otherwise -> (set wmsActiveWorkspace workspaceIdx st, [])
 
-    DestroyApp appIdx ->
-      let updateFocus focus
-            | focus < appIdx = focus
-            | focus > appIdx = focus - 1
-            | focus == 0     = focus
-            | otherwise      = focus - 1
-      in (over tsFocus updateFocus $ over tsApps (deleteAt appIdx) st, [])
+    DestroyWindow windowIdx ->
+      (over wmsWindows (deleteAt windowIdx) st, [])
 
-    CreateApp avAppIdx ->
-      case preview (tsAvailableApps . ix avAppIdx) st of
+    CreateWindow appIdx ->
+      case preview (wmsApps . ix appIdx) st of
         Nothing  -> (st, [])
         Just app ->
-          ( set tsShowCreateMenu False $
-            over tsApps (++ [namedAppToSomeApp app]) st
-          , namedAppInitialRequests (length $ view tsApps st) app)
+          ( set wmsShowCreateMenu False $
+            over wmsWindows (++ [namedAppToWindow app]) st
+          , namedAppInitialRequests (length $ view wmsWindows st) app)
 
-    ToggleCreateMenu -> (over tsShowCreateMenu not st, [])
+    ToggleCreateMenu -> (over wmsShowCreateMenu not st, [])
 
-    AppAction appIdx someAction ->
-      case preview (tsApps . ix appIdx) st of
-        Nothing      -> (st, [])
-        Just someApp ->
-          let (someApp', reqs) = applySomeAction someAction someApp
-          in ( set (tsApps . ix appIdx) someApp' st
-             , fmap (AppAction appIdx) <$> reqs
+    AppAction windowIdx windowAction ->
+      case preview (wmsWindows . ix windowIdx) st of
+        Nothing     -> (st, [])
+        Just window ->
+          let (window', reqs) = applyWindowAction windowAction window
+          in ( set (wmsWindows . ix windowIdx) window' st
+             , fmap (AppAction windowIdx) <$> reqs
              )
   where
     -- Why isn't this in Data.List?
@@ -157,27 +156,43 @@ applyTabbedAction act st = case act of
     deleteAt n (x:xs) = x : deleteAt (n - 1) xs
 
 
-renderTabbedState :: TabbedState -> H.Html TabbedAction
-renderTabbedState (TabbedState focusedAppIdx apps availableApps showCreateMenu) = do
+renderWMState :: WMState -> H.Html WMAction
+renderWMState (WMState windows apps showCreateMenu) = do
     H.div H.! A.class_ "tabbed-app-picker" $ do
       H.span H.! A.class_ "tabbed-create-button" H.! H.onClick ToggleCreateMenu $ "[+]"
-      foldMap appItem $ zip [0..] apps
+    --   foldMap appItem $ zip [0..] apps
     when showCreateMenu $ H.div H.! A.class_ "tabbed-create-menu" $
-      H.ul $ foldMap createItem $ zip [0..] availableApps
+      H.ul $ foldMap createItem $ zip [0..] apps
     H.div H.! A.class_ "tabbed-internal-app" $
-      case preview (ix focusedAppIdx) apps of
-        Nothing
-          | null apps -> "Please open an application using the menu above"
-          | otherwise -> "invariant violation: no app focused"
-        Just app -> H.mapActions (AppAction focusedAppIdx) $ renderSomeApp app
+      layoutWorkspace $ renderWindowForEmbedding <$> zip [0..] windows
+      -- case preview (ix focusedAppIdx) apps of
+      --   Nothing
+      --     | null apps -> "Please open an application using the menu above"
+      --     | otherwise -> "invariant violation: no app focused"
+      --   Just app -> H.mapActions (AppAction focusedAppIdx) $ renderWindow app
   where
-    appItem (appIdx, app) =
-      H.div H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item") $ do
-        H.span H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
-        H.span H.! A.class_ "tabbed-delete-button" H.! H.onClick (DestroyApp appIdx) $ "[X]"
+    -- appItem (appIdx, app) =
+    --   H.div H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item") $ do
+    --     H.span H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
+    --     H.span H.! A.class_ "tabbed-delete-button" H.! H.onClick (DestroyApp appIdx) $ "[X]"
 
-    createItem (avAppIdx, NamedApp name _) =
-      H.li H.! H.onClick (CreateApp avAppIdx) $ H.toHtml name
+    layoutWorkspace :: [H.Html WMAction] -> H.Html WMAction
+    layoutWorkspace windows =
+        H.div H.! A.class_ "wm-workspace" $ case windows of
+          []     -> ""
+          [x]    -> x
+          (x:xs) -> do
+            H.div H.! A.class_ "wm-right-col" $ mconcat xs
+            H.div H.! A.class_ "wm-left-col" $ x
+
+    renderWindowForEmbedding (windowIdx, window) = H.div H.! A.class_ "wm-window" $ do
+      H.div H.! A.class_ "wm-title-bar" $ do
+        H.span $ H.toHtml $ winName window
+        H.span H.! A.class_ "wm-close-button" H.! H.onClick (DestroyWindow windowIdx) $ "[x]"
+      H.div $ H.mapActions (AppAction windowIdx) $ renderWindow window
+
+    createItem (appIdx, NamedApp name _) =
+      H.li H.! H.onClick (CreateWindow appIdx) $ H.toHtml name
 
 
 -------------------------------------------------------------------------------
@@ -187,12 +202,11 @@ renderTabbedState (TabbedState focusedAppIdx apps availableApps showCreateMenu) 
 namedApp :: (Typeable act, Show act, Show st) => T.Text -> App st act -> NamedApp
 namedApp = NamedApp
 
-windowManager :: [NamedApp] -> App TabbedState TabbedAction
+windowManager :: [NamedApp] -> App WMState WMAction
 windowManager apps = App
-    { appInitialState    =
-        TabbedState 0 [] apps False
+    { appInitialState    = WMState [] apps False
     , appInitialRequests = []
-    , appApplyAction     = applyTabbedAction
-    , appRender          = renderTabbedState
+    , appApplyAction     = applyWMAction
+    , appRender          = renderWMState
     }
 
