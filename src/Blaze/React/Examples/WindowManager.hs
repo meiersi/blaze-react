@@ -3,12 +3,12 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Blaze.React.Examples.TabbedApps
+module Blaze.React.Examples.WindowManager
     (
       NamedApp
     , namedApp
 
-    , tabbed
+    , windowManager
     ) where
 
 import           Blaze.React      (App(..))
@@ -187,8 +187,8 @@ renderTabbedState (TabbedState focusedAppIdx apps availableApps showCreateMenu) 
 namedApp :: (Typeable act, Show act, Show st) => T.Text -> App st act -> NamedApp
 namedApp = NamedApp
 
-tabbed :: [NamedApp] -> App TabbedState TabbedAction
-tabbed apps = App
+windowManager :: [NamedApp] -> App TabbedState TabbedAction
+windowManager apps = App
     { appInitialState    =
         TabbedState 0 [] apps False
     , appInitialRequests = []

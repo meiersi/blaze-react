@@ -4,13 +4,14 @@ module Main (main) where
 
 import qualified Blaze.React.Examples.Clock       as Clock
 import qualified Blaze.React.Examples.Todo        as Todo
-import           Blaze.React.Examples.TabbedApps  (namedApp, tabbed)
+-- import           Blaze.React.Examples.TabbedApps  (namedApp, tabbed)
+import           Blaze.React.Examples.WindowManager  (namedApp, windowManager)
 import           Blaze.React.Examples.TimeMachine (withTimeMachine)
 import qualified Blaze.React.Run.ReactJS          as ReactJS
 
 
 main :: IO ()
-main = ReactJS.runApp $ tabbed
+main = ReactJS.runApp $ windowManager
     [ namedApp "TodoMVC" Todo.app
     , namedApp "Clock" Clock.app
     , namedApp "TodoMVC (with TimeMachine™)" $ withTimeMachine Todo.app
