@@ -28,30 +28,27 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 
 ------------------------------------------------------------------------------
--- Bundling up several applications
+-- NamedApps
 ------------------------------------------------------------------------------
 
+-- | A NamedApp is an application which can be instantiated by the window
+-- manager.
 data NamedApp = forall st act.
     (Typeable act, Show act, Show st) => NamedApp !T.Text (App st act)
-
-namedAppInitialRequests :: Int -> NamedApp -> [IO WMAction]
-namedAppInitialRequests appIdx (NamedApp _ (App _q0 reqs0 _apply _render)) =
-    map (fmap (AppAction appIdx . WindowAction)) reqs0
-
-namedAppToWindow :: NamedApp -> WindowState
-namedAppToWindow (NamedApp name (App q0 _reqs0 apply render)) =
-    WindowState name q0 apply render
 
 instance Show NamedApp where
     showsPrec prec (NamedApp name _) =
       showsPrec prec ("NamedApp" :: T.Text, name)
+
+instantiateNamedApp :: NamedApp -> (WindowState, [IO WindowAction])
+instantiateNamedApp (NamedApp name (App q0 reqs0 apply render)) =
+    (WindowState name q0 apply render, map (fmap WindowAction) reqs0)
 
 ------------------------------------------------------------------------------
 -- Wrapping up different applications and their actions
 ------------------------------------------------------------------------------
 
 -- Runtime type information for the win! :-)
-
 
 data WindowState = forall st act. (Typeable act, Show act, Show st) => WindowState
     { winName    :: !T.Text
@@ -138,9 +135,10 @@ applyWMAction act st = case act of
       case preview (wmsApps . ix appIdx) st of
         Nothing  -> (st, [])
         Just app ->
-          ( set wmsShowCreateMenu False $
-            over wmsWindows (++ [namedAppToWindow app]) st
-          , namedAppInitialRequests (length $ view wmsWindows st) app)
+          let (window, reqs) = instantiateNamedApp app
+          in  ( set wmsShowCreateMenu False $ over wmsWindows (++ [window]) st
+              , map (fmap $ AppAction $ length $ view wmsWindows st) reqs
+              )
 
     ToggleCreateMenu -> (over wmsShowCreateMenu not st, [])
 
