@@ -86,8 +86,8 @@ applyWindowAction someAct someApp@(WindowState name st apply render) =
         let (st', reqs) = apply act st
         in  (WindowState name st' apply render, map (fmap WindowAction) reqs)
 
-renderWindow :: WindowState -> H.Html WindowAction
-renderWindow (WindowState _name st _apply render) =
+renderWindowContents :: WindowState -> H.Html WindowAction
+renderWindowContents (WindowState _name st _apply render) =
     H.mapActions WindowAction $ render st
 
 
@@ -165,22 +165,27 @@ renderWMState (WMState windows apps showCreateMenu) = do
     when showCreateMenu $ H.div H.! A.class_ "tabbed-create-menu" $
       H.ul $ foldMap createItem $ zip [0..] apps
     H.div H.! A.class_ "tabbed-internal-app" $
-      layoutWorkspace $ renderWindowForEmbedding <$> zip [0..] windows
+      renderWorkspace $ zip [0..] windows
   where
-    layoutWorkspace :: [H.Html WMAction] -> H.Html WMAction
-    layoutWorkspace windows =
+    renderWorkspace :: [(Int, WindowState)] -> H.Html WMAction
+    renderWorkspace windows =
         H.div H.! A.class_ "wm-workspace" $ case windows of
           []     -> ""
-          [x]    -> x
+          [x]    -> renderWindow 100 100 x
           (x:xs) -> do
-            H.div H.! A.class_ "wm-right-col" $ mconcat xs
-            H.div H.! A.class_ "wm-left-col" $ x
+            H.div H.! A.class_ "wm-right-col" $
+              mconcat $ renderWindow 50 (100 `div` length xs) <$> xs
+            H.div H.! A.class_ "wm-left-col" $ renderWindow 50 100 x
 
-    renderWindowForEmbedding (windowIdx, window) = H.div H.! A.class_ "wm-window" $ do
-      H.div H.! A.class_ "wm-title-bar" $ do
-        H.span $ H.toHtml $ winName window
-        H.span H.! A.class_ "wm-close-button" H.! H.onClick (DestroyWindow windowIdx) $ "[x]"
-      H.div $ H.mapActions (AppAction windowIdx) $ renderWindow window
+    renderWindow :: Int -> Int -> (Int, WindowState) -> H.Html WMAction
+    renderWindow width height (windowIdx, window) =
+      H.div H.! A.class_ "wm-window" $ do
+        H.div H.! A.class_ "wm-title-bar" $ do
+          H.span $ H.toHtml $ winName window
+          H.span H.! A.class_ "wm-close-button" H.! H.onClick (DestroyWindow windowIdx) $ "[x]"
+        H.div $ H.mapActions (AppAction windowIdx) $ renderWindowContents window
+          -- H.! A.style ("width: " <> H.toValue width <> "vw;\
+          --                 \ height: " <> H.toValue height <> "vh;") $
 
     createItem (appIdx, NamedApp name _) =
       H.li H.! H.onClick (CreateWindow appIdx) $ H.toHtml name
