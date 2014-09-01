@@ -46,6 +46,7 @@ library
 
   build-depends:       base >=4.7 && <4.8,
                        bytestring,
+                       containers,
                        either,
                        ghcjs-base,
                        ghcjs-ffiqq,
