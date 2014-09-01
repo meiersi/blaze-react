@@ -18,7 +18,8 @@ import           Control.Applicative
 import           Control.Lens         hiding (act)
 import           Control.Monad        (when)
 
-import           Data.Monoid      (mconcat)
+import qualified Data.Map         as M
+import           Data.Monoid      (mconcat, (<>))
 import qualified Data.Text        as T
 import           Data.Foldable    (foldMap)
 import           Data.Typeable    (Typeable, cast)
@@ -183,9 +184,14 @@ renderWMState (WMState windows apps showCreateMenu) = do
         H.div H.! A.class_ "wm-title-bar" $ do
           H.span $ H.toHtml $ winName window
           H.span H.! A.class_ "wm-close-button" H.! H.onClick (DestroyWindow windowIdx) $ "[x]"
-        H.div $ H.mapActions (AppAction windowIdx) $ renderWindowContents window
-          -- H.! A.style ("width: " <> H.toValue width <> "vw;\
-          --                 \ height: " <> H.toValue height <> "vh;") $
+        H.div H.! A.class_ "wm-window-contents" H.! A.style styleMap $
+          H.mapActions (AppAction windowIdx) $ renderWindowContents window
+      where
+        styleMap = M.fromList
+          [ ("width" , H.toValue width <> "vw")
+            -- Leave room for the title bar
+          , ("height", "calc(" <> H.toValue height <> "vh - 22px)")
+          ]
 
     createItem (appIdx, NamedApp name _) =
       H.li H.! H.onClick (CreateWindow appIdx) $ H.toHtml name

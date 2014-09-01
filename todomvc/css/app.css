@@ -58,10 +58,8 @@
     float: right;
 }
 
-
 .wm-window {
     border: 1px solid black;
-    overflow: scroll;
 }
 
 .wm-close-button {
@@ -72,6 +70,11 @@
 .wm-title-bar {
     background-color: #333;
     color: #999;
+    height: 20px;
+}
+
+.wm-window-contents {
+    overflow: auto;
 }
 
 /******************************************************************************
