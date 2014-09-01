@@ -36,6 +36,7 @@ module Text.Blaze.Internal
     , customLeaf
     , attribute
     , boolAttribute
+    , mapAttribute
     , dataAttribute
     , customAttribute
 
@@ -82,6 +83,7 @@ import           Data.ByteString.Char8        (ByteString)
 import qualified Data.ByteString              as B
 import qualified Data.ByteString.Lazy         as BL
 import qualified Data.List                    as List
+import qualified Data.Map                     as M
 import           Data.Monoid                  (Monoid, mappend, mempty, mconcat)
 import           Data.Text                    (Text)
 import qualified Data.Text                    as T
@@ -110,6 +112,9 @@ data StaticString = StaticString
 instance IsString StaticString where
     fromString s = let t = T.pack s
                    in StaticString (s ++) (T.encodeUtf8 t) t
+
+instance Show StaticString where
+    show = show . getText
 
 -- | A string denoting input from different string representations.
 --
@@ -140,6 +145,17 @@ instance Monoid ChoiceString where
 instance IsString ChoiceString where
     fromString = String
     {-# INLINE fromString #-}
+
+instance Show ChoiceString where
+    show choiceString = case choiceString of
+      Static x               -> show x
+      String str             -> str
+      Text x                 -> show x
+      ByteString x           -> show x
+      PreEscaped x           -> show x
+      External x             -> show x
+      AppendChoiceString x y -> show x ++ show y
+      EmptyChoiceString      -> ""
 
 -- | One specific and incomplete specifications of event-handlers geared
 -- towards their use with ReactJS.
@@ -177,6 +193,8 @@ data MarkupM act a
     | AddAttribute StaticString StaticString ChoiceString (MarkupM act a)
       -- | Add a boolean attribute.
     | AddBoolAttribute StaticString Bool (MarkupM act a)
+      -- | Add a map (dictionary) attribute
+    | AddMapAttribute StaticString (M.Map String ChoiceString) (MarkupM act a)
       -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM act a)
       -- | Empty HTML.
@@ -306,6 +324,11 @@ attribute rawKey key value = Attribute $
 
 boolAttribute :: Tag -> Bool -> Attribute ev
 boolAttribute rawKey value = Attribute $ AddBoolAttribute (unTag rawKey) value
+
+mapAttribute :: Tag -> M.Map String AttributeValue -> Attribute ev
+mapAttribute rawKey value =
+    Attribute $ AddMapAttribute (unTag rawKey)
+      (M.map unAttributeValue value)
 
 -- | From HTML 5 onwards, the user is able to specify custom data attributes.
 --
@@ -561,6 +584,7 @@ contents (Content c)                = Content c
 contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
 contents (AddBoolAttribute _ _ c)   = contents c
+contents (AddMapAttribute _ _ c)    = contents c
 contents (AddCustomAttribute _ _ c) = contents c
 contents _                          = Empty
 
@@ -578,6 +602,7 @@ null markup = case markup of
     Append c1 c2             -> null c1 && null c2
     AddAttribute _ _ _ c     -> null c
     AddBoolAttribute _ _ c   -> null c
+    AddMapAttribute _ _ c    -> null c
     AddCustomAttribute _ _ c -> null c
     Empty                    -> True
   where

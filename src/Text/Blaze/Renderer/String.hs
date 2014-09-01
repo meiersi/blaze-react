@@ -11,9 +11,10 @@ module Text.Blaze.Renderer.String
 
 import Data.List (isInfixOf)
 
-import qualified Data.ByteString.Char8 as SBC
-import qualified Data.Text as T
 import qualified Data.ByteString as S
+import qualified Data.ByteString.Char8 as SBC
+import qualified Data.Map as M
+import qualified Data.Text as T
 
 import Text.Blaze.Internal
 
@@ -88,6 +89,12 @@ renderString =
         AddBoolAttribute key value h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
                        . ((if value then "true" else "false") ++) .  ('"' :) .  attrs
+            in go attrs' h
+        AddMapAttribute key value h ->
+            let attrs' = (' ' :) . getString key . ("=\"" ++)
+                       . ((M.foldMapWithKey (\key' value' ->
+                            key' ++ ": " ++ show value' ++ "; ")
+                          value) ++) .  ('"' :) .  attrs
             in go attrs' h
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)

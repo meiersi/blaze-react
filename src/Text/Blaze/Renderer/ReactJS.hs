@@ -12,11 +12,13 @@ module Text.Blaze.Renderer.ReactJS
 
 
 import           Control.Applicative
+import           Control.Monad              (forM_)
 import           Control.Monad.Trans        (lift)
 import           Control.Monad.Trans.Either (runEitherT, EitherT(..), left)
 
 import qualified Data.ByteString.Char8 as SBC
 import           Data.List             (isInfixOf)
+import qualified Data.Map              as M
 import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
 import qualified Data.ByteString       as S
@@ -25,6 +27,8 @@ import qualified GHCJS.Foreign         as Foreign
 import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 
 import           Prelude               hiding (span)
+
+import           System.IO.Unsafe      (unsafePerformIO)
 
 import           Text.Blaze.Internal
 
@@ -138,6 +142,10 @@ render handleAct0 markup = do
         AddBoolAttribute key value h -> do
             setProperty (staticStringToJs key) (Foreign.toJSBool value) h
 
+        AddMapAttribute key value h -> do
+            setProperty (staticStringToJs key)
+              (toJSObject $ M.map choiceStringToJs value) h
+
         -- FIXME (SM): This is not going to work in all cases, as 'attributes'
         -- must be set differently from properties.
         AddCustomAttribute key value h ->
@@ -177,6 +185,13 @@ render handleAct0 markup = do
 
         textToVNode :: JSString -> IO ()
         textToVNode jsText = Foreign.pushArray jsText children
+
+        -- TODO (asayers): This should go in GHCJS.Foreign
+        toJSObject :: Foreign.ToJSString k => M.Map k (JSRef v) -> JSObject v
+        toJSObject props = unsafePerformIO $ do
+            obj <- Foreign.newObj
+            forM_ (M.toList props) $ \(k, v) -> Foreign.setProp k v obj
+            return obj
 
 
 renderHtml
