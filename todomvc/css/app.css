@@ -24,15 +24,16 @@
 .tabbed-app-picker {
     background-color: #333;
     color: #999;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    z-index: 5;
 }
 
 .tabbed-active-item {
     color: #eee;
-}
-
-.tabbed-app-picker div {
-    display: inline;
-    padding-left: 3em;
 }
 
 .tabbed-create-button {
@@ -43,7 +44,10 @@
     background-color: #333;
     color: #999;
     width: 30%;
-    position:absolute;
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    z-index: 5;
 }
 
 /* .wm-workspace tr, td { */
