@@ -123,14 +123,15 @@ renderTM renderInternal state = do
       H.mapActions InternalA $ renderInternal (view tmsInternalState state)
   where
     actionsWithIndices :: [(Int, String)]
-    actionsWithIndices =
+    actionsWithIndices = reverse $
       (0, "Initial state") : (zip [1..] $ map show $ _tmsActionHistory state)
 
     renderHistoryBrowser = do
       H.h2 "Events"
       H.div H.! A.class_ "tm-history-browser" $ do
         H.ol $ forM_ actionsWithIndices $ \(idx, action) ->
-          H.li H.! H.onMouseOver (RevertAppHistoryA idx)
+          H.li H.! A.value (H.toValue $ idx + 1)
+               H.! H.onMouseOver (RevertAppHistoryA idx)
                H.!? (idx == view tmsActiveAction state, A.class_ "tm-active-item")
                $ H.toHtml action
 

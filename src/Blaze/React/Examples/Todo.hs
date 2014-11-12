@@ -168,7 +168,7 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
                   H.! A.autofocus True
                   H.! A.value (H.toValue newItemDesc)
                   H.! H.onTextInputChange UpdateNewItemDescA
-                  H.! H.onBlur CreateItemA
+                  H.! H.onKeyPress 13 CreateItemA
 
         -- items
         unless (null items) $ do
@@ -234,6 +234,7 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
                            H.! A.autofocus True
                            H.! H.onTextInputChange UpdateEditTextA
                            H.! H.onBlur CommitAndStopEditingA
+                           H.! H.onKeyPress 13 CommitAndStopEditingA
                | otherwise -> mempty
            Nothing         -> mempty
   where
