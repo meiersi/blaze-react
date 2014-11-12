@@ -32,6 +32,7 @@ import           Data.Typeable   (Typeable)
 
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
+import qualified Text.Blaze.Keycode                   as Keycode
 
 
 ------------------------------------------------------------------------------
@@ -168,7 +169,7 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
                   H.! A.autofocus True
                   H.! A.value (H.toValue newItemDesc)
                   H.! H.onTextInputChange UpdateNewItemDescA
-                  H.! H.onKeyPress 13 CreateItemA
+                  H.! H.onKeyPress Keycode.enter CreateItemA
 
         -- items
         unless (null items) $ do
@@ -234,7 +235,7 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
                            H.! A.autofocus True
                            H.! H.onTextInputChange UpdateEditTextA
                            H.! H.onBlur CommitAndStopEditingA
-                           H.! H.onKeyPress 13 CommitAndStopEditingA
+                           H.! H.onKeyPress Keycode.enter CommitAndStopEditingA
                | otherwise -> mempty
            Nothing         -> mempty
   where

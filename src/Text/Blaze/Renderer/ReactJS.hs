@@ -29,6 +29,7 @@ import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 import           Prelude               hiding (span)
 
 import           Text.Blaze.Internal
+import           Text.Blaze.Keycode    (unKeycode)
 
 
 ------------------------------------------------------------------------------
@@ -230,8 +231,8 @@ registerEventHandler eh props = case eh of
           case mbKeycode of
             Nothing -> left "Couldn't decode keycode"
             Just keycode
-              | keycode == targetKeycode -> return $ HandleEvent mkAct
-              | otherwise                -> return $ IgnoreEvent
+              | keycode == unKeycode targetKeycode -> return $ HandleEvent mkAct
+              | otherwise                          -> return $ IgnoreEvent
 
   where
     simply = const . return . Right . HandleEvent
