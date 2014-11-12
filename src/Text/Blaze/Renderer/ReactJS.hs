@@ -14,8 +14,7 @@ module Text.Blaze.Renderer.ReactJS
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans        (lift)
-import           Control.Monad.Trans.Either ( runEitherT, EitherT(..), left
-                                            , bimapEitherT)
+import           Control.Monad.Trans.Either ( runEitherT, EitherT(..), left)
 
 import qualified Data.ByteString.Char8 as SBC
 import           Data.List             (isInfixOf)
@@ -24,7 +23,7 @@ import qualified Data.Text             as T
 import qualified Data.ByteString       as S
 
 import qualified GHCJS.Foreign         as Foreign
-import           GHCJS.Marshal        as Marshal
+import           GHCJS.Marshal         as Marshal
 import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 
 import           Prelude               hiding (span)
@@ -204,13 +203,10 @@ lookupProp name obj = do
   where
     err = "failed to get property '" <> Foreign.fromJSString name <> "'."
 
-type Handler = IO (Bool -> IO ())
-data NoHandler
-    = HandlerError T.Text
-      -- ^ There was an error while generating the handler
-    | IgnoreEvent
-      -- ^ No handler is required, because we are going to ignore this event
-
+data Handler
+    = IgnoreEvent
+    | HandleEvent (IO (Bool -> IO ()))
+      -- ^ Contains an IO action which generates the callback to attach to the event
 
 registerEventHandler
     :: EventHandler (Bool -> IO ())
@@ -223,29 +219,28 @@ registerEventHandler eh props = case eh of
     OnBlur mkAct            -> register False "onBlur"        "blur"      $ simply mkAct
     OnMouseOver mkAct       -> register False "onMouseOver"   "mouseover" $ simply mkAct
     OnTextInputChange mkAct -> register True  "onChange"      "input"     $ \eventRef ->
-        runEitherT $ mapLeft HandlerError $ do
+        runEitherT $ do
           targetRef <- lookupProp "target" eventRef
           valueRef  <- lookupProp "value" targetRef
-          return $ mkAct $ Foreign.fromJSString valueRef
-    OnKeyPress targetKeycode mkAct -> register True "onKeyPress" "keypress" $ \eventRef -> do
+          return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
+    OnKeyPress targetKeycode mkAct -> register True "onKeyPress" "keypress" $ \eventRef ->
         runEitherT $ do
-          keycodeStr <- mapLeft HandlerError $ lookupProp "which" eventRef
+          keycodeStr <- lookupProp "which" eventRef
           mbKeycode <- lift $ Marshal.fromJSRef keycodeStr
           case mbKeycode of
-            Nothing -> left $ HandlerError "Couldn't decode keycode"
+            Nothing -> left "Couldn't decode keycode"
             Just keycode
-              | keycode == targetKeycode -> return mkAct
-              | otherwise                -> left IgnoreEvent
+              | keycode == targetKeycode -> return $ HandleEvent mkAct
+              | otherwise                -> return $ IgnoreEvent
 
   where
-    mapLeft f = bimapEitherT f id
-    simply = const . return . return
+    simply = const . return . Right . HandleEvent
 
     register
         :: Bool
         -> JSString  -- ^ Property name under which to register the callback.
         -> T.Text    -- ^ Expected event type
-        -> (ReactJSEvent -> IO (Either NoHandler Handler))
+        -> (ReactJSEvent -> IO (Either T.Text Handler))
            -- ^ Callback to actually handle the event.
         -> IO ()
     register requireSyncRedraw reactJsProp expectedType extractHandler = do
@@ -253,23 +248,22 @@ registerEventHandler eh props = case eh of
         -- event handler table with GHCJS GC.
         cb <- Foreign.syncCallback1 Foreign.AlwaysRetain False $ \eventRef -> do
             -- try to extract handler
-            handlerOrNot <- runEitherT $ do
-                eventType <- mapLeft HandlerError $
-                  Foreign.fromJSString <$> lookupProp "type" eventRef
+            errOrHandler <- runEitherT $ do
+                eventType <- Foreign.fromJSString <$> lookupProp "type" eventRef
                 if eventType == expectedType
                   then EitherT $ extractHandler eventRef
-                  else left $ HandlerError $ "event type '" <> eventType <>
+                  else left $ "event type '" <> eventType <>
                               "' /= expected type '" <> expectedType <> "'."
 
-            case handlerOrNot of
-              Left IgnoreEvent -> return ()
-              Left (HandlerError err) -> do
+            case errOrHandler of
+              Left err -> do
                   -- prevent default action and cancel propagation
                   preventDefault eventRef
                   stopPropagation eventRef
                   -- print the error
                   putStrLn $ "blaze-react - event handling error: " ++ T.unpack err
-              Right mkHandler -> do
+              Right IgnoreEvent -> return ()
+              Right (HandleEvent mkHandler) -> do
                   -- prevent default action and cancel propagation
                   preventDefault eventRef
                   stopPropagation eventRef
