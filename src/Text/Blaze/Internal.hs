@@ -30,6 +30,7 @@ module Text.Blaze.Internal
     , onMouseOver       , onMouseOverM
     , onBlur            , onBlurM
     , onTextInputChange , onTextInputChangeM
+    , onKeyPress        , onKeyPressM
 
       -- * Creating custom tags and attributes.
     , customParent
@@ -149,6 +150,7 @@ data EventHandler a
     | OnDoubleClick (IO a)
     | OnBlur (IO a)
     | OnMouseOver (IO a)
+    | OnKeyPress Int (IO a) -- ^ The Int is the keycode to watch for
     deriving (Functor)
 
 -- | The core Markup datatype. The 'ev' type-parameter tracks the type of
@@ -262,6 +264,9 @@ onBlurM = onEvent . OnBlur
 onTextInputChangeM :: (T.Text -> IO act) -> Attribute act
 onTextInputChangeM = onEvent . OnTextInputChange
 
+onKeyPressM :: Int -> IO act -> Attribute act
+onKeyPressM targetKeycode = onEvent . OnKeyPress targetKeycode
+
 onClick :: act -> Attribute act
 onClick = onClickM . return
 
@@ -276,6 +281,9 @@ onBlur = onBlurM . return
 
 onTextInputChange :: (T.Text -> act) -> Attribute act
 onTextInputChange f = onTextInputChangeM (return . f)
+
+onKeyPress :: Int -> act -> Attribute act
+onKeyPress targetKeycode = onKeyPressM targetKeycode . return
 
 
 -- custom tags

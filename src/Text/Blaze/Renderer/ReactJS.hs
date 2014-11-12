@@ -24,6 +24,7 @@ import qualified Data.Text             as T
 import qualified Data.ByteString       as S
 
 import qualified GHCJS.Foreign         as Foreign
+import           GHCJS.Marshal        as Marshal
 import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 
 import           Prelude               hiding (span)
@@ -226,6 +227,16 @@ registerEventHandler eh props = case eh of
           targetRef <- lookupProp "target" eventRef
           valueRef  <- lookupProp "value" targetRef
           return $ mkAct $ Foreign.fromJSString valueRef
+    OnKeyPress targetKeycode mkAct -> register True "onKeyPress" "keypress" $ \eventRef -> do
+        runEitherT $ do
+          keycodeStr <- mapLeft HandlerError $ lookupProp "which" eventRef
+          mbKeycode <- lift $ Marshal.fromJSRef keycodeStr
+          case mbKeycode of
+            Nothing -> left $ HandlerError "Couldn't decode keycode"
+            Just keycode
+              | keycode == targetKeycode -> return mkAct
+              | otherwise                -> left IgnoreEvent
+
   where
     mapLeft f = bimapEitherT f id
     simply = const . return . return

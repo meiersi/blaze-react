@@ -49,6 +49,7 @@ module Text.Blaze
     , onMouseOver       , onMouseOverM
     , onBlur            , onBlurM
     , onTextInputChange , onTextInputChangeM
+    , onKeyPress        , onKeyPressM
 
       -- * Creating attributes.
     , dataAttribute
