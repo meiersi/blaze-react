@@ -16,3 +16,4 @@
 cabal.config
 cabal.sandbox.config
 *.swp
+/reactjs-bindings/lib.js
