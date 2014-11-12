@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * base.css overrides
+ */
+
+/**
+ * We are not changing from display:none, but rather re-rendering instead.
+ * Therefore this needs to be displayed normally by default.
+ */
+#todo-list li .edit {
+    display: inline;
+}
+
+/******************************************************************************
+** Multiplexer styles
+******************************************************************************/
+
+.tabbed-app-picker {
+    background-color: #333;
+    color: #999;
+}
+
+.tabbed-active-item {
+    color: #eee;
+}
+
+.tabbed-app-picker span {
+    padding-left: 3em;
+}
+
+/******************************************************************************
+** Time Machine styles
+******************************************************************************/
+
+.tm-internal-app {
+    width: 75%
+}
+
+.tm-time-machine {
+    width:25%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100%;
+    padding-left: 1em;
+    padding-right: 1em;
+    background-color: #333;
+    color: #999;
+}
+
+.tm-history-browser {
+    height: 45%;
+    overflow: scroll;
+}
+
+.tm-app-state-browser {
+  height: 30%;
+    overflow: scroll;
+}
+
+.tm-active-item {
+    color: #eee;
+}
+
+.tm-button {
+    border: 1px solid black;
+    background: #555;
+    border-radius: 5px;
+    padding: 3px;
+    text-align: center;
+    width: 30%;
+}
+
+
