@@ -58,6 +58,7 @@ makeLenses ''TMState
 
 data TMAction action
     = TogglePauseAppA
+    | ClearAppHistoryA
     | RevertAppHistoryA Int
     | InternalA action
     | AsyncInternalA action
@@ -75,6 +76,10 @@ applyTMAction initialInternalState applyInternalAction action =
         paused <- use tmsPaused
         when paused flushActionBuffer
         tmsPaused %= not
+      ClearAppHistoryA -> do
+        tmsActionHistory .= []
+        tmsInternalState .= initialInternalState
+        tmsActiveAction  .= 0
       RevertAppHistoryA idx -> do
         history' <- take idx <$> use tmsActionHistory
         let internalState' = foldl' (\st act -> fst $ applyInternalAction act st)
@@ -119,8 +124,10 @@ renderTM :: (Show a, Show s) => (s -> H.Html a) -> TMState s a -> H.Html (TMActi
 renderTM renderInternal state = do
     H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
-      H.div H.! A.class_ "tm-button" H.! H.onClick TogglePauseAppA $
+      H.span H.! A.class_ "tm-button" H.! H.onClick TogglePauseAppA $
         if (_tmsPaused state) then "Resume app" else "Pause app"
+      H.span H.! A.class_ "tm-button" H.! H.onClick ClearAppHistoryA $
+        "Clear history"
       renderHistoryBrowser
       renderAppStateBrowser
     H.div H.! A.class_ "tm-internal-app" $
