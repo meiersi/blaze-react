@@ -20,15 +20,24 @@ of cabal), as well as nodejs and npm.
 
 Blaze-react depends on [ghcjs-ffiqq][2], which is not on hackage, so you'll
 have to install it from github. The suggested way is to run `cabal sandbox
-add-source <path to a checkout of ghcjs-ffiqq>`. Once this is done, all
-dependencies can be installed with `cabal install --ghcjs --only-dep`.
+add-source <path to a checkout of ghcjs-ffiqq>`. Once this is done, you need to
+do a bit of fairly standard set-up, and then you can build the library:
 
-Now, you can just run
-
-~~~~
+```
 make dev-tools
+cabal install --only-dep
+cabal configure
 make build
-~~~~
+```
+
+If you want to build the example app as well (found in the 'todomvc' directory)
+then you should configure the project with the `build-example` flag set:
+
+```
+cabal configure -fbuild-example
+make build
+open todomvc/index.html
+```
 
 [2]: https://github.com/ghcjs/ghcjs-ffiqq
 
