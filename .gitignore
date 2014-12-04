@@ -13,7 +13,6 @@
 .#*
 /lib/cache/build
 .cabal-sandbox
-cabal.config
 cabal.sandbox.config
 *.swp
 /reactjs-bindings/lib.js
