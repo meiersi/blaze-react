@@ -13,7 +13,7 @@ module Blaze.React.Examples.Todo
 
 import           Prelude hiding (div)
 
-import           Blaze.React (App(..))
+import           Blaze.React
 
 import           Control.Applicative
 import           Control.Lens
@@ -21,8 +21,7 @@ import           Control.Lens
                  , to, _2, _Just, sumOf, andOf, (%=), (.=), preuse, use
                  )
 import           Control.Monad
-import           Control.Monad.Trans.State.Strict (State, execState)
-import           Control.Monad.Trans.Maybe        (MaybeT(MaybeT), runMaybeT)
+import           Control.Monad.Trans.Maybe        (MaybeT(..), runMaybeT)
 
 import           Data.Foldable   (foldMap)
 import           Data.Maybe      (fromMaybe)
@@ -117,35 +116,36 @@ applyTodoItemsAction action items = case action of
 -- NOTE (meiersi): for production use we'd want to use a more expressive monad
 -- that also logs reasons for exceptions. We probably also want to check
 -- invariants at specific points to simplify formulating tests.
-applyTodoAction :: TodoAction -> State TodoState ()
-applyTodoAction action = case action of
-    TodoItemsActionA action' ->
-        tsItems %= applyTodoItemsAction action'
+applyTodoAction :: TodoAction -> Transition TodoState TodoAction
+applyTodoAction action =
+    runTransitionM $ case action of
+      TodoItemsActionA action' ->
+          tsItems %= applyTodoItemsAction action'
 
-    EditItemA itemIdx -> do
-        commitAndStopEditing
-        discardErrors $ do
-            itemDesc <- MaybeT $ preuse (tsItems . ix itemIdx . tdDesc)
-            tsEditFocus .= Just (itemIdx, itemDesc)
+      EditItemA itemIdx -> do
+          commitAndStopEditing
+          discardErrors $ do
+              itemDesc <- MaybeT $ preuse (tsItems . ix itemIdx . tdDesc)
+              tsEditFocus .= Just (itemIdx, itemDesc)
 
-    CommitAndStopEditingA -> commitAndStopEditing
+      CommitAndStopEditingA -> commitAndStopEditing
 
-    UpdateEditTextA newText ->
-        tsEditFocus . _Just . _2 .= newText
+      UpdateEditTextA newText ->
+          tsEditFocus . _Just . _2 .= newText
 
-    CreateItemA -> do
-        newItemDesc <- use tsNewItemDesc
-        unless (T.null newItemDesc) $ do
-            tsItems       %= (TodoItem False newItemDesc :)
-            tsNewItemDesc .= ""
+      CreateItemA -> do
+          newItemDesc <- use tsNewItemDesc
+          unless (T.null newItemDesc) $ do
+              tsItems       %= (TodoItem False newItemDesc :)
+              tsNewItemDesc .= ""
 
-    UpdateNewItemDescA newText ->
-        tsNewItemDesc .= newText
+      UpdateNewItemDescA newText ->
+          tsNewItemDesc .= newText
   where
     discardErrors :: Functor m => MaybeT m () -> m ()
     discardErrors m = fromMaybe () <$> runMaybeT m
 
-    commitAndStopEditing :: State TodoState ()
+    commitAndStopEditing :: TransitionM TodoState TodoAction
     commitAndStopEditing = discardErrors $ do
         (itemIdx, newDesc) <- MaybeT $ use tsEditFocus
         tsEditFocus                   .= Nothing
@@ -261,7 +261,7 @@ app :: App TodoState TodoAction
 app = App
     { appInitialState    = q0
     , appInitialRequests = []
-    , appApplyAction     = \act st -> (execState (applyTodoAction act) st, [])
+    , appApplyAction     = applyTodoAction
     , appRender          = renderTodoState
     }
   where

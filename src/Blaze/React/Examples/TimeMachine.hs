@@ -13,11 +13,12 @@ module Blaze.React.Examples.TimeMachine
     ) where
 
 
-import           Blaze.React (App(..))
+import           Blaze.React
 
 import           Control.Applicative
-import           Control.Lens    (makeLenses, view, set, over, _1)
+import           Control.Lens    (makeLenses, view, (.=), (%=), use, (+=))
 import           Control.Monad
+import           Control.Monad.Trans.Writer (tell)
 
 import           Data.List       (foldl')
 import           Data.Typeable   (Typeable)
@@ -63,49 +64,52 @@ data TMAction action
     deriving (Eq, Ord, Read, Show, Typeable)
 
 applyTMAction
-    :: forall s a. s -> (a -> s -> (s, [IO a]))
-    -> TMAction a -> TMState s a -> (TMState s a, [IO (TMAction a)])
-applyTMAction initialInternalState applyInternalAction action state =
-    case action of
-      TogglePauseAppA
-        | paused    -> set (_1 . tmsPaused) False $ flushActionBuffer state
-        | otherwise -> noRequests $ set tmsPaused True state
-      RevertAppHistoryA idx -> noRequests $
-        let history'       = take idx $ view tmsActionHistory state
-            internalState' = foldl' (\st act -> fst $ applyInternalAction act st)
+    :: forall s a.
+       s
+    -> (a -> Transition s a)
+    -> TMAction a
+    -> Transition (TMState s a) (TMAction a)
+applyTMAction initialInternalState applyInternalAction action =
+    runTransitionM $ case action of
+      TogglePauseAppA -> do
+        paused <- use tmsPaused
+        when paused flushActionBuffer
+        tmsPaused %= not
+      RevertAppHistoryA idx -> do
+        history' <- take idx <$> use tmsActionHistory
+        let internalState' = foldl' (\st act -> fst $ applyInternalAction act st)
                                 initialInternalState history'
-        in set tmsInternalState internalState' $ set tmsActiveAction idx $ state
-      AsyncInternalA action'
-        | paused    -> noRequests $ over tmsActionBuffer (++ [action']) state
-        | otherwise -> applyInternalAction' state action'
-      InternalA action'
-        | paused    -> noRequests state
-        | otherwise -> applyInternalAction' state action'
+        tmsInternalState .= internalState'
+        tmsActiveAction .= idx
+      AsyncInternalA action' -> do
+        paused <- use tmsPaused
+        if paused
+          then tmsActionBuffer %= (++ [action'])
+          else applyInternalAction' action'
+      InternalA action' -> do
+        paused <- use tmsPaused
+        unless paused $ applyInternalAction' action'
   where
-    paused = view tmsPaused state
-
-    noRequests x = (x, [])
-
-    flushActionBuffer :: TMState s a -> (TMState s a, [IO (TMAction a)])
-    flushActionBuffer = go []
-      where
-        go reqs st = case view tmsActionBuffer st of
-          []     -> (st, reqs)
-          (x:xs) -> let (st', reqs') = applyInternalAction' st x
-                    in go (reqs ++ reqs') $ set tmsActionBuffer xs $ st'
+    flushActionBuffer :: TransitionM (TMState s a) (TMAction a)
+    flushActionBuffer = do
+      buffer <- use tmsActionBuffer
+      sequence_ $ map applyInternalAction' buffer
+      tmsActionBuffer .= []
 
     -- | Apply an internal action to the internal state, adding it to the
     -- history, bumping the active action pointer, and possibly truncating
     -- the history first.
-    applyInternalAction' :: TMState s a -> a -> (TMState s a, [IO (TMAction a)])
-    applyInternalAction' (TMState internalState history activeAction p b) act =
-      let history'
-            | activeAction == length history = history ++ [act]
-            | otherwise                      = take activeAction history ++ [act]
-          (internalState', reqs) = applyInternalAction act internalState
-          state' = TMState internalState' history' (activeAction + 1) p b
-          reqs' = fmap AsyncInternalA <$> reqs
-      in (state', reqs')
+    applyInternalAction' :: a -> TransitionM (TMState s a) (TMAction a)
+    applyInternalAction' act = do
+      history      <- use tmsActionHistory
+      activeAction <- use tmsActiveAction
+      tmsActionHistory .= take activeAction history ++ [act]
+
+      (internalState', reqs) <- applyInternalAction act <$> use tmsInternalState
+      tmsInternalState .= internalState'
+      tell $ fmap AsyncInternalA <$> reqs
+
+      tmsActiveAction += 1
 
 
 -- rendering

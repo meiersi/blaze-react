@@ -5,7 +5,7 @@
 module Blaze.React.Run.ReactJS (runApp) where
 
 
-import           Blaze.React               (App(..))
+import           Blaze.React
 
 import           Control.Applicative
 import           Control.Concurrent        (threadDelay, forkIO)

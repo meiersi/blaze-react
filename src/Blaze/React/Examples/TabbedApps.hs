@@ -11,7 +11,7 @@ module Blaze.React.Examples.TabbedApps
     , tabbed
     ) where
 
-import           Blaze.React      (App(..))
+import           Blaze.React
 
 import           Control.Applicative
 import           Control.Lens         hiding (act)
@@ -34,7 +34,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 data SomeApp = forall st act. (Typeable act, Show act, Show st) => SomeApp
     { saName   :: !T.Text
     , _saState  :: !st
-    , _saApply  :: !(act -> st -> (st, [IO act]))
+    , _saApply  :: !(act -> Transition st act)
     , _saRender :: !(st -> H.Html act)
     }
 
@@ -92,7 +92,7 @@ makeLenses ''TabbedState
 
 
 applyTabbedAction
-    :: TabbedAction -> TabbedState -> (TabbedState, [IO TabbedAction])
+    :: TabbedAction -> Transition TabbedState TabbedAction
 applyTabbedAction act st = case act of
     SwitchApp appIdx
       | nullOf (tsApps . ix appIdx) st -> (st, [])
