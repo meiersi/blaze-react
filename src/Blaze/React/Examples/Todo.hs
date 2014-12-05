@@ -43,6 +43,8 @@ data TodoItem = TodoItem
     , _tdDesc :: !T.Text
     } deriving (Eq, Ord, Show)
 
+-- TODO (AS): Use an IntMap so we can persist the identity of the items when
+-- new ones are added.
 type TodoItems = [TodoItem]
 
 -- | What item is being edited and together with the new text value that it
@@ -54,7 +56,7 @@ data TodoState = TodoState
     { _tsNewItemDesc :: !T.Text
     , _tsEditFocus   :: !EditFocus
     , _tsItems       :: !TodoItems
-    } deriving Show
+    } deriving (Eq, Show)
 
 
 -- lenses

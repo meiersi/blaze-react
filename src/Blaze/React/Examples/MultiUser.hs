@@ -76,6 +76,8 @@ applyMUAction initialInnerState applyInnerAction action =
         use musActiveUser >>= \case
           Nothing -> return ()
           Just userId ->
+            -- NOTE (AS): The use of 'non' here introduces the (Eq s)
+            -- constraint above. I don't think this is necessary.
             zoomTransition InnerA (musUserStates . at userId . non initialInnerState) $
               mkTransitionM (applyInnerAction innerAction)
 
