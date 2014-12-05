@@ -78,4 +78,20 @@
     margin-right: 5px;
 }
 
+.multiuser-bar {
+    background: white;
+    text-align: right;
+    padding-right: 3em;
+}
 
+.multiuser-signin {
+    background: white;
+    width: 300px;
+    margin: 0 auto;
+    margin-top: 2em;
+    padding: 3em;
+    text-align: center;
+}
+.multiuser-signin input {
+    width: 100%;
+}

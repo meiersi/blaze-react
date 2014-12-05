@@ -40,6 +40,7 @@ library
                        Blaze.React.Run.ReactJS
                        Blaze.React.Examples.Todo
                        Blaze.React.Examples.Clock
+                       Blaze.React.Examples.MultiUser
                        Blaze.React.Examples.TimeMachine
                        Blaze.React.Examples.TabbedApps
 
@@ -49,12 +50,14 @@ library
                        ghcjs-base,
                        ghcjs-ffiqq,
                        ghcjs-prim,
+                       hashable,
                        lens,
                        mtl,
                        pretty-show,
                        text,
                        transformers,
-                       time
+                       time,
+                       unordered-containers
   hs-source-dirs:      src
   default-language:    Haskell2010
 
