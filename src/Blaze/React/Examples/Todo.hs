@@ -261,19 +261,17 @@ checkbox checked =
 
 app :: App TodoState TodoAction
 app = App
-    { appInitialState    = q0
+    { appInitialState    = initialState
     , appInitialRequests = []
     , appApplyAction     = applyTodoAction
     , appRender          = renderTodoState
     }
-  where
-    -- some mildly interesting initial state
-    q0 :: TodoState
-    q0 = TodoState "" Nothing items
 
-    items = [ TodoItem True  "Write ReactJS bindings"
-            , TodoItem True  "prepare talk"
-            , TodoItem True  ":-)"
-            , TodoItem False "give talk"
-            ]
+initialState :: TodoState
+initialState = TodoState
+    { _tsNewItemDesc = ""
+    , _tsEditFocus = Nothing
+    , _tsItems = []
+    }
+
 
