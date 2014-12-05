@@ -1,13 +1,19 @@
+{-# LANGUAGE Rank2Types #-}
+
 module Blaze.React
   ( App(..)
   , Transition
   , TransitionM
-  , runTransitionM, mkTransitionM
+  , runTransitionM
+  , mkTransitionM
+  , zoomTransition
   ) where
+
+import Control.Lens (Lens', zoom)
 
 import qualified Text.Blaze.Html5           as H
 import           Control.Monad.State        (State, runState, get, put)
-import           Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
+import           Control.Monad.Trans.Writer (WriterT, runWriterT, tell, mapWriterT)
 
 data App state action = App
     { appInitialState    :: state
@@ -30,4 +36,19 @@ mkTransitionM fn = do
     let (newState, writes) = fn oldState
     put newState
     tell writes
+
+zoomTransition
+    :: (innerA -> outerA)
+    -> Lens' outerS innerS
+    -- ^ Strictly, it's LensLike' (Focusing Identity ((), [IO outerA])) outerS innerS
+    -> TransitionM innerS innerA
+    -> TransitionM outerS outerA
+zoomTransition wrapAction stateLens =
+    mapWriterT $
+      zoom stateLens .
+        fmap -- State
+          (fmap -- Pair
+            (fmap -- List
+              (fmap -- IO
+                wrapAction)))
 
