@@ -42,6 +42,13 @@
 
 
 
+/* package hashable-1.2.2.0 */
+
+
+
+
+
+
 /* package lens-4.5 */
 
 
@@ -78,6 +85,13 @@
 
 
 /* package transformers-0.4.1.0 */
+
+
+
+
+
+
+/* package unordered-containers-0.2.5.0 */
 
 
 
