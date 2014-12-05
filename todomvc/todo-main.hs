@@ -16,5 +16,5 @@ main = ReactJS.runApp $
       [ namedApp "TodoMVC" Todo.app
       , namedApp "TodoMVC (with TimeMachine™)" $ withTimeMachine Todo.app
       , namedApp "Multi-user TodoMVC" $ withTimeMachine $ withMultiUser Todo.app
-      , namedApp "Clock (with TimeMachine™)" $ withTimeMachine Clock.app
+      , namedApp "Clock" Clock.app
       ]
