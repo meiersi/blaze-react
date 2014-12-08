@@ -1,5 +1,15 @@
 
-module Text.Blaze.Keycode
+-- | The DOM has two ways of describing keyboard events: by Keycode, or by
+-- Charcode. The Keycode represents the physical key which was involved,
+-- whereas the Charcode represents the resulting character. Therefore, a
+-- typical keyboard interaction might yeild the following events:
+--
+-- > KeyDown Keycode.shift
+-- > KeyDown Keycode.letterA
+-- > KeyPress (Charcode.fromChar 'A')
+-- > KeyUp Keycode.letterA
+-- > KeyUp Keycode.shift
+module Text.Blaze.Event.Keycode
     ( Keycode
     , unKeycode
 
@@ -31,7 +41,7 @@ module Text.Blaze.Keycode
     , closeBraket    , singleQuote
     ) where
 
-
+-- | A representation of a physical key.
 newtype Keycode = Keycode { unKeycode :: Int }
 
 

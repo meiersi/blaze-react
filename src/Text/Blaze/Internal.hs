@@ -18,19 +18,9 @@ module Text.Blaze.Internal
     , MarkupM (..)
     , Markup
     , Tag
-    , Attribute
+    , Attribute (..)
     , AttributeValue
 
-      -- * Event handling
-    , mapActions
-
-    , EventHandler(..)
-    , onClick           , onClickM
-    , onDoubleClick     , onDoubleClickM
-    , onMouseOver       , onMouseOverM
-    , onBlur            , onBlurM
-    , onTextInputChange , onTextInputChangeM
-    , onKeyPress        , onKeyPressM
 
       -- * Creating custom tags and attributes.
     , customParent
@@ -94,7 +84,7 @@ import           GHC.Exts                     (IsString (..))
 
 import           Prelude                      hiding (null)
 
-import           Text.Blaze.Keycode           (Keycode)
+import           Text.Blaze.Event.Internal
 
 import           Unsafe.Coerce (unsafeCoerce)
 
@@ -143,17 +133,6 @@ instance Monoid ChoiceString where
 instance IsString ChoiceString where
     fromString = String
     {-# INLINE fromString #-}
-
--- | One specific and incomplete specifications of event-handlers geared
--- towards their use with ReactJS.
-data EventHandler a
-    = OnTextInputChange (T.Text -> IO a)
-    | OnClick (IO a)
-    | OnDoubleClick (IO a)
-    | OnBlur (IO a)
-    | OnMouseOver (IO a)
-    | OnKeyPress Keycode (IO a) -- ^ The Int is the keycode to watch for
-    deriving (Functor)
 
 -- | The core Markup datatype. The 'ev' type-parameter tracks the type of
 -- events that can be raised when this Markup is rendered.
@@ -238,54 +217,6 @@ instance Monoid (Attribute ev) where
 --
 newtype AttributeValue = AttributeValue { unAttributeValue :: ChoiceString }
     deriving (IsString, Monoid)
-
-
--- event handling
------------------
-
-mapActions :: (act -> act') -> Markup act -> Markup act'
-mapActions = MapActions
-
--- | Register an event handler.
-onEvent :: EventHandler act -> Attribute act
-onEvent eh = Attribute (OnEvent eh)
-{-# INLINE onEvent #-}
-
-onClickM :: IO act -> Attribute act
-onClickM = onEvent . OnClick
-
-onDoubleClickM :: IO act -> Attribute act
-onDoubleClickM = onEvent . OnDoubleClick
-
-onMouseOverM :: IO act -> Attribute act
-onMouseOverM = onEvent . OnMouseOver
-
-onBlurM :: IO act -> Attribute act
-onBlurM = onEvent . OnBlur
-
-onTextInputChangeM :: (T.Text -> IO act) -> Attribute act
-onTextInputChangeM = onEvent . OnTextInputChange
-
-onKeyPressM :: Keycode -> IO act -> Attribute act
-onKeyPressM targetKeycode = onEvent . OnKeyPress targetKeycode
-
-onClick :: act -> Attribute act
-onClick = onClickM . return
-
-onDoubleClick :: act -> Attribute act
-onDoubleClick = onDoubleClickM . return
-
-onMouseOver :: act -> Attribute act
-onMouseOver = onMouseOverM . return
-
-onBlur :: act -> Attribute act
-onBlur = onBlurM . return
-
-onTextInputChange :: (T.Text -> act) -> Attribute act
-onTextInputChange f = onTextInputChangeM (return . f)
-
-onKeyPress :: Keycode -> act -> Attribute act
-onKeyPress targetKeycode = onKeyPressM targetKeycode . return
 
 
 -- custom tags

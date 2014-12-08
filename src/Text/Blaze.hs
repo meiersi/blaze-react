@@ -40,17 +40,6 @@ module Text.Blaze
     , Attribute
     , AttributeValue
 
-      -- * Event handling
-    , mapActions
-
-    , EventHandler(..)
-    , onClick           , onClickM
-    , onDoubleClick     , onDoubleClickM
-    , onMouseOver       , onMouseOverM
-    , onBlur            , onBlurM
-    , onTextInputChange , onTextInputChangeM
-    , onKeyPress        , onKeyPressM
-
       -- * Creating attributes.
     , dataAttribute
     , customAttribute

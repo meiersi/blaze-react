@@ -24,9 +24,10 @@ import           Data.Monoid         ((<>))
 import qualified Data.Text           as T
 import           Data.Typeable       (Typeable)
 
+import qualified Text.Blaze.Event                     as E
+import qualified Text.Blaze.Event.Keycode             as Keycode
 import qualified Text.Blaze.Html5    as H
 import qualified Text.Blaze.Html5.Attributes          as A
-import qualified Text.Blaze.Keycode                   as Keycode
 
 
 newtype Username = Username { unUsername :: T.Text }
@@ -93,18 +94,18 @@ renderMUState initialInnerState renderInnerState state =
       Just username -> do
         let innerState = fromMaybe initialInnerState $
               state ^. musUserStates . at username
-            innerHtml = H.mapActions InnerA $ renderInnerState innerState
+            innerHtml = E.mapActions InnerA $ renderInnerState innerState
         H.div H.! A.class_ "multiuser-bar" $ do
           H.span $ "Logged in as " <> H.toHtml (unUsername username) <> ". "
-          H.span H.! H.onClick SignOutA $ "Sign out"
+          H.span H.! E.onClick' SignOutA $ "Sign out"
         innerHtml
       Nothing ->
         H.div H.! A.class_ "multiuser-signin" $ do
           H.p "Not logged in. Please specify username:"
           H.input H.! A.autofocus True
                   H.! A.value (H.toValue $ view musUsernameField state)
-                  H.! H.onTextInputChange UpdateUsernameFieldA
-                  H.! H.onKeyPress Keycode.enter SignInA
+                  H.! E.onValueChange UpdateUsernameFieldA
+                  H.! E.onKeyDown [Keycode.enter] SignInA
 
 withMultiUser
     :: (Show a, Show s, Eq s)

@@ -20,6 +20,7 @@ import qualified Data.Text        as T
 import           Data.Foldable    (foldMap)
 import           Data.Typeable    (Typeable, cast)
 
+import qualified Text.Blaze.Event            as E
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 
@@ -69,7 +70,7 @@ applySomeAction someAct someApp@(SomeApp name st apply render) =
 
 renderSomeApp :: SomeApp -> H.Html SomeAction
 renderSomeApp (SomeApp _name st _apply render) =
-    H.mapActions SomeAction $ render st
+    E.mapActions SomeAction $ render st
 
 
 ------------------------------------------------------------------------------
@@ -115,11 +116,11 @@ renderTabbedState (TabbedState focusedAppIdx apps) = do
     H.div H.! A.class_ "tabbed-internal-app" $
       case preview (ix focusedAppIdx) apps of
         Nothing  -> "invariant violation: no app focused"
-        Just app -> H.mapActions (AppAction focusedAppIdx) $ renderSomeApp app
+        Just app -> E.mapActions (AppAction focusedAppIdx) $ renderSomeApp app
   where
     appItem (appIdx, app) =
       H.span H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item")
-             H.! H.onClick (SwitchApp appIdx) $ H.toHtml $ saName app
+             H.! E.onClick' (SwitchApp appIdx) $ H.toHtml $ saName app
 
 
 ------------------------------------------------------------------------------

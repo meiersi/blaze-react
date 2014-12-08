@@ -29,7 +29,9 @@ import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
 import           Prelude               hiding (span)
 
 import           Text.Blaze.Internal
-import           Text.Blaze.Keycode    (unKeycode)
+import           Text.Blaze.Event.Internal
+import           Text.Blaze.Event.Charcode   (unCharcode)
+import           Text.Blaze.Event.Keycode    (unKeycode)
 
 
 ------------------------------------------------------------------------------
@@ -197,12 +199,87 @@ renderHtml handleAction html = do
 -- Event handler callback construction
 ------------------------------------------------------------------------------
 
+-- | ReactJS defines the following event types, as of v0.12:
+data ReactJSEventType
+      -- Clipboard Events
+    = OnCopyE | OnCutE | OnPasteE
+      -- Keyboard Events
+    | OnKeyDownE | OnKeyPressE | OnKeyUpE
+      -- Focus Events
+    | OnFocusE | OnBlurE
+      -- Form Events
+    | OnChangeE | OnInputE | OnSubmitE
+      -- Mouse Events
+    | OnClickE | OnDoubleClickE | OnDragE | OnDragEndE | OnDragEnterE
+    | OnDragExitE | OnDragLeaveE | OnDragOverE | OnDragStartE | OnDropE
+    | OnMouseDownE | OnMouseEnterE | OnMouseLeaveE | OnMouseMoveE
+    | OnMouseOutE | OnMouseOverE | OnMouseUpE
+      -- Touch Events
+    | OnTouchCancelE | OnTouchEndE | OnTouchMoveE | OnTouchStartE
+      -- UI Events
+    | OnScrollE
+      -- Wheel Events
+    | OnWheelE
+
+reactEventName :: ReactJSEventType -> JSString
+reactEventName ev = case ev of
+    OnCopyE        -> "onCopy"
+    OnCutE         -> "onCut"
+    OnPasteE       -> "onPaste"
+    OnKeyDownE     -> "onKeyDown"
+    OnKeyPressE    -> "onKeyPress"
+    OnKeyUpE       -> "onKeyUp"
+    OnFocusE       -> "onFocus"
+    OnBlurE        -> "onBlur"
+    OnChangeE      -> "onChange"
+    OnInputE       -> "onInput"
+    OnSubmitE      -> "onSubmit"
+    OnClickE       -> "onClick"
+    OnDoubleClickE -> "onDoubleClick"
+    OnDragE        -> "onDrag"
+    OnDragEndE     -> "onDragEnd"
+    OnDragEnterE   -> "onDragEnter"
+    OnDragExitE    -> "onDragExit"
+    OnDragLeaveE   -> "onDragLeave"
+    OnDragOverE    -> "onDragOver"
+    OnDragStartE   -> "onDragStart"
+    OnDropE        -> "onDrop"
+    OnMouseDownE   -> "onMouseDown"
+    OnMouseEnterE  -> "onMouseEnter"
+    OnMouseLeaveE  -> "onMouseLeave"
+    OnMouseMoveE   -> "onMouseMove"
+    OnMouseOutE    -> "onMouseOut"
+    OnMouseOverE   -> "onMouseOver"
+    OnMouseUpE     -> "onMouseUp"
+    OnTouchCancelE -> "onTouchCancel"
+    OnTouchEndE    -> "onTouchEnd"
+    OnTouchMoveE   -> "onTouchMove"
+    OnTouchStartE  -> "onTouchStart"
+    OnScrollE      -> "onScroll"
+    OnWheelE       -> "onWheel"
+
 lookupProp :: JSString -> JSRef a -> EitherT T.Text IO (JSRef b)
 lookupProp name obj = do
     mbProp <- lift $ Foreign.getPropMaybe name obj
     maybe (left err) return mbProp
   where
     err = "failed to get property '" <> Foreign.fromJSString name <> "'."
+
+lookupIntProp :: JSString -> JSRef a -> EitherT T.Text IO Int
+lookupIntProp name obj = do
+    ref <- lookupProp name obj
+    mbInt <- lift $ Marshal.fromJSRef ref
+    case mbInt of
+      Nothing -> left "lookupIntProp: couldn't parse field as Int"
+      Just x  -> return x
+
+lookupDoubleProp :: JSString -> JSRef a -> EitherT T.Text IO Double
+lookupDoubleProp name obj = do
+    ref <- lookupProp name obj
+    mbDouble <- lift $ Marshal.fromJSRef ref
+    case mbDouble of
+      Nothing -> left "lookupDoubleProp: couldn't parse field as Double"
+      Just x  -> return x
 
 data Handler
     = IgnoreEvent
@@ -215,46 +292,140 @@ registerEventHandler
        -- ^ Properties to register the event handler in
     -> IO ()
 registerEventHandler eh props = case eh of
-    OnClick mkAct           -> register False "onClick"       "click"     $ simply mkAct
-    OnDoubleClick mkAct     -> register False "onDoubleClick" "dblclick"  $ simply mkAct
-    OnBlur mkAct            -> register False "onBlur"        "blur"      $ simply mkAct
-    OnMouseOver mkAct       -> register False "onMouseOver"   "mouseover" $ simply mkAct
-    OnTextInputChange mkAct -> register True  "onChange"      "input"     $ \eventRef ->
-        runEitherT $ do
-          targetRef <- lookupProp "target" eventRef
-          valueRef  <- lookupProp "value" targetRef
-          return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
-    OnKeyPress targetKeycode mkAct -> register True "onKeyPress" "keypress" $ \eventRef ->
-        runEitherT $ do
-          keycodeStr <- lookupProp "which" eventRef
-          mbKeycode <- lift $ Marshal.fromJSRef keycodeStr
-          case mbKeycode of
-            Nothing -> left "Couldn't decode keycode"
-            Just keycode
-              | keycode == unKeycode targetKeycode -> return $ HandleEvent mkAct
-              | otherwise                          -> return $ IgnoreEvent
+    OnKeyDown keys mkAct     -> register True OnKeyDownE      $ \eventRef ->
+      handleKeyEvent eventRef keys mkAct
+    OnKeyUp keys mkAct       -> register True OnKeyUpE        $ \eventRef ->
+      handleKeyEvent eventRef keys mkAct
+    OnKeyPress chars mkAct   -> register True OnKeyPressE     $ \eventRef ->
+      handleCharEvent eventRef chars mkAct
+
+    OnFocus mkAct            -> register False OnFocusE       $ \_eventRef ->
+      return $ Right $ HandleEvent mkAct
+    OnBlur mkAct             -> register False OnBlurE        $ \_eventRef ->
+      return $ Right $ HandleEvent mkAct
+
+    OnValueChange mkAct      -> register True  OnChangeE      $ \eventRef ->
+      runEitherT $ do
+        valueRef <- lookupProp "value" =<< lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
+    OnCheckedChange mkAct    -> register True  OnChangeE      $ \eventRef ->
+      runEitherT $ do
+        valueRef <- lookupProp "checked" =<< lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct $ Foreign.fromJSBool valueRef
+    OnSelectedChange mkAct   -> register True  OnChangeE      $ \eventRef ->
+      runEitherT $ do
+        valueRef <- lookupProp "selected" =<< lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct $ Foreign.fromJSBool valueRef
+    OnSubmit mkAct           -> register True  OnSubmitE      $ \_eventRef ->
+      return $ Right $ HandleEvent mkAct
+
+    OnClick btns mkAct       -> register False OnClickE       $ \eventRef ->
+      handleMouseEvent eventRef btns mkAct
+    OnDoubleClick btns mkAct -> register False OnDoubleClickE $ \eventRef ->
+      handleMouseEvent eventRef btns mkAct
+    OnMouseDown btns mkAct   -> register False OnMouseDownE   $ \eventRef ->
+      handleMouseEvent eventRef btns mkAct
+    OnMouseUp btns mkAct     -> register False OnMouseUpE     $ \eventRef ->
+      handleMouseEvent eventRef btns mkAct
+    OnMouseMove mkAct        -> register False OnMouseMoveE   $ \eventRef ->
+      runEitherT $ HandleEvent . mkAct <$> getMousePosition eventRef
+    OnMouseEnter mkAct       -> register False OnMouseEnterE  $ \eventRef ->
+      runEitherT $ HandleEvent . mkAct <$> getMousePosition eventRef
+    OnMouseLeave mkAct       -> register False OnMouseLeaveE  $ \eventRef ->
+      runEitherT $ HandleEvent . mkAct <$> getMousePosition eventRef
+    OnMouseOver mkAct        -> register False OnMouseOverE   $ \eventRef ->
+      runEitherT $ HandleEvent . mkAct <$> getMousePosition eventRef
+    OnMouseOut mkAct         -> register False OnMouseOutE    $ \eventRef ->
+      runEitherT $ HandleEvent . mkAct <$> getMousePosition eventRef
+
+    OnScroll mkAct           -> register False OnScrollE      $ \eventRef ->
+      runEitherT $ do
+        detail <- lookupDoubleProp "detail" eventRef
+        return $ HandleEvent $ mkAct detail
+
+    OnWheel mkAct            -> register False OnWheelE       $ \eventRef ->
+      runEitherT $ do
+        dx <- lookupDoubleProp "deltaX" eventRef
+        dy <- lookupDoubleProp "deltaY" eventRef
+        dz <- lookupDoubleProp "deltaZ" eventRef
+        let deltaValue = DeltaValue dx dy dz
+        deltaMode <- lookupIntProp "deltaMode" eventRef
+        domDelta <- case deltaMode of
+              0 -> return $ PixelDelta deltaValue
+              1 -> return $ LineDelta deltaValue
+              2 -> return $ PageDelta deltaValue
+              _ -> left "registerEventHandler: unrecognized delta mode"
+        return $ HandleEvent $ mkAct domDelta
+
+
+
 
   where
-    simply = const . return . Right . HandleEvent
+    handleKeyEvent eventRef keys mkAct = runEitherT $ do
+        keycode <- lookupIntProp "keyCode" eventRef <|>
+                   lookupIntProp "which" eventRef
+        if keycode `elem` map unKeycode keys
+          then return $ HandleEvent mkAct
+          else return $ IgnoreEvent
+
+    handleCharEvent eventRef chars mkAct = runEitherT $ do
+        charcode <- lookupIntProp "charCode" eventRef <|>
+                    lookupIntProp "which" eventRef
+        if charcode `elem` map unCharcode chars
+          then return $ HandleEvent mkAct
+          else return $ IgnoreEvent
+
+
+    handleMouseEvent
+        :: ReactJSEvent
+        -> [MouseButton]
+        -> (MousePosition -> IO (Bool -> IO ()))
+        -> IO (Either T.Text Handler)
+    handleMouseEvent eventRef btns mkAct = runEitherT $ do
+        button <- getMouseButton eventRef
+        if button `elem` btns
+          then HandleEvent . mkAct <$> getMousePosition eventRef
+          else return IgnoreEvent
+
+    getMouseButton :: ReactJSEvent -> EitherT T.Text IO MouseButton
+    getMouseButton eventRef = do
+        button <- lookupIntProp "button" eventRef
+        case button of
+          0 -> return LeftButton
+          1 -> return MiddleButton
+          2 -> return RightButton
+          _ -> left "getMouseButton: couldn't parse button code"
+
+    getMousePosition :: ReactJSEvent -> EitherT T.Text IO MousePosition
+    getMousePosition eventRef = do
+        clientX <- lookupIntProp "clientX" eventRef
+        clientY <- lookupIntProp "clientY" eventRef
+        pageX   <- lookupIntProp "pageX"   eventRef
+        pageY   <- lookupIntProp "pageY"   eventRef
+        screenX <- lookupIntProp "screenX" eventRef
+        screenY <- lookupIntProp "screenY" eventRef
+        return MousePosition
+          { mpClientX = clientX
+          , mpClientY = clientY
+          , mpPageX   = pageX
+          , mpPageY   = pageY
+          , mpScreenX = screenX
+          , mpScreenY = screenY
+          }
+
 
     register
         :: Bool
-        -> JSString  -- ^ Property name under which to register the callback.
-        -> T.Text    -- ^ Expected event type
+        -> ReactJSEventType
         -> (ReactJSEvent -> IO (Either T.Text Handler))
            -- ^ Callback to actually handle the event.
         -> IO ()
-    register requireSyncRedraw reactJsProp expectedType extractHandler = do
+    register requireSyncRedraw reactEvent extractHandler = do
         -- FIXME (SM): memory leak to to AlwaysRetain. Need to hook-up ReactJS
         -- event handler table with GHCJS GC.
         cb <- Foreign.syncCallback1 Foreign.AlwaysRetain False $ \eventRef -> do
             -- try to extract handler
-            errOrHandler <- runEitherT $ do
-                eventType <- Foreign.fromJSString <$> lookupProp "type" eventRef
-                if eventType == expectedType
-                  then EitherT $ extractHandler eventRef
-                  else left $ "event type '" <> eventType <>
-                              "' /= expected type '" <> expectedType <> "'."
+            errOrHandler <- extractHandler eventRef
 
             case errOrHandler of
               Left err -> do
@@ -262,7 +433,13 @@ registerEventHandler eh props = case eh of
                   preventDefault eventRef
                   stopPropagation eventRef
                   -- print the error
-                  putStrLn $ "blaze-react - event handling error: " ++ T.unpack err
+                  let eventName = Foreign.fromJSString $ reactEventName reactEvent
+                  eventType <- either (const "Unknown type") Foreign.fromJSString <$>
+                    runEitherT (lookupProp "type" eventRef)
+                  putStrLn $ unlines
+                    [ "blaze-react - event handling error: " ++ T.unpack err
+                    , "Event was " ++ eventName ++ " of type " ++ eventType
+                    ]
               Right IgnoreEvent -> return ()
               Right (HandleEvent mkHandler) -> do
                   -- prevent default action and cancel propagation
@@ -272,4 +449,4 @@ registerEventHandler eh props = case eh of
                   handler <- mkHandler
                   handler requireSyncRedraw
 
-        Foreign.setProp reactJsProp cb props
+        Foreign.setProp (reactEventName reactEvent) cb props

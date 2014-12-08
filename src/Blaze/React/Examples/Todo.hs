@@ -29,9 +29,10 @@ import           Data.Monoid     ((<>), mempty)
 import qualified Data.Text       as T
 import           Data.Typeable   (Typeable)
 
+import qualified Text.Blaze.Event                     as E
+import qualified Text.Blaze.Event.Keycode             as Keycode
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
-import qualified Text.Blaze.Keycode                   as Keycode
 
 
 ------------------------------------------------------------------------------
@@ -170,15 +171,15 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
                   H.! A.placeholder "What needs to be done?"
                   H.! A.autofocus True
                   H.! A.value (H.toValue newItemDesc)
-                  H.! H.onTextInputChange UpdateNewItemDescA
-                  H.! H.onKeyPress Keycode.enter CreateItemA
+                  H.! E.onValueChange UpdateNewItemDescA
+                  H.! E.onKeyDown [Keycode.enter] CreateItemA
 
         -- items
         unless (null items) $ do
             H.section H.! A.id "main" $ do
               checkbox (numTodo == 0)
                   H.! A.id "toggle-all"
-                  H.! H.onClick (TodoItemsActionA ToggleAllItemsA)
+                  H.! E.onClick' (TodoItemsActionA ToggleAllItemsA)
               H.label H.! A.for "toggle-all" $ "Mark all as complete"
               H.ul H.! A.id "todo-list" $
                 foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
@@ -192,7 +193,7 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
               unless (numCompleted == 0) $
                 H.button
                     H.! A.id "clear-completed"
-                    H.! H.onClick (TodoItemsActionA ClearCompletedA)
+                    H.! E.onClick' (TodoItemsActionA ClearCompletedA)
                     $ "Clear completed (" <> H.toHtml numCompleted <> ")"
 
     -- app footer
@@ -221,13 +222,13 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
      $ do H.div H.! A.class_ "view" $ do
             checkbox done
                 H.! A.class_ "toggle"
-                H.! H.onClick (TodoItemsActionA (ToggleItemA itemIdx))
+                H.! E.onClick' (TodoItemsActionA (ToggleItemA itemIdx))
             H.label
-                H.! H.onDoubleClick (EditItemA itemIdx)
+                H.! E.onDoubleClick' (EditItemA itemIdx)
                 $ H.toHtml desc
             H.button
                 H.! A.class_ "destroy"
-                H.! H.onClick (TodoItemsActionA (DeleteItemA itemIdx))
+                H.! E.onClick' (TodoItemsActionA (DeleteItemA itemIdx))
                 $ mempty
           case mbEditFocus of
            Just (focusIdx, focusText)
@@ -235,9 +236,9 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
                    H.input H.! A.class_ "edit"
                            H.! A.value (H.toValue focusText)
                            H.! A.autofocus True
-                           H.! H.onTextInputChange UpdateEditTextA
-                           H.! H.onBlur CommitAndStopEditingA
-                           H.! H.onKeyPress Keycode.enter CommitAndStopEditingA
+                           H.! E.onValueChange UpdateEditTextA
+                           H.! E.onBlur CommitAndStopEditingA
+                           H.! E.onKeyDown [Keycode.enter] CommitAndStopEditingA
                | otherwise -> mempty
            Nothing         -> mempty
   where

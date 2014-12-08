@@ -25,6 +25,7 @@ import           Data.Typeable   (Typeable)
 
 import           Prelude hiding (div)
 
+import qualified Text.Blaze.Event                     as E
 import qualified Text.Blaze.Html5                     as H
 import qualified Text.Blaze.Html5.Attributes          as A
 import           Text.Show.Pretty (ppShow)
@@ -124,14 +125,14 @@ renderTM :: (Show a, Show s) => (s -> H.Html a) -> TMState s a -> H.Html (TMActi
 renderTM renderInternal state = do
     H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
-      H.span H.! A.class_ "tm-button" H.! H.onClick TogglePauseAppA $
+      H.span H.! A.class_ "tm-button" H.! E.onClick' TogglePauseAppA $
         if (_tmsPaused state) then "Resume app" else "Pause app"
-      H.span H.! A.class_ "tm-button" H.! H.onClick ClearAppHistoryA $
+      H.span H.! A.class_ "tm-button" H.! E.onClick' ClearAppHistoryA $
         "Clear history"
       renderHistoryBrowser
       renderAppStateBrowser
     H.div H.! A.class_ "tm-internal-app" $
-      H.mapActions InternalA $ renderInternal (view tmsInternalState state)
+      E.mapActions InternalA $ renderInternal (view tmsInternalState state)
   where
     actionsWithIndices :: [(Int, String)]
     actionsWithIndices = reverse $
@@ -142,7 +143,7 @@ renderTM renderInternal state = do
       H.div H.! A.class_ "tm-history-browser" $ do
         H.ol $ forM_ actionsWithIndices $ \(idx, action) ->
           H.li H.! A.value (H.toValue $ idx + 1)
-               H.! H.onMouseOver (RevertAppHistoryA idx)
+               H.! E.onMouseEnter (\_ -> RevertAppHistoryA idx)
                H.!? (idx == view tmsActiveAction state, A.class_ "tm-active-item")
                $ H.toHtml action
 
@@ -170,7 +171,7 @@ initialTMState :: s -> TMState s a
 initialTMState internalState = TMState
     { _tmsInternalState = internalState
     , _tmsActionHistory = []
-    , _tmsActiveAction  = 0       -- ^ 0 indicates the initial state.
+    , _tmsActiveAction  = 0       -- 0 indicates the initial state.
     , _tmsPaused        = False
     , _tmsActionBuffer  = []
     }
