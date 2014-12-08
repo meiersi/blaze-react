@@ -17,8 +17,8 @@ import           Blaze.React
 
 import           Control.Applicative
 import           Control.Lens
-                 ( makeLenses, view, traverse, folded, set, over, ix
-                 , to, _2, _Just, sumOf, andOf, (%=), (.=), preuse, use
+                 ( makeLenses, view, traverse, folded, set, ix
+                 , to, _2, _Just, sumOf, (%=), (.=), preuse, use
                  )
 import           Control.Monad
 import           Control.Monad.Trans.Maybe        (MaybeT(..), runMaybeT)
@@ -67,13 +67,6 @@ makeLenses ''TodoItem
 makeLenses ''TodoState
 
 
--- queries
-----------
-
-allItemsDone :: TodoItems -> Bool
-allItemsDone = andOf (traverse . tdDone)
-
-
 ------------------------------------------------------------------------------
 -- State transitions
 ------------------------------------------------------------------------------
@@ -85,9 +78,9 @@ allItemsDone = andOf (traverse . tdDone)
 -- | Serializable representations of state transitions possible for a list of
 -- todo items.
 data TodoItemsAction
-    = ToggleItemA Int
+    = SetItemA    Int Bool
     | DeleteItemA Int
-    | ToggleAllItemsA
+    | SetAllItemsA Bool
       -- ^ If there is one item that is not completed, then set all items to
       -- completed. Otherwise, set all items to incomplete.
     | ClearCompletedA
@@ -111,10 +104,10 @@ data TodoAction
 
 applyTodoItemsAction :: TodoItemsAction -> TodoItems -> TodoItems
 applyTodoItemsAction action items = case action of
-    ToggleItemA itemIdx -> over (ix itemIdx . tdDone) not items
-    DeleteItemA itemIdx -> map snd $ filter ((itemIdx /=) . fst) $ zip [0..] items
-    ToggleAllItemsA     -> set (traverse . tdDone) (not (allItemsDone items)) items
-    ClearCompletedA     -> filter (not . view tdDone) items
+    SetItemA itemIdx done -> set (ix itemIdx . tdDone) done items
+    DeleteItemA itemIdx   -> map snd $ filter ((itemIdx /=) . fst) $ zip [0..] items
+    SetAllItemsA done     -> set (traverse . tdDone) done items
+    ClearCompletedA       -> filter (not . view tdDone) items
 
 -- NOTE (meiersi): for production use we'd want to use a more expressive monad
 -- that also logs reasons for exceptions. We probably also want to check
@@ -177,9 +170,11 @@ renderTodoState (TodoState newItemDesc mbEditFocus items) = do
         -- items
         unless (null items) $ do
             H.section H.! A.id "main" $ do
-              checkbox (numTodo == 0)
+              H.input
+                  H.! A.type_ "checkbox"
                   H.! A.id "toggle-all"
-                  H.! E.onClick' (TodoItemsActionA ToggleAllItemsA)
+                  H.! A.checked (numTodo == 0)
+                  H.! E.onCheckedChange (TodoItemsActionA . SetAllItemsA)
               H.label H.! A.for "toggle-all" $ "Mark all as complete"
               H.ul H.! A.id "todo-list" $
                 foldMap (renderTodoItem mbEditFocus) $ zip [0..] items
@@ -220,9 +215,11 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
    H.li H.! itemClass
         H.! A.key (H.toValue itemIdx)
      $ do H.div H.! A.class_ "view" $ do
-            checkbox done
+            H.input
+                H.! A.type_ "checkbox"
                 H.! A.class_ "toggle"
-                H.! E.onClick' (TodoItemsActionA (ToggleItemA itemIdx))
+                H.! A.checked done
+                H.! E.onCheckedChange (TodoItemsActionA . SetItemA itemIdx)
             H.label
                 H.! E.onDoubleClick' (EditItemA itemIdx)
                 $ H.toHtml desc
@@ -248,12 +245,6 @@ renderTodoItem mbEditFocus (itemIdx, TodoItem done desc) = do
       | otherwise     = mempty
 
     isBeingEdited = Just itemIdx == fmap fst mbEditFocus
-
-checkbox :: Bool -> H.Html ev
-checkbox checked =
-    H.input H.! A.type_ "checkbox"
-            H.! A.checked checked
-            H.! A.readonly "true"
 
 
 ------------------------------------------------------------------------------
