@@ -33,6 +33,7 @@ library
                        Text.Blaze.Renderer.ReactJS
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
+                       Text.Blaze.Keycode
 
                        Text.Blaze.Internal
 
