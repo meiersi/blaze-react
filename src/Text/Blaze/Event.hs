@@ -21,7 +21,6 @@ module Text.Blaze.Event
       -- ** Form events
     , onValueChange    , onValueChangeM
     , onCheckedChange  , onCheckedChangeM
-    , onSelectedChange , onSelectedChangeM
     , onSubmit         , onSubmitM
 
       -- ** Mouse events
@@ -132,16 +131,6 @@ onCheckedChange mkAct = onCheckedChangeM $ return . mkAct
 -- callback.
 onCheckedChangeM :: (Bool -> IO act) -> Attribute act
 onCheckedChangeM = onEvent . OnCheckedChange
-
--- | The 'selected' property of the the target element has changed. This
--- handler is supported for <option> elements.
-onSelectedChange :: (Bool -> act) -> Attribute act
-onSelectedChange mkAct = onSelectedChangeM $ return . mkAct
-
--- | A version of 'onSelectedChange' which allows I/O to be performed in the
--- callback.
-onSelectedChangeM :: (Bool -> IO act) -> Attribute act
-onSelectedChangeM = onEvent . OnSelectedChange
 
 -- | The user has submitted the target form. This handler is supported for
 -- <form> elements.

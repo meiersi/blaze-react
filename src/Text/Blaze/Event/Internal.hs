@@ -27,11 +27,14 @@ data EventHandler a
     | OnFocus (IO a)
     | OnBlur  (IO a)
 
-      -- NOTE (asayers): In ReactJS, I believe OnInput has the same semantics
-      -- as OnChange, so I won't bother adding it here.
+    -- NOTE (asayers): In ReactJS, I believe OnInput has the same semantics as
+    -- OnChange, so I won't bother adding it here.
+    -- NOTE (asayers): Using the 'selected' attribute of <option> elements
+    -- seems to be discouraged in ReactJS (doing this throws a warning).
+    -- Therefore I'm removing OnSelectedChange in favour of using OnValueChange
+    -- on the <select> element.
     | OnValueChange    (T.Text -> IO a)
     | OnCheckedChange  (Bool   -> IO a)
-    | OnSelectedChange (Bool   -> IO a)
     | OnSubmit (IO a)
 
     | OnClick       [MouseButton] (MousePosition -> IO a)
