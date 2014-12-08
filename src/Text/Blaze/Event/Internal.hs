@@ -47,7 +47,7 @@ data EventHandler a
     | OnMouseOver                 (MousePosition -> IO a)
     | OnMouseOut                  (MousePosition -> IO a)
 
-    | OnScroll (Double -> IO a)
+    | OnScroll (Int -> IO a)
     | OnWheel (DomDelta -> IO a)
 
     -- TODO (asayers): Implement these

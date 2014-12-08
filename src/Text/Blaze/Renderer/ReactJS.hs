@@ -336,8 +336,8 @@ registerEventHandler eh props = case eh of
 
     OnScroll mkAct           -> register False OnScrollE      $ \eventRef ->
       runEitherT $ do
-        detail <- lookupDoubleProp "detail" eventRef
-        return $ HandleEvent $ mkAct detail
+        scrollTop <- lookupIntProp "scrollTop" =<<lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct scrollTop
 
     OnWheel mkAct            -> register False OnWheelE       $ \eventRef ->
       runEitherT $ do

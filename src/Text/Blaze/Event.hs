@@ -271,11 +271,11 @@ onMouseOutM = onEvent . OnMouseOut
 
 -- | The the scroll-position of the page has changed. The amount by which it
 -- has changed (in lines) is passed as a parameter to the callback.
-onScroll :: (Double -> act) -> Attribute act
+onScroll :: (Int -> act) -> Attribute act
 onScroll mkAct = onScrollM $ return . mkAct
 
 -- | A version of 'onScroll' which allows I/O to be performed in the callback.
-onScrollM :: (Double -> IO act) -> Attribute act
+onScrollM :: (Int -> IO act) -> Attribute act
 onScrollM = onEvent . OnScroll
 
 -- Wheel events
