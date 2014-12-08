@@ -244,7 +244,9 @@ onMouseLeave mkAct = onMouseLeaveM $ return . mkAct
 onMouseLeaveM :: (MousePosition -> IO act) -> Attribute act
 onMouseLeaveM = onEvent . OnMouseLeave
 
--- | Like MouseEnter, but handles bubbling differently.
+-- | The mouse cursor has entered the region where the target element is
+-- visible. The mouse position at the time the event was fired is passed as a
+-- parameter to the callback.
 onMouseOver :: (MousePosition -> act) -> Attribute act
 onMouseOver mkAct = onMouseOverM $ return . mkAct
 
@@ -253,7 +255,9 @@ onMouseOver mkAct = onMouseOverM $ return . mkAct
 onMouseOverM :: (MousePosition -> IO act) -> Attribute act
 onMouseOverM = onEvent . OnMouseOver
 
--- | Like MouseLeave, but handles bubbling differently.
+-- | The mouse cursor has left the region where the target element is visible.
+-- The mouse position at the time the event was fired is passed as a parameter
+-- to the callback.
 onMouseOut :: (MousePosition -> act) -> Attribute act
 onMouseOut mkAct = onMouseOutM $ return . mkAct
 
