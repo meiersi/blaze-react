@@ -43,11 +43,12 @@ library
 
                        Blaze.React
                        Blaze.React.Run.ReactJS
-                       Blaze.React.Examples.Todo
                        Blaze.React.Examples.Clock
+                       Blaze.React.Examples.EventTest
                        Blaze.React.Examples.MultiUser
-                       Blaze.React.Examples.TimeMachine
                        Blaze.React.Examples.TabbedApps
+                       Blaze.React.Examples.TimeMachine
+                       Blaze.React.Examples.Todo
 
   build-depends:       base >=4.7 && <4.8,
                        bytestring,

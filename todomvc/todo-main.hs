@@ -3,6 +3,7 @@
 module Main (main) where
 
 import qualified Blaze.React.Examples.Clock       as Clock
+import qualified Blaze.React.Examples.EventTest   as EventTest
 import qualified Blaze.React.Examples.Todo        as Todo
 import           Blaze.React.Examples.TabbedApps  (namedApp, tabbed)
 import           Blaze.React.Examples.TimeMachine (withTimeMachine)
@@ -17,4 +18,5 @@ main = ReactJS.runApp $
       , namedApp "TodoMVC (with TimeMachine™)" $ withTimeMachine Todo.app
       , namedApp "Multi-user TodoMVC" $ withTimeMachine $ withMultiUser Todo.app
       , namedApp "Clock" Clock.app
+      , namedApp "Event test" $ EventTest.app
       ]
