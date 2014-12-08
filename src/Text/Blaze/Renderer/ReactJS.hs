@@ -308,7 +308,7 @@ registerEventHandler eh props = case eh of
       runEitherT $ do
         valueRef <- lookupProp "value" =<< lookupProp "target" eventRef
         return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
-    OnCheckedChange mkAct    -> register True  OnChangeE      $ \eventRef ->
+    OnCheckedChange mkAct    -> register False OnChangeE      $ \eventRef ->
       runEitherT $ do
         valueRef <- lookupProp "checked" =<< lookupProp "target" eventRef
         return $ HandleEvent $ mkAct $ Foreign.fromJSBool valueRef
