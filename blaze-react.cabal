@@ -31,19 +31,20 @@ library
               reactjs-bindings/lib.js
   ghcjs-options: -O -Wall
   exposed-modules:     Text.Blaze
-                       Text.Blaze.Renderer.String
-                       Text.Blaze.Renderer.ReactJS
+                       Text.Blaze.Event
+                       Text.Blaze.Event.Charcode
+                       Text.Blaze.Event.Keycode
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
-                       Text.Blaze.Event
-                       Text.Blaze.Event.Keycode
-                       Text.Blaze.Event.Charcode
+                       Text.Blaze.Renderer.ReactJS
+                       Text.Blaze.Renderer.String
 
-                       Text.Blaze.Event.Internal
                        Text.Blaze.Internal
+                       Text.Blaze.Event.Internal
 
                        Blaze.React
                        Blaze.React.Run.ReactJS
+
                        Blaze.React.Examples.Clock
                        Blaze.React.Examples.EventTest
                        Blaze.React.Examples.MultiUser
@@ -51,20 +52,21 @@ library
                        Blaze.React.Examples.TimeMachine
                        Blaze.React.Examples.Todo
 
-  build-depends:       base >=4.7 && <4.8,
-                       bytestring,
-                       either,
-                       ghcjs-base,
-                       ghcjs-ffiqq,
-                       ghcjs-prim,
-                       hashable,
-                       lens,
-                       mtl,
-                       pretty-show,
-                       text,
-                       transformers,
-                       time,
-                       unordered-containers
+  build-depends:       base >=4.7 && <4.8
+                     , bytestring
+                     , either
+                     , ghcjs-base
+                     , ghcjs-ffiqq
+                     , ghcjs-prim
+                     , hashable
+                     , lens
+                     , mtl
+                     , pretty-show
+                     , text
+                     , transformers
+                     , time
+                     , unordered-containers
+                     , void
   hs-source-dirs:      src
   default-language:    Haskell2010
 

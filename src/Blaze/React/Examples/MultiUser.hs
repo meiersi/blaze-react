@@ -19,7 +19,6 @@ import Control.Lens        (makeLenses, at, (^.), (.=), use, non, view)
 
 import           Data.Hashable       (Hashable)
 import qualified Data.HashMap.Strict as HMS
-import           Data.Maybe          (fromMaybe)
 import           Data.Monoid         ((<>))
 import qualified Data.Text           as T
 import           Data.Typeable       (Typeable)
@@ -34,8 +33,8 @@ newtype Username = Username { unUsername :: T.Text }
     deriving (Eq, Hashable, Show, Read, Typeable, Ord)
 
 data MUState innerState = MUState
-    { _musUserStates  :: HMS.HashMap Username innerState
-    , _musActiveUser  :: Maybe Username
+    { _musUserStates    :: HMS.HashMap Username innerState
+    , _musActiveUser    :: Maybe Username
     , _musUsernameField :: T.Text
     } deriving (Show)
 
@@ -51,8 +50,8 @@ makeLenses ''MUState
 
 initialMUState :: MUState s
 initialMUState = MUState
-    { _musUserStates  = HMS.empty
-    , _musActiveUser  = Nothing
+    { _musUserStates    = HMS.empty
+    , _musActiveUser    = Nothing
     , _musUsernameField = ""
     }
 
@@ -90,7 +89,7 @@ applyMUAction initialInnerState applyInnerAction action =
               (mkTransitionM $ applyInnerAction innerAction)
 
 renderMUState
-    :: (Show a, Show s)
+    :: (Show a, Show s, Eq s)
     => s
     -> (s -> WindowState (WithWindowActions a))
     -> MUState s
@@ -102,8 +101,7 @@ renderMUState initialInnerState renderInnerState state =
         , _wsBody = renderNotSignedIn state
         }
       Just username ->
-        let innerState = fromMaybe initialInnerState $
-              state ^. musUserStates . at username
+        let innerState = state ^. musUserStates . at username . non initialInnerState
             WindowState innerBody innerPath = renderInnerState innerState
         in WindowState
           { _wsPath = innerPath

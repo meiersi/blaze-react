@@ -15,8 +15,9 @@ import           Prelude hiding (div)
 import           Blaze.React
 
 import           Control.Applicative
-import           Control.Concurrent (threadDelay)
-import           Control.Lens       (makeLenses, set, view)
+import           Control.Concurrent         (threadDelay)
+import           Control.Lens               (makeLenses, (.=), view)
+import           Control.Monad.Trans.Writer (tell)
 
 import           Data.Monoid        ((<>))
 import           Data.Time          (UTCTime, getCurrentTime)
@@ -52,8 +53,11 @@ data ClockAction
     deriving (Show, Typeable)
 
 applyClockAction :: ClockAction -> ClockState -> (ClockState, [IO ClockAction])
-applyClockAction action state = case action of
-    TickA time -> (set csTime (Just time) state, [scheduleTick])
+applyClockAction action =
+    runTransitionM $ case action of
+      TickA time -> do
+        csTime .= Just time
+        tell [scheduleTick]
 
 scheduleTick :: IO ClockAction
 scheduleTick = do

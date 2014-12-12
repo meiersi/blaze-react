@@ -189,8 +189,7 @@ namedApp' name = namedApp name . ignoreWindowActions
 -- FIXME (asayers): Routing isn't handled well for internal apps
 tabbed :: Int -> [NamedApp] -> App TabbedState TabbedAction
 tabbed initialAppIdx apps = App
-    { appInitialState    =
-        TabbedState initialAppIdx (namedAppToSomeApp <$> apps)
+    { appInitialState    = TabbedState initialAppIdx (namedAppToSomeApp <$> apps)
     , appInitialRequests = concatMap namedAppInitialRequests $ zip [0..] apps
     , appApplyAction     = applyTabbedAction
     , appRender          = renderTabbedState

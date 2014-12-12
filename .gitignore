@@ -17,3 +17,4 @@ cabal.sandbox.config
 *.swp
 /reactjs-bindings/lib.js
 tags
+.DS_Store

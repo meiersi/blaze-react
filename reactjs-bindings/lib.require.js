@@ -15,7 +15,7 @@ var invariant = require('./invariant');
 /**
  * Construct a new React.DOM node.
  *
- * @param {string} tag                 the you'd like to generate
+ * @param {string} tag                 the tag you'd like to generate
  * @param {object} props               key-value list of object-properties
  * @param {ReactComponent[]} children  the node's children
  *
@@ -67,11 +67,11 @@ function setRoute(route) {
 }
 
 module.exports =
-    { mkDomNode:     mkDomNode,
-      mountApp:      mountApp,
-      syncRedrawApp: syncRedrawApp,
-      attachRouteWatcher: attachRouteWatcher,
-      setRoute:           setRoute
+    { mkDomNode:          mkDomNode
+    , mountApp:           mountApp
+    , syncRedrawApp:      syncRedrawApp
+    , attachRouteWatcher: attachRouteWatcher
+    , setRoute:           setRoute
     };
 
 // the global variable we're using in the bindings

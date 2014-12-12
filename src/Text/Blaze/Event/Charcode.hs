@@ -19,7 +19,7 @@ module Text.Blaze.Event.Charcode
 newtype Charcode = Charcode { unCharcode :: Int }
 
 
--- TODO (AS): Make explicit constructors
+-- TODO (AS): Make explicit constructors, or perhaps a quasi-quotation.
 fromChar :: Char -> Charcode
 fromChar c = case fromEnum c of
     x | x < 128 -> Charcode x -- It's ASCII
