@@ -98,6 +98,13 @@
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -322,6 +329,13 @@ function h$getGlobal(that) {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -594,6 +608,13 @@ goog.crypt = {};
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -1809,6 +1830,13 @@ goog.crypt = {};
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -3257,6 +3285,13 @@ var h$nbi = BigInteger.nbi;
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -3621,6 +3656,13 @@ var h$nbi = BigInteger.nbi;
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -4614,6 +4656,13 @@ goog.math.Long.prototype.shiftRightUnsigned = function(numBits) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -5247,6 +5296,13 @@ h$HeapSet.prototype._upHeap = function(i) {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -6594,6 +6650,13 @@ function h$munmap(addr_d, addr_o, size) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -7276,6 +7339,13 @@ function h$finalizeCAFs() {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -8176,6 +8246,13 @@ function h$handleErrnoC(err, r_err, r_success, c) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -8375,6 +8452,13 @@ var h$__hsbase_MD5Final = h$MD5Final;
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -9121,6 +9205,13 @@ function h$bswap64(x1,x2) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -9309,6 +9400,13 @@ var h$catMapping = "d;P)3J)3 !/0 !34 !3.'37*'3)4'3W! !/3 !06 !-6W# !/4 !04f; !83
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -10207,6 +10305,13 @@ function h$throwJSException(e) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -10897,6 +11002,13 @@ function h$__int_encodeFloat(i,e) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -11325,6 +11437,13 @@ var h$__hscore_localtime_r = h$localtime_r;
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -11609,6 +11728,13 @@ function h$finalizeWeak(w) {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -12856,6 +12982,13 @@ function h$makeMVarListener(mv, stopProp, stopImmProp, preventDefault) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -13338,6 +13471,13 @@ function h$stmCommitInvariant(localInv) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -13579,6 +13719,13 @@ goog.crypt.Hash.prototype.digest = goog.abstractMethod;
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -14193,6 +14340,13 @@ goog.crypt.Md5.prototype.digest = function() {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -15590,6 +15744,13 @@ function h$shutdownHaskellAndExit(code, fast) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -16065,6 +16226,13 @@ function h$_hs_bytestring_long_long_uint_hex(x_a, x_b, buf_d, buf_o) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -16313,6 +16481,13 @@ function h$flattenObj(o) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -16522,6 +16697,13 @@ function h$hashable_getRandomBytes(dest_d, dest_o, len) {
 
 
 /* package unordered-containers-0.2.5.0 */
+
+
+
+
+
+
+/* package void-0.6.1 */
 
 
 
@@ -16934,6 +17116,13 @@ function h$_hs_text_encode_utf8(destp_v, destp_o, src_v, srcoff, srclen) {
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -17123,6 +17312,13 @@ var h$reactjs;
 
 
 
+/* package void-0.6.1 */
+
+
+
+
+
+
 /* tool alex-3.1.3 */
 
 
@@ -17283,7 +17479,7 @@ var invariant = require('./invariant');
 /**
  * Construct a new React.DOM node.
  *
- * @param {string} tag                 the you'd like to generate
+ * @param {string} tag                 the tag you'd like to generate
  * @param {object} props               key-value list of object-properties
  * @param {ReactComponent[]} children  the node's children
  *
@@ -17322,10 +17518,24 @@ function syncRedrawApp(app) {
     React.renderComponent(GhcjsApp({onRender: app.onRender}), app.domNode);
 }
 
+function attachRouteWatcher(routeChangeCb) {
+    window.onhashchange = function() {
+        routeChangeCb(location.hash);
+    };
+}
+
+function setRoute(route) {
+    // TODO (asayers): Setting location.hash is kinda slow, so ideally we'd
+    // wait for a ReactJS animation frame before updating it.
+    location.hash = route;
+}
+
 module.exports =
-    { mkDomNode: mkDomNode,
-      mountApp: mountApp,
-      syncRedrawApp: syncRedrawApp
+    { mkDomNode: mkDomNode
+    , mountApp: mountApp
+    , syncRedrawApp: syncRedrawApp
+    , attachRouteWatcher: attachRouteWatcher
+    , setRoute: setRoute
     };
 
 // the global variable we're using in the bindings

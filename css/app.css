@@ -95,3 +95,43 @@
 .multiuser-signin input {
     width: 100%;
 }
+
+.et-actions {
+    width: 50%;
+    height: 400px;
+    background: white;
+    position: fixed;
+    right: 10px;
+    overflow: scroll;
+}
+.et-box1 {
+    background: red;
+    padding: 1em;
+    width: 150px;
+    text-align: center;
+    color: white;
+}
+.et-box2 {
+    background: lightgreen;
+    padding: 1em;
+    color: black;
+}
+.et-box3 {
+    background: blue;
+    padding: 1em;
+    color: white;
+}
+.et-box4 {
+    background: black;
+    width: 150px;
+    padding: 1em;
+    text-align: center;
+    color: white;
+}
+
+.et-box5 {
+    background: white;
+    height: 100px;
+    width: 150px;
+    overflow: scroll;
+}
