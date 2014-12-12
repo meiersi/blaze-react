@@ -12,11 +12,11 @@ module Blaze.React.Examples.Clock
 
 import           Prelude hiding (div)
 
-import           Blaze.React        (App(..))
+import           Blaze.React
 
 import           Control.Applicative
 import           Control.Concurrent (threadDelay)
-import           Control.Lens       (makeLenses, set)
+import           Control.Lens       (makeLenses, set, view)
 
 import           Data.Monoid        ((<>))
 import           Data.Time          (UTCTime, getCurrentTime)
@@ -35,9 +35,13 @@ data ClockState = ClockState
 
 makeLenses ''ClockState
 
-renderClockState :: ClockState -> H.Html ClockAction
-renderClockState (ClockState (Just time)) = "The time is: " <> H.toHtml (show time)
-renderClockState (ClockState Nothing)     = "Loading..."
+renderClockState :: ClockState -> WindowState ClockAction
+renderClockState state = WindowState
+    { _wsPath = ""
+    , _wsBody = case view csTime state of
+        Just time -> "The time is: " <> H.toHtml (show time)
+        Nothing   -> "Loading..."
+    }
 
 -------------------------------------------------------------------------------
 -- Transitions

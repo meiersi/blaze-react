@@ -60,8 +60,14 @@ applyETAction act = runTransitionM $ do
       BoolChangeA bool -> theBool .= bool
       _                   -> return ()
 
-renderETState :: ETState -> H.Html ETAction
-renderETState (ETState actions text bool) = H.section $ do
+renderETState :: ETState -> WindowState ETAction
+renderETState state = WindowState
+    { _wsPath = ""
+    , _wsBody = renderBody state
+    }
+
+renderBody :: ETState -> H.Html ETAction
+renderBody (ETState actions text bool) = H.section $ do
     let textVal = A.value (H.toValue text)
 
     H.div H.! A.class_ "et-actions" $ do

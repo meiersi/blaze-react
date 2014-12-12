@@ -54,10 +54,24 @@ function syncRedrawApp(app) {
     React.renderComponent(GhcjsApp({onRender: app.onRender}), app.domNode);
 }
 
+function attachRouteWatcher(routeChangeCb) {
+    window.onhashchange = function() {
+        routeChangeCb(location.hash);
+    };
+}
+
+function setRoute(route) {
+    // TODO (asayers): Setting location.hash is kinda slow, so ideally we'd
+    // wait for a ReactJS animation frame before updating it.
+    location.hash = route;
+}
+
 module.exports =
     { mkDomNode:     mkDomNode,
       mountApp:      mountApp,
-      syncRedrawApp: syncRedrawApp
+      syncRedrawApp: syncRedrawApp,
+      attachRouteWatcher: attachRouteWatcher,
+      setRoute:           setRoute
     };
 
 // the global variable we're using in the bindings

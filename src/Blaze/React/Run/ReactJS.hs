@@ -2,7 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Blaze.React.Run.ReactJS (runApp) where
+module Blaze.React.Run.ReactJS
+    ( runApp
+    , runApp'
+    ) where
 
 
 import           Blaze.React
@@ -14,6 +17,8 @@ import           Control.Monad
 
 import           Data.IORef
 import           Data.Maybe            (fromMaybe)
+import           Data.Monoid           ((<>))
+import qualified Data.Text             as T
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
 import qualified GHCJS.Foreign         as Foreign
@@ -55,6 +60,20 @@ foreign import javascript unsafe
     syncRedrawApp :: JSRef ReactJSApp_ -> IO ()
 
 foreign import javascript unsafe
+    "h$reactjs.attachRouteWatcher($1)"
+    attachPathWatcher
+        :: JSFun (JSString -> IO ())
+           -- ^ Callback that handles a route change.
+        -> IO ()
+
+foreign import javascript unsafe
+    "h$reactjs.setRoute($1)"
+    setRoute
+        :: JSString
+           -- ^ The new URL fragment
+        -> IO ()
+
+foreign import javascript unsafe
     "window.requestAnimationFrame($1)"
     requestAnimationFrame :: JSFun (IO ()) -> IO ()
 
@@ -66,7 +85,10 @@ atAnimationFrame io = do
                              (Foreign.release cb >> io)
     requestAnimationFrame cb
 
-runApp :: (Show act) => App st act -> IO ()
+runApp' :: (Show act) => App st act -> IO ()
+runApp' = runApp . ignoreWindowActions
+
+runApp :: (Show act) => App st (WithWindowActions act) -> IO ()
 runApp (App initialState initialRequests apply renderAppState) = do
     -- create root element in body for the app
     root <- [js| document.createElement('div') |]
@@ -76,6 +98,10 @@ runApp (App initialState initialRequests apply renderAppState) = do
     stateVar           <- newIORef initialState  -- The state of the app
     redrawScheduledVar <- newIORef False         -- True if a redraw was scheduled
     rerenderVar        <- newIORef Nothing       -- IO function to actually render the DOM
+
+    -- This is a cache of the URL fragment (hash) to prevent unnecessary
+    -- updates.
+    urlFragmentVar <- newIORef =<< Foreign.fromJSString <$> [js|location.hash|]
 
     -- rerendering
     let syncRedraw = join $ fromMaybe (return ()) <$> readIORef rerenderVar
@@ -88,6 +114,12 @@ runApp (App initialState initialRequests apply renderAppState) = do
                 atAnimationFrame $ do
                     writeIORef redrawScheduledVar False
                     syncRedraw
+
+    let updatePath newPath = do
+          currentPath <- readIORef urlFragmentVar
+          unless (newPath == currentPath) $ do
+            writeIORef urlFragmentVar newPath
+            setRoute $ Foreign.toJSString $ "#" <> newPath
 
     -- create render callback for initialState
     let handleAction action requireSyncRedraw = do
@@ -106,10 +138,21 @@ runApp (App initialState initialRequests apply renderAppState) = do
         mkRenderCb = do
             Foreign.syncCallback1 Foreign.AlwaysRetain False $ \objRef -> do
                 state <- readIORef stateVar
-                node <- ReactJS.renderHtml handleAction (renderAppState state)
+                let (WindowState body path) = renderAppState state
+                updatePath path
+                node <- ReactJS.renderHtml handleAction body
                 Foreign.setProp ("node" :: JSString) node objRef
 
-
+    onPathChange <- Foreign.syncCallback1 Foreign.AlwaysRetain False $
+      \pathStr -> do
+        currentPath <- readIORef urlFragmentVar
+        let newPath = T.drop 1 $ Foreign.fromJSString pathStr
+        -- FIXME (asayers): if the route is the same, it seems to trigger a
+        -- full-page reload
+        unless (newPath == currentPath) $ do
+          writeIORef urlFragmentVar newPath
+          handleAction (PathChangedTo newPath) True
+    attachPathWatcher onPathChange
 
     -- mount and redraw app
     bracket mkRenderCb Foreign.release $ \renderCb -> do

@@ -152,8 +152,14 @@ applyTodoAction action =
 -- Rendering
 ------------------------------------------------------------------------------
 
-renderTodoState :: TodoState -> H.Html TodoAction
-renderTodoState (TodoState newItemDesc mbEditFocus items) = do
+renderTodoState :: TodoState -> WindowState TodoAction
+renderTodoState state = WindowState
+    { _wsBody = renderBody state
+    , _wsPath = ""
+    }
+
+renderBody :: TodoState -> H.Html TodoAction
+renderBody (TodoState newItemDesc mbEditFocus items) = do
     -- app
     H.section H.! A.id "todoapp" $
       H.div $ do

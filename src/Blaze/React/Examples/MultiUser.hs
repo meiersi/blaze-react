@@ -39,11 +39,12 @@ data MUState innerState = MUState
     , _musUsernameField :: T.Text
     } deriving (Show)
 
-data MUAction innerAction
+type MUAction innerAction = WithWindowActions (MUAction' innerAction)
+data MUAction' innerAction
     = SignInA
     | SignOutA
     | UpdateUsernameFieldA T.Text
-    | InnerA innerAction
+    | InnerA (WithWindowActions innerAction)
     deriving (Eq, Ord, Read, Show, Typeable)
 
 makeLenses ''MUState
@@ -58,62 +59,83 @@ initialMUState = MUState
 applyMUAction
     :: (Eq s)
     => s
-    -> (a -> Transition s a)
+    -> ((WithWindowActions a) -> Transition s (WithWindowActions a))
     -> MUAction a
     -> Transition (MUState s) (MUAction a)
 applyMUAction initialInnerState applyInnerAction action =
     runTransitionM $ case action of
-      SignInA -> do
+      -- Pass path changes along to the inner app
+      PathChangedTo path -> mkTransitionM $
+        applyMUAction initialInnerState applyInnerAction $
+          AppAction $ InnerA $ PathChangedTo path
+      AppAction SignInA -> do
         username <- use musUsernameField
         musActiveUser .= case username of
           "" -> Nothing
           x  -> Just $ Username x
         musUsernameField .= ""
-      SignOutA ->
+      AppAction SignOutA ->
         musActiveUser .= Nothing
-      UpdateUsernameFieldA text ->
+      AppAction (UpdateUsernameFieldA text) ->
         musUsernameField .= text
-      InnerA innerAction ->
+      AppAction (InnerA innerAction) ->
         use musActiveUser >>= \case
           Nothing -> return ()
           Just userId ->
             -- NOTE (AS): The use of 'non' here introduces the (Eq s)
             -- constraint above. I don't think this is necessary.
-            zoomTransition InnerA (musUserStates . at userId . non initialInnerState) $
-              mkTransitionM (applyInnerAction innerAction)
-
+            zoomTransition
+              (AppAction . InnerA)
+              (musUserStates . at userId . non initialInnerState)
+              (mkTransitionM $ applyInnerAction innerAction)
 
 renderMUState
     :: (Show a, Show s)
     => s
-    -> (s -> H.Html a)
+    -> (s -> WindowState (WithWindowActions a))
     -> MUState s
-    -> H.Html (MUAction a)
+    -> WindowState (MUAction a)
 renderMUState initialInnerState renderInnerState state =
     case state ^. musActiveUser of
-      Just username -> do
+      Nothing -> WindowState
+        { _wsPath = ""
+        , _wsBody = renderNotSignedIn state
+        }
+      Just username ->
         let innerState = fromMaybe initialInnerState $
               state ^. musUserStates . at username
-            innerHtml = E.mapActions InnerA $ renderInnerState innerState
-        H.div H.! A.class_ "multiuser-bar" $ do
-          H.span $ "Logged in as " <> H.toHtml (unUsername username) <> ". "
-          H.span H.! E.onClick' SignOutA $ "Sign out"
-        innerHtml
-      Nothing ->
-        H.div H.! A.class_ "multiuser-signin" $ do
-          H.p "Not logged in. Please specify username:"
-          H.input H.! A.autofocus True
-                  H.! A.value (H.toValue $ view musUsernameField state)
-                  H.! E.onValueChange UpdateUsernameFieldA
-                  H.! E.onKeyDown [Keycode.enter] SignInA
+            WindowState innerBody innerPath = renderInnerState innerState
+        in WindowState
+          { _wsPath = innerPath
+          , _wsBody = renderSignedIn innerBody username
+          }
+
+renderSignedIn
+    :: H.Html (WithWindowActions a)
+    -> Username
+    -> H.Html (MUAction a)
+renderSignedIn innerBody username = do
+    H.div H.! A.class_ "multiuser-bar" $ do
+      H.span $ "Logged in as " <> H.toHtml (unUsername username) <> ". "
+      H.span H.! E.onClick' (AppAction SignOutA) $ "Sign out"
+    E.mapActions (AppAction . InnerA) innerBody
+
+renderNotSignedIn :: MUState s -> H.Html (MUAction a)
+renderNotSignedIn state =
+    H.div H.! A.class_ "multiuser-signin" $ do
+      H.p "Not logged in. Please specify username:"
+      H.input H.! A.autofocus True
+              H.! A.value (H.toValue $ view musUsernameField state)
+              H.! E.onValueChange (AppAction . UpdateUsernameFieldA)
+              H.! E.onKeyDown [Keycode.enter] (AppAction SignInA)
 
 withMultiUser
     :: (Show a, Show s, Eq s)
-    => App s a
+    => App s (WithWindowActions a)
     -> App (MUState s) (MUAction a)
 withMultiUser innerApp = App
     { appInitialState    = initialMUState
-    , appInitialRequests = fmap InnerA <$> appInitialRequests innerApp
+    , appInitialRequests = fmap (AppAction . InnerA) <$> appInitialRequests innerApp
     , appApplyAction     = applyMUAction (appInitialState innerApp) (appApplyAction innerApp)
     , appRender          = renderMUState (appInitialState innerApp) (appRender innerApp)
     }
