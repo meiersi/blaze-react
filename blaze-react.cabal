@@ -48,6 +48,7 @@ library
                        Blaze.React.Examples.Clock
                        Blaze.React.Examples.EventTest
                        Blaze.React.Examples.MultiUser
+                       Blaze.React.Examples.RoutingTest
                        Blaze.React.Examples.TabbedApps
                        Blaze.React.Examples.TimeMachine
                        Blaze.React.Examples.Todo
