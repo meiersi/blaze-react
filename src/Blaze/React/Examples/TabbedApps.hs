@@ -111,15 +111,17 @@ data TabbedState = TabbedState
 makeLenses ''TabbedState
 
 
+-- Applying actions
+--------------------
+
 applyTabbedAction
     :: TabbedAction -> Transition TabbedState TabbedAction
 applyTabbedAction act st = case act of
-    PathChangedTo path -> case T.decimal path of
-      Left _        -> (st, [])
-      Right (x, xs) -> flip runTransitionM st $ do
-        let internalPath = T.drop 1 xs
-        mkTransitionM $ applyTabbedAction $ AppAction $ SwitchApp x
-        mkTransitionM $ applyTabbedAction $ AppAction $ InnerA x $ PathChangedTo internalPath
+    PathChangedTo path -> case preview pathToRoute path of
+      Nothing                             -> (st, [])
+      Just (TabbedRoute appIdx innerPath) -> flip runTransitionM st $ do
+        mkTransitionM $ applyTabbedAction $ AppAction $ SwitchApp appIdx
+        mkTransitionM $ applyTabbedAction $ AppAction $ InnerA appIdx $ PathChangedTo innerPath
 
     AppAction (SwitchApp appIdx)
       | nullOf (tsApps . ix appIdx) st -> (st, [])
@@ -134,6 +136,37 @@ applyTabbedAction act st = case act of
              , fmap (AppAction . InnerA appIdx) <$> reqs
              )
 
+-- Routing
+-----------
+
+data TabbedRoute = TabbedRoute
+    { _trAppIdx :: Int
+    , _trInnerPath :: T.Text
+    }
+
+pathToRoute :: Prism' T.Text TabbedRoute
+pathToRoute = prism' fromRoute toRoute
+  where
+    fromRoute :: TabbedRoute -> T.Text
+    fromRoute (TabbedRoute appIdx innerPath) = T.concat
+        [ T.pack $ show appIdx
+        , if T.null innerPath
+            then ""
+            else "-" <> innerPath
+        ]
+
+    toRoute :: T.Text -> Maybe TabbedRoute
+    toRoute path =
+        case T.decimal path of
+          Left _                   -> Nothing
+          Right (appIdx, leftover) -> Just $ TabbedRoute
+            { _trAppIdx = appIdx
+            , _trInnerPath = T.drop 1 leftover
+            }
+
+-- Rendering
+-------------
+
 renderTabbedState :: TabbedState -> WindowState TabbedAction
 renderTabbedState state@(TabbedState focusedAppIdx apps) =
     case preview (ix focusedAppIdx) apps of
@@ -141,7 +174,7 @@ renderTabbedState state@(TabbedState focusedAppIdx apps) =
       Just app ->
         let (WindowState innerBody innerPath) = renderSomeApp app
         in WindowState
-          { _wsPath = (T.pack $ show focusedAppIdx) <> "-" <> innerPath
+          { _wsPath = review pathToRoute $ TabbedRoute focusedAppIdx innerPath
           , _wsBody = renderBody state innerBody
           }
 
