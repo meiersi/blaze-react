@@ -40,13 +40,13 @@ import           Text.Show.Pretty (ppShow)
 --------
 
 data TMState state action = TMState
-    { _tmsInternalState :: state
+    { _tmsInternalState :: !state
     , _tmsActionHistory :: [WithWindowActions action]
       -- ^ List of actions, from earliest to latest
-    , _tmsActiveAction  :: Int
+    , _tmsActiveAction  :: !Int
       -- ^ Index of the current position in the action list. 1-indexed,
       -- where 0 indicates that the app is in the initial state.
-    , _tmsPaused        :: Bool
+    , _tmsPaused        :: !Bool
     , _tmsActionBuffer  :: [WithWindowActions action]
       -- ^ This is where async internal actions go while the app is paused
     } deriving (Show)

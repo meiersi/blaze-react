@@ -35,18 +35,18 @@ import           Control.Monad.Trans.Writer (WriterT, runWriterT, tell, mapWrite
 -------------------------------------------------------------------------------
 
 data App state action = App
-    { appInitialState    :: state
+    { appInitialState    :: !state
     , appInitialRequests :: [IO action]
-    , appApplyAction     :: action -> Transition state action
-    , appRender          :: state -> WindowState action
+    , appApplyAction     :: !(action -> Transition state action)
+    , appRender          :: !(state -> WindowState action)
     }
 
 type Transition  state action = state -> (state, [IO action])
 type TransitionM state action = WriterT [IO action] (State state) ()
 
 data WindowState action = WindowState
-    { _wsBody  :: H.Html action
-    , _wsPath  :: T.Text
+    { _wsBody  :: !(H.Html action)
+    , _wsPath  :: !T.Text
     -- TODO (asayers): _wsTitle :: T.Text
     }
 

@@ -33,9 +33,9 @@ newtype Username = Username { unUsername :: T.Text }
     deriving (Eq, Hashable, Show, Read, Typeable, Ord)
 
 data MUState innerState = MUState
-    { _musUserStates    :: HMS.HashMap Username innerState
-    , _musActiveUser    :: Maybe Username
-    , _musUsernameField :: T.Text
+    { _musUserStates    :: !(HMS.HashMap Username innerState)
+    , _musActiveUser    :: !(Maybe Username)
+    , _musUsernameField :: !T.Text
     } deriving (Show)
 
 type MUAction innerAction = WithWindowActions (MUAction' innerAction)

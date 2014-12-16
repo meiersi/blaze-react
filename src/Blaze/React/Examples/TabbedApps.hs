@@ -36,7 +36,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 
 data SomeApp = forall st act. (Typeable act, Show act, Show st) => SomeApp
-    { saName   :: !T.Text
+    { saName    :: !T.Text
     , _saState  :: !st
     , _saApply  :: !(WithWindowActions act -> Transition st (WithWindowActions act))
     , _saRender :: !(st -> WindowState (WithWindowActions act))
@@ -102,7 +102,7 @@ data TabbedAction'
     deriving (Show, Typeable)
 
 data TabbedState = TabbedState
-   { _tsFocus     :: Int
+   { _tsFocus     :: !Int
    , _tsApps      :: [SomeApp]
    -- invariants:
    --   - 0 <= tsFocus < length tsApps
@@ -140,8 +140,8 @@ applyTabbedAction act st = case act of
 -----------
 
 data TabbedRoute = TabbedRoute
-    { _trAppIdx :: Int
-    , _trInnerPath :: T.Text
+    { _trAppIdx    :: !Int
+    , _trInnerPath :: !T.Text
     }
 
 pathToRoute :: Prism' T.Text TabbedRoute

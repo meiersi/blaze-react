@@ -23,8 +23,8 @@ import qualified Text.Blaze.Html5.Attributes          as A
 
 data ETState = ETState
     { _theActions :: [ETAction]
-    , _theText    :: T.Text
-    , _theBool    :: Bool
+    , _theText    :: !T.Text
+    , _theBool    :: !Bool
     } deriving (Show)
 
 data ETAction
