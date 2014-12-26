@@ -18,7 +18,9 @@ module Blaze.React
     , zoomTransition
     ) where
 
-import Control.Lens (makeLenses, Lens', zoom, over, _2)
+import Control.Lens (makeLenses, zoom, over, _2, LensLike')
+import Control.Lens.Internal.Zoom (Focusing)
+import Data.Functor.Identity (Identity)
 
 import qualified Data.Text as T
 import           Data.Typeable
@@ -89,8 +91,9 @@ mkTransitionM fn = do
 
 zoomTransition
     :: (innerA -> outerA)
-    -> Lens' outerS innerS
-    -- ^ Strictly, it's LensLike' (Focusing Identity ((), [IO outerA])) outerS innerS
+    -> LensLike' (Focusing Identity ((), [IO outerA])) outerS innerS
+       -- ^ This can be a @'Lens\'' innerS outerS@ or
+       -- @'Traversal\'' innerS outerS@
     -> TransitionM innerS innerA
     -> TransitionM outerS outerA
 zoomTransition wrapAction stateLens =
@@ -101,4 +104,3 @@ zoomTransition wrapAction stateLens =
             (fmap -- List
               (fmap -- IO
                 wrapAction)))
-
