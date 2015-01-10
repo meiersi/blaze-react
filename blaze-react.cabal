@@ -36,6 +36,8 @@ library
                        Text.Blaze.Event.Keycode
                        Text.Blaze.Html5
                        Text.Blaze.Html5.Attributes
+                       Text.Blaze.Svg
+                       Text.Blaze.Svg.Attributes
                        Text.Blaze.Renderer.ReactJS
                        Text.Blaze.Renderer.String
 
