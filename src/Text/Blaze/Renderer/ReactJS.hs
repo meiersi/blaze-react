@@ -148,6 +148,10 @@ render handleAct0 markup = do
         AddCustomAttribute key value h ->
             setProperty (choiceStringToJs key) (choiceStringToJs value) h
 
+        AddObjectAttribute key jsonObject h -> do
+            jsObj <- Marshal.toJSRef_aeson jsonObject
+            setProperty (staticStringToJs key) jsObj h
+
         Empty           -> return ()
         Append h1 h2    -> do
             go handleAct setProps children h1

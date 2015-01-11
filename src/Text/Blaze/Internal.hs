@@ -29,6 +29,7 @@ module Text.Blaze.Internal
     , boolAttribute
     , dataAttribute
     , customAttribute
+    , objectAttribute
 
       -- * Converting values to Markup.
     , text
@@ -69,6 +70,7 @@ module Text.Blaze.Internal
 
 import           Control.Applicative
 
+import qualified Data.Aeson.Types             as Json
 import           Data.ByteString.Char8        (ByteString)
 import qualified Data.ByteString              as B
 import qualified Data.ByteString.Lazy         as BL
@@ -162,6 +164,8 @@ data MarkupM act a
     | AddBoolAttribute StaticString Bool (MarkupM act a)
       -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM act a)
+      -- | Add an attribute with a JSON object value to the inner HTML.
+    | AddObjectAttribute StaticString Json.Object (MarkupM act a)
       -- | Empty HTML.
     | Empty
     deriving (Typeable)
@@ -285,6 +289,21 @@ customAttribute tag value = Attribute $ AddCustomAttribute
     (Static $ unTag tag)
     (unAttributeValue value)
 {-# INLINE customAttribute #-}
+
+-- | Create an attribute with a Javascript object as value.
+--
+-- This is not specified in the HTML spec, but some
+-- JavaScript libraries like react rely on it.
+--
+-- See: http://facebook.github.io/react/tips/inline-styles.html for
+-- why this is needed.
+objectAttribute :: Tag          -- ^ Name of the attribute
+                -> Json.Object  -- ^ Value of the attribute
+                -> Attribute ev -- ^ Resulting HTML attribtu
+objectAttribute key jsonObject = Attribute $ AddObjectAttribute
+    (unTag key)
+    jsonObject
+{-# INLINE objectAttribute #-}
 
 -- | Render text. Functions like these can be used to supply content in HTML.
 --
@@ -480,6 +499,7 @@ external (CustomParent x i) = CustomParent x $ external i
 external (AddAttribute x y z i) = AddAttribute x y z $ external i
 external (AddBoolAttribute x y i) = AddBoolAttribute x y $ external i
 external (AddCustomAttribute x y i) = AddCustomAttribute x y $ external i
+external (AddObjectAttribute x y i) = AddObjectAttribute x y $ external i
 external x = x
 {-# INLINABLE external #-}
 
@@ -494,7 +514,7 @@ external x = x
 -- > Hello World!
 --
 contents :: MarkupM ev a -> MarkupM ev' b
-contents (MapActions _ c)            = contents c
+contents (MapActions _ c)           = contents c
 contents (OnEvent _ c)              = contents c
 contents (Parent _ _ _ c)           = contents c
 contents (CustomParent _ c)         = contents c
@@ -503,13 +523,14 @@ contents (Append c1 c2)             = Append (contents c1) (contents c2)
 contents (AddAttribute _ _ _ c)     = contents c
 contents (AddBoolAttribute _ _ c)   = contents c
 contents (AddCustomAttribute _ _ c) = contents c
+contents (AddObjectAttribute _ _ c) = contents c
 contents _                          = Empty
 
 -- | Check if a 'Markup' value is completely empty (renders to the empty
 -- string).
 null :: MarkupM ev a -> Bool
 null markup = case markup of
-    MapActions _ c            -> null c
+    MapActions _ c           -> null c
     OnEvent _ c              -> null c
     Parent _ _ _ _           -> False
     CustomParent _ _         -> False
@@ -520,6 +541,7 @@ null markup = case markup of
     AddAttribute _ _ _ c     -> null c
     AddBoolAttribute _ _ c   -> null c
     AddCustomAttribute _ _ c -> null c
+    AddObjectAttribute _ _ c -> null c
     Empty                    -> True
   where
     emptyChoiceString cs = case cs of
@@ -533,4 +555,3 @@ null markup = case markup of
         EmptyChoiceString        -> True
 
     emptyStaticString = B.null . getUtf8ByteString
-
