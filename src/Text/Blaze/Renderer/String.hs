@@ -11,8 +11,11 @@ module Text.Blaze.Renderer.String
 
 import Data.List (isInfixOf)
 
+import qualified Data.Aeson as Json (encode)
 import qualified Data.ByteString.Char8 as SBC
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString as S
 
 import Text.Blaze.Internal
@@ -92,6 +95,11 @@ renderString =
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
                        . fromChoiceString value .  ('"' :) .  attrs
+            in go attrs' h
+        AddObjectAttribute key jsonObject h ->
+            let attrs' = (' ' :) . getString key . ("=\"" ++)
+                         -- TODO (basvandijk): This encoding is not entirely correct.
+                       . ((TL.unpack $ TLE.decodeUtf8 $ Json.encode jsonObject) ++)
             in go attrs' h
         Content content -> fromChoiceString content
         Append h1 h2    -> go attrs h1 . go attrs h2

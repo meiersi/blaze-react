@@ -141,7 +141,7 @@ renderBody (ETState actions text bool) = H.section $ do
               H.! E.onMouseLeave (const $ MouseLeaveA 3) $ "3"
     H.p "Use the box below to test onMouseMove"
     H.div H.! A.class_ "et-box4"
-          H.! E.onMouseMove (\(E.MousePosition x y _ _ _ _) -> MouseMoveA x y)
+          H.! E.onMouseMove (\(E.MousePosition x y _ _ _ _ _ _) -> MouseMoveA x y)
           $ H.span "Move mouse here"
 
     H.h2 "Testing scroll events"

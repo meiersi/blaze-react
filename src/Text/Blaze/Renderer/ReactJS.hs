@@ -148,6 +148,10 @@ render handleAct0 markup = do
         AddCustomAttribute key value h ->
             setProperty (choiceStringToJs key) (choiceStringToJs value) h
 
+        AddObjectAttribute key jsonObject h -> do
+            jsObj <- Marshal.toJSRef_aeson jsonObject
+            setProperty (staticStringToJs key) jsObj h
+
         Empty           -> return ()
         Append h1 h2    -> do
             go handleAct setProps children h1
@@ -400,6 +404,12 @@ registerEventHandler eh props = case eh of
         pageY   <- lookupIntProp "pageY"   eventRef
         screenX <- lookupIntProp "screenX" eventRef
         screenY <- lookupIntProp "screenY" eventRef
+        -- Uses the nativeEvent because the offset isn't supported by
+        -- react js.
+        nativeEventRef <- lookupProp "nativeEvent" eventRef
+        offsetX <- lookupIntProp "offsetX" nativeEventRef
+        offsetY <- lookupIntProp "offsetY" nativeEventRef
+
         return MousePosition
           { mpClientX = clientX
           , mpClientY = clientY
@@ -407,8 +417,9 @@ registerEventHandler eh props = case eh of
           , mpPageY   = pageY
           , mpScreenX = screenX
           , mpScreenY = screenY
+          , mpOffsetX = offsetX
+          , mpOffsetY = offsetY
           }
-
 
     register
         :: Bool
