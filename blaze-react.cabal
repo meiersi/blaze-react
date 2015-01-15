@@ -56,7 +56,6 @@ library
                        Blaze.React.Examples.Todo
 
   build-depends:       base >=4.7 && <4.8
-                     , aeson
                      , bytestring
                      , either
                      , ghcjs-base

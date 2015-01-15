@@ -17,6 +17,7 @@ import           Control.Monad.Trans        (lift)
 import           Control.Monad.Trans.Either ( runEitherT, EitherT(..), left)
 
 import qualified Data.ByteString.Char8 as SBC
+import qualified Data.HashMap.Strict   as HMS
 import           Data.List             (isInfixOf)
 import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
@@ -24,7 +25,7 @@ import qualified Data.ByteString       as S
 
 import qualified GHCJS.Foreign         as Foreign
 import           GHCJS.Marshal         as Marshal
-import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject)
+import           GHCJS.Types           (JSString, JSRef, JSArray, JSObject, castRef)
 
 import           Prelude               hiding (span)
 
@@ -148,8 +149,8 @@ render handleAct0 markup = do
         AddCustomAttribute key value h ->
             setProperty (choiceStringToJs key) (choiceStringToJs value) h
 
-        AddObjectAttribute key jsonObject h -> do
-            jsObj <- Marshal.toJSRef_aeson jsonObject
+        AddObjectAttribute key object h -> do
+            jsObj <- toJSRef_hashMap object
             setProperty (staticStringToJs key) jsObj h
 
         Empty           -> return ()
@@ -187,6 +188,16 @@ render handleAct0 markup = do
         textToVNode :: JSString -> IO ()
         textToVNode jsText = Foreign.pushArray jsText children
 
+-- TODO (asayers): Something like this should probably be added to GHCJS.Marshall:
+-- toJSRef_hashMap :: (IsString a, ToJSRef b)
+--                 => HMS.HashMap a b
+--                 -> IO (JSRef (HMS.HashMap a b))
+toJSRef_hashMap :: HMS.HashMap T.Text T.Text -> IO (JSRef (HMS.HashMap T.Text T.Text))
+toJSRef_hashMap hashmap = fmap castRef $ do
+    obj <- Foreign.newObj
+    let addProp k v = Foreign.setProp k (Foreign.toJSString v) obj
+    void $ HMS.traverseWithKey addProp hashmap
+    return obj
 
 renderHtml
     :: Show act

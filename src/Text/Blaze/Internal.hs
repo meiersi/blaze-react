@@ -70,10 +70,10 @@ module Text.Blaze.Internal
 
 import           Control.Applicative
 
-import qualified Data.Aeson.Types             as Json
 import           Data.ByteString.Char8        (ByteString)
 import qualified Data.ByteString              as B
 import qualified Data.ByteString.Lazy         as BL
+import qualified Data.HashMap.Strict          as HMS
 import qualified Data.List                    as List
 import           Data.Monoid                  (Monoid, mappend, mempty, mconcat)
 import           Data.Text                    (Text)
@@ -164,8 +164,8 @@ data MarkupM act a
     | AddBoolAttribute StaticString Bool (MarkupM act a)
       -- | Add a custom attribute to the inner HTML.
     | AddCustomAttribute ChoiceString ChoiceString (MarkupM act a)
-      -- | Add an attribute with a JSON object value to the inner HTML.
-    | AddObjectAttribute StaticString Json.Object (MarkupM act a)
+      -- | Add an attribute containing a text-text map to the inner HTML.
+    | AddObjectAttribute StaticString (HMS.HashMap T.Text T.Text) (MarkupM act a)
       -- | Empty HTML.
     | Empty
     deriving (Typeable)
@@ -290,19 +290,19 @@ customAttribute tag value = Attribute $ AddCustomAttribute
     (unAttributeValue value)
 {-# INLINE customAttribute #-}
 
--- | Create an attribute with a Javascript object as value.
+-- | Create an attribute with a text-text map as value.
 --
 -- This is not specified in the HTML spec, but some
 -- JavaScript libraries like react rely on it.
 --
 -- See: http://facebook.github.io/react/tips/inline-styles.html for
 -- why this is needed.
-objectAttribute :: Tag          -- ^ Name of the attribute
-                -> Json.Object  -- ^ Value of the attribute
-                -> Attribute ev -- ^ Resulting HTML attribtu
-objectAttribute key jsonObject = Attribute $ AddObjectAttribute
+objectAttribute :: Tag                       -- ^ Name of the attribute
+                -> HMS.HashMap T.Text T.Text -- ^ Value of the attribute
+                -> Attribute ev              -- ^ Resulting HTML attribtu
+objectAttribute key object = Attribute $ AddObjectAttribute
     (unTag key)
-    jsonObject
+    object
 {-# INLINE objectAttribute #-}
 
 -- | Render text. Functions like these can be used to supply content in HTML.

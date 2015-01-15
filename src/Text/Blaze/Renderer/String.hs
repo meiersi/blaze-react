@@ -9,14 +9,12 @@ module Text.Blaze.Renderer.String
       renderHtml
     ) where
 
-import Data.List (isInfixOf)
-
-import qualified Data.Aeson as Json (encode)
-import qualified Data.ByteString.Char8 as SBC
-import qualified Data.Text as T
-import qualified Data.Text.Lazy.Encoding as TLE
-import qualified Data.Text.Lazy as TL
-import qualified Data.ByteString as S
+import qualified Data.ByteString         as S
+import qualified Data.ByteString.Char8   as SBC
+import qualified Data.HashMap.Strict     as HMS
+import           Data.List               (isInfixOf)
+import           Data.Monoid
+import qualified Data.Text               as T
 
 import Text.Blaze.Internal
 
@@ -96,14 +94,23 @@ renderString =
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
                        . fromChoiceString value .  ('"' :) .  attrs
             in go attrs' h
-        AddObjectAttribute key jsonObject h ->
+        AddObjectAttribute key object h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
-                         -- TODO (basvandijk): This encoding is not entirely correct.
-                       . ((TL.unpack $ TLE.decodeUtf8 $ Json.encode jsonObject) ++)
+                       . ((T.unpack $ renderMap object) ++)
             in go attrs' h
         Content content -> fromChoiceString content
         Append h1 h2    -> go attrs h1 . go attrs h2
         Empty           -> id
+
+-- | Render a text-text map to the form used in CSS. Eg:
+--
+-- >>> renderMap $ fromList [("foo", "bar"), ("baz", "qux")]
+-- "foo: bar; baz: qux; "
+--
+--  TODO (asayers): Escape ':' and ';' characters.
+renderMap :: HMS.HashMap T.Text T.Text -> T.Text
+renderMap =
+    HMS.foldlWithKey' (\acc key val -> acc <> key <> ": " <> val <> "; ") ""
 
 -- | Render markup to a lazy 'String'.
 --
