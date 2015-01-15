@@ -15,13 +15,14 @@ module Blaze.React.Examples.TabbedApps
 import           Blaze.React
 
 import           Control.Applicative
-import           Control.Lens         hiding (act)
+import           Control.Lens
 
-import           Data.Foldable    (foldMap)
-import           Data.Monoid      ((<>))
-import qualified Data.Text        as T
-import qualified Data.Text.Read   as T
-import           Data.Typeable    (Typeable, cast)
+import           Data.Foldable       (foldMap)
+import qualified Data.HashMap.Strict as HMS
+import           Data.Monoid         ((<>))
+import qualified Data.Text           as T
+import qualified Data.Text.Read      as T
+import           Data.Typeable       (Typeable, cast)
 
 import qualified Text.Blaze.Event            as E
 import qualified Text.Blaze.Html5            as H
@@ -186,7 +187,7 @@ renderBody (TabbedState focusedAppIdx apps) innerBody = do
       E.mapActions (AppAction . InnerA focusedAppIdx) innerBody
   where
     appItem (appIdx, app) =
-      H.span H.!? (focusedAppIdx == appIdx, A.class_ "tabbed-active-item")
+      H.span H.!? (focusedAppIdx == appIdx, A.style (HMS.fromList [("color", "#eee")]))
              H.! E.onClick' (AppAction $ SwitchApp appIdx) $ H.toHtml $ saName app
 
 
