@@ -1,0 +1,39 @@
+name:                blaze-react-server-side
+version:             0.1.0.0
+synopsis:            Server-side execution of blaze-react apps.
+description:         This is an experimental library exploring a design for
+                     writing GUI apps in a compositional and portable fashion.
+                     The rendering is based on using Facebooks ReactJS and
+                     ReactNative to achieve proper web/native UI's. The
+                     compositionality is achieved by separating the UI state
+                     and state transitions from the concrete rendering
+                     backend.
+
+license:             MIT
+license-file:        LICENSE
+author:              Simon Meier, Alex Sayers
+maintainer:          iridcode@gmail
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  ghc-options: -Wall
+  exposed-modules:     Blaze.MonadicReact
+
+  build-depends:       base                 >=4.7     && <4.8
+                     , bytestring           >= 0.10.4 && < 0.11
+                     , either               == 4.*
+                     , hashable             == 1.2.*
+                     , lens                 == 4.*
+                     , mtl                  == 2.*
+                     , pretty-show          == 1.*
+                     , profunctors          == 4.*
+                     , text                 == 1.*
+                     , transformers         == 0.4.*
+                     , time                 == 1.5.*
+                     , unordered-containers == 0.2.*
+                     , void                 == 0.7.*
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+
