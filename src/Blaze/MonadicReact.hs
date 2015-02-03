@@ -10,6 +10,7 @@
 module Blaze.MonadicReact
     ( App(..)
 
+    , githubTest
     ) where
     -- ( App(..)
     -- , noRequest
@@ -25,8 +26,9 @@ module Blaze.MonadicReact
     -- , AsyncRef(..)
     -- ) where
 
+{-
 import           Control.Lens
-                 ( Prism', review, over, _2, anyOf, traverse
+                 ( Prism', review, over, _1, _2, anyOf, traverse
                  , Iso', view, from, preview
                  )
 import           Control.Monad
@@ -40,7 +42,7 @@ import           Data.Traversable (Traversable())
 
 import           Control.Monad.Trans        (lift)
 import           Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
-import           Control.Monad.Trans.Writer (WriterT, execWriterT, runWriterT, tell)
+import           Control.Monad.Trans.Writer (WriterT, execWriterT, tell)
 import           Control.Monad.Trans.State  (State, execState, runState, put, get, modify)
 
 import           Prelude hiding (read)
@@ -50,11 +52,45 @@ import           Prelude hiding (read)
 -- Types
 -------------------------------------------------------------------------------
 
+
+-- | Purse state transformers with an API that has the following three facets.
+--
+-- 1. The state is publicly accessible. This is typically used to render the
+--    state in a user-accessible form, i.e., a GUI.
+--
+-- 2. The only way to modify the state is by submitting actions.
+--
+-- 3. The app can submit requests to the outside world. It is the
+--    responsability of the outside world to gather and execute these
+--    requests.
+--
+-- Note that we factored action application from request gathering, as this
+-- gives a natural way to batch request execution. We are unsure whether this
+-- is a good idea.
+--
+-- Also note that one can easily wrap an app and decide to handle some of its
+-- requests in a pure fashion. This is a common pattern when building pure
+-- caches. Let the inner apps do standard async requests, but gather them on
+-- an outer level and evaluate them against the pure state of the cache that
+-- is available there.
+--
+-- In general, composing apps is mostly about choosing precise state
+-- representations and using large enough action and request types such that
+-- we can precisely represent the API of the composed app. (I'm more and more
+-- coming to the conclusion that there should be common abstractions for this
+-- in the 'machines' package. However, I'm not sure I can understand them
+-- without gaingin some more concrete experience with our down-to-earth API.)
+--
 data App st act req = App
     { appInitialState   :: !st
-    , appApplyAction    :: !(act -> st -> st)
-    , appGetNextRequest :: !(st -> (st, req))
+    , appInitialRequest :: !req
+    , appApplyAction    :: !(act -> st -> (st, req))
+    -- , appGetNextRequest :: !(st -> (st, req))
     }
+
+
+-- instances
+------------
 
 instance Functor (App st act) where
     fmap f (App st0 apply next) = App st0 apply (over _2 f . next)
@@ -62,6 +98,64 @@ instance Functor (App st act) where
 instance Profunctor (App st) where
     dimap f g (App st0 apply next) =
         App st0 (\act st -> apply (f act) st) (\st -> over _2 g (next st))
+
+
+-- application combinators
+--------------------------
+
+-- | Run two apps in parallel.
+--
+-- TODO (SM): use a strict pair
+-- TODO (SM): use smaller steps in app composition. Compare this to how pipes
+-- and machines are composed.
+zipApps
+    :: App st1 act1 req1
+    -> App st2 act2 req2
+    -> App (st1, st2) (Either act1 act2) (req1, req2)
+zipApps app1 app2 = App
+    { appInitialState   = (appInitialState app1, appInitialState app2)
+    , appApplyAction    = \act -> case act of
+        Left  act1 -> over _1 (appApplyAction app1 act1)
+        Right act2 -> over _2 (appApplyAction app2 act2)
+    , appGetNextRequest = \(st1, st2) ->
+        let (st1', req1) = appGetNextRequest app1 st1
+            (st2', req2) = appGetNextRequest app2 st2
+        in ((st1', st2'), (req1, req2))
+    }
+
+-- | NOTE (SM): checking how the types would look like when allocating
+-- multiple instance of the same app dynamically. It's interesting how the
+-- 'Monoid' instance of requests just work out fine.
+dynAllocApps
+    :: App st act req
+    -> App (HMS.HashMap k st) (k, act) (HMS.HashMap k req)
+dynAllocApps = error "dynAllocApps"
+
+
+
+-- Monads to simplify implementing appGetNextRequst and appApplyAction
+----------------------------------------------------------------------
+
+type ApplyActionM st = State st
+
+runApplyActionM :: (act -> ApplyActionM st ()) -> (act -> st -> st)
+runApplyActionM m act = execState (m act)
+
+
+type GetNextRequestM st req = WriterT req (State st)
+
+runGetNextRequestM :: GetNextRequestM st req () -> (st -> (st, req))
+runGetNextRequestM m =
+    swap . runState (execWriterT m)
+  where
+    swap (x, y) = (y, x)
+
+request :: Monoid req => req -> GetNextRequestM st req ()
+request = tell
+
+
+
+
 
 
 ------------------------------------------------------------------------------
@@ -85,9 +179,30 @@ data User = User
     }
     deriving (Eq, Show)
 
+type KVStoreR k v = (k, ApiR Store (Maybe v))
+type KVStoreA k v = (k, ApiA Store (Maybe v))
+
+type KeyedApiA k api = (k, ApiA api)
+
+type KeyedApiR k api = (k, ApiR api)
+
+
+
+data KVStore k v a b where
+    Keys   :: KVStore k v ()     [k]
+    Insert :: KVStore k v (k, v) ()
+    Lookup :: KVStore k v k      (Maybe v)
+
+type KVStoreA k v = ApiA (KVStore k v)
+
+type KVStoreR k v = ApiR (KVStore k v)
+
+
+
 data Github a b where
     ListUsers  :: Github ()     (AsyncResult [UserId])
     LookupUser :: Github UserId (AsyncResult (Maybe User))
+
 
 data ConsoleA
     = ConsoleUserInput !T.Text
@@ -112,7 +227,7 @@ pureEvalGithubApiR :: HMS.HashMap UserId User -> ApiR Github -> ApiA Github
 pureEvalGithubApiR users req = case req of
     ApiR ListUsers  ()     -> ApiA ListUsers () (AsyncResult (HMS.keys users))
     ApiR LookupUser userId ->
-      ApiA LookupUser userId (AsyncResult (HMS.lookup userId users))
+    ApiA LookupUser userId (AsyncResult (HMS.lookup userId users))
 
 runAppPure :: (req -> Bool) -> (req -> [act]) -> App st act req -> [st]
 runAppPure isEmptyReq reqToActs app =
@@ -149,19 +264,32 @@ isUnfetched :: Delayed a -> Bool
 isUnfetched Unfetched = True
 isUnfetched _         = False
 
+flatten :: Monoid req => (req, (req, req')) -> (req, req')
+flatten 
 
-githubUserList :: App GithubUserListS (ApiA Github) [ApiR Github]
+type ApplicationRequest = [LoggerR :+: RouteR :+: UserDbR]
+
+type GithubUserListR = ([ApiR Github], [ApiR Logger])
+
+githubUserList :: App GithubUserListS (ApiA Github) GithubUserListR
 githubUserList = App
     { appInitialState   = Unfetched
-    , appApplyAction    = execState . apply
-    , appGetNextRequest = swap . runState (execWriterT getNextRequest)
+    , appApplyAction    = runApplyActionM apply
+    , appGetNextRequest = runGetNextRequestM getNextRequest
     }
   where
     swap (x,y) = (y,x)
 
-    apply :: ApiA Github -> State GithubUserListS ()
+    apply :: ApiA Github -> ApplyActionM GithubUserListS ()
     apply act = case act of
-      ApiA ListUsers () AsyncError            -> put (Fetched AsyncError)
+      ApiA ListUsers () AsyncError            -> do
+          -- An argument for synchronous request submission. The following is
+          -- not easily possible without having an extra field storing the
+          -- delayed requests.
+          --
+          tell [ApiR LogError "Failed to fetch Github user-list."]
+          --
+          put (Fetched AsyncError)
 
       ApiA ListUsers () (AsyncResult userIds) -> do
         let users = [(userId, Unfetched) | userId <- userIds]
@@ -173,11 +301,11 @@ githubUserList = App
                 | otherwise         = x
           modify (fmap (fmap (map replace)))
 
-    getNextRequest :: WriterT [ApiR Github] (State GithubUserListS) ()
+    getNextRequest :: GetNextRequestM GithubUserListS [ApiR Github] ()
     getNextRequest = do
         users <- lift get
         case users of
-          Unfetched          -> do tell [ApiR ListUsers ()]
+          Unfetched          -> do request [ApiR ListUsers ()]
                                    lift $ put Fetching
           Fetching           -> return ()
           Fetched errOrUsers ->
@@ -189,7 +317,7 @@ githubUserList = App
                 | anyOf (traverse . _2) isUnfetched users -> do
                     newUsers <- forM users $ \x@(userId, user) ->
                         if isUnfetched user
-                          then do tell [ApiR LookupUser userId]
+                          then do request [ApiR LookupUser userId]
                                   return (userId, Fetching)
                           else return x
                     lift $ put (Fetched (AsyncResult newUsers))
@@ -340,4 +468,5 @@ instance Functor m => Functor (App st m act) where
 instance Functor m => Profunctor (App st m) where
     dimap f g (App st0 apply nextReq) =
         App st0 (\act st -> apply (f act) st) (\st -> over _2 g (nextReq st))
+-}
 -}
