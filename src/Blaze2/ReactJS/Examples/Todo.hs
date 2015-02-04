@@ -9,20 +9,11 @@ import           Blaze2.Core.Examples.Todo
 import           Blaze2.ReactJS.Base
 import qualified Blaze2.ReactJS.Service.Store as Store
 
-import           Control.Applicative
-import           Control.Lens
-                 ( makeLenses, view, traverse, folded, set, ix
-                 , to, _2, _Just, sumOf, (%=), (.=), preuse, use
-                 )
+import           Control.Lens    (folded, to, sumOf)
 import           Control.Monad
-import           Control.Monad.Trans.Maybe        (MaybeT(..), runMaybeT)
 
 import           Data.Foldable   (foldMap)
-import           Data.IORef      (IORef)
-import           Data.Maybe      (fromMaybe)
 import           Data.Monoid     ((<>), mempty)
-import qualified Data.Text       as T
-import           Data.Typeable   (Typeable)
 
 import           Prelude hiding (div)
 

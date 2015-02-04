@@ -11,7 +11,7 @@ import           Blaze2.Core
 import           Blaze2.ReactJS.Base
 
 import           Control.Applicative
-import           Control.Concurrent        (threadDelay, forkIO)
+import           Control.Concurrent        (threadDelay)
 import           Control.Exception         (bracket)
 import           Control.Lens              (over)
 import           Control.Monad
@@ -20,7 +20,6 @@ import           Data.IORef
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           ((<>), Monoid)
 import qualified Data.Text             as T
-import           Data.Typeable
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
 import qualified GHCJS.Foreign         as Foreign

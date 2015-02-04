@@ -11,7 +11,9 @@
 module Blaze2.Core.Examples.Todo
     ( app
 
-    , TodoR(..)
+      -- NOTE (asayers): This stuff is required for implementing rendering and
+      -- request handing. I think it's OK to be exported from here.
+    , TodoR
     , TodoA(..)
     , TodoS(..)
     , TodoItemsAction(..)
@@ -27,15 +29,14 @@ import qualified Blaze2.Core.Service.Store as Store
 
 import           Control.Applicative
 import           Control.Lens
-                 ( makeLenses, view, traverse, folded, set, ix, allOf
-                 , to, _1, _2, _Just, sumOf, (%=), (.=), preuse, use
+                 ( makeLenses, view, traverse, set, ix, allOf , to, _1, _2
+                 , _Just, (%=), (.=), preuse, use
                  )
 import           Control.Monad
 import           Control.Monad.Trans.Maybe        (MaybeT(..), runMaybeT)
 
-import           Data.Foldable   (foldMap)
 import           Data.Maybe      (fromMaybe)
-import           Data.Monoid     ((<>), mempty)
+import           Data.Monoid     ((<>))
 import qualified Data.Text       as T
 import           Data.Typeable   (Typeable)
 

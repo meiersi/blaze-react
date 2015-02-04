@@ -9,21 +9,15 @@ module Blaze2.ReactJS.Base
 
 import           Blaze2.Core
 
-import           Control.Applicative
-import           Control.Concurrent        (threadDelay, forkIO)
-import           Control.Exception         (bracket)
-import           Control.Lens              (makeLenses)
-import           Control.Monad
+import           Control.Lens          (makeLenses)
 
-import           Data.IORef
-import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           (Monoid, mempty)
 import qualified Data.Text             as T
-import           Data.Typeable
+import           Data.Typeable         (Typeable)
 
-import           Prelude hiding (div)
+import           Prelude               hiding (div)
 
-import qualified Text.Blaze.Html5               as H
+import qualified Text.Blaze.Html5      as H
 
 
 data WindowState act = WindowState
