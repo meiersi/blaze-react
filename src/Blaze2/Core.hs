@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TypeOperators #-}
-module Blaze2.React
+module Blaze2.Core
   ( App(..)
   , (:+:)
 
@@ -10,20 +10,26 @@ module Blaze2.React
   , submitRequest
   , readState
   , writeState
+  , zoomTransition
   ) where
 
-import           Control.Lens                      (_2, over)
+import           Control.Lens (zoom, over, _2, LensLike')
+import           Control.Lens.Internal.Zoom (Zoomed)
+
 import           Control.Monad.Trans               (lift)
 import           Control.Monad.Trans.State.Strict  (State, runState, get, put)
-import           Control.Monad.Trans.Writer.Strict (WriterT, execWriterT, tell)
+import           Control.Monad.Trans.Writer.Strict (WriterT, execWriterT, tell, mapWriterT)
 
 import           Data.Monoid      (Monoid())
-import           Data.Tuple       (swap)
 import           Data.Profunctor  (Profunctor(dimap))
+import           Data.Tuple       (swap)
 
 
 -- | Allow eas
 type (:+:) = Either
+
+-- Helpers for writing state transitions
+-------------------------------------------------------------------------------
 
 type ApplyActionM st req = WriterT req (State st)
 

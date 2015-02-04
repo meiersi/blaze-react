@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
-module Blaze2.React.Service.Base
+module Blaze2.Core.Service.Base
   ( ServiceR(..)
   , ServiceA(..)
   ) where

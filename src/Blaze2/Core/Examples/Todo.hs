@@ -8,14 +8,22 @@
   Platform-independent formulation of the TodoMVC app.
  -}
 
-module Blaze2.React.Examples.Todo
-    ( todoApp
+module Blaze2.Core.Examples.Todo
+    ( app
+
+    , TodoR(..)
+    , TodoA(..)
+    , TodoS(..)
+    , TodoItemsAction(..)
+    , TodoItem(..), tdDone, tdDesc
+    , TodoItems
+    , EditFocus
     ) where
 
 import           Prelude hiding (div)
 
-import           Blaze2.React
-import qualified Blaze2.React.Service.Store as Store
+import           Blaze2.Core
+import qualified Blaze2.Core.Service.Store as Store
 
 import           Control.Applicative
 import           Control.Lens
@@ -171,8 +179,8 @@ applyTodoA action = case action of
 ------------------------------------------------------------------------------
 
 
-todoApp :: App TodoS TodoA TodoR
-todoApp = App
+app :: App TodoS TodoA TodoR
+app = App
     { appInitialState   = initialState
     , appInitialRequest = [Store.ReadR]
     , appApplyAction    = runApplyActionM . applyTodoA
@@ -199,12 +207,12 @@ wfErrors st =
 
 testTodo :: IO ()
 testTodo =
-    quickCheck (testApp validState (concatMap reqToActs) todoApp)
+    quickCheck (testApp validState (concatMap reqToActs) app)
   where
     validState = null . wfErrors
     reqToActs (Store.WriteR _items) = []
     reqToActs Store.ReadR           =
-        [ReadFromStoreA (Store.ReadA (view tsItems $ appInitialState todoApp))]
+        [ReadFromStoreA (Store.ReadA (view tsItems $ appInitialState app))]
 
 
 testApp
