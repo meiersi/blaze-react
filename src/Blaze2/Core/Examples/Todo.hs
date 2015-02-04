@@ -136,21 +136,28 @@ applyTodoItemsAction action items = case action of
 -- NOTE (meiersi): for production use we'd want to use a more expressive monad
 -- that also logs reasons for exceptions. We probably also want to check
 -- invariants at specific points to simplify formulating tests.
+--
+-- TODO (asayers): It would be nice to guarantee that any time tsItems is
+-- modified, we also submit a persist-items request...
 applyTodoA :: TodoA -> ApplyActionM TodoS TodoR ()
 applyTodoA action = case action of
       ReadFromStoreA (Store.ReadA items) ->
           tsItems .= items
 
-      TodoItemsActionA action' ->
+      TodoItemsActionA action' -> do
           tsItems %= applyTodoItemsAction action'
+          persistItems
 
       EditItemA itemIdx -> do
           commitAndStopEditing
+          persistItems
           discardErrors $ do
               itemDesc <- MaybeT $ preuse (tsItems . ix itemIdx . tdDesc)
               tsEditFocus .= Just (itemIdx, itemDesc)
 
-      CommitAndStopEditingA -> commitAndStopEditing
+      CommitAndStopEditingA -> do
+          commitAndStopEditing
+          persistItems
 
       UpdateEditTextA newText ->
           tsEditFocus . _Just . _2 .= newText
@@ -160,6 +167,7 @@ applyTodoA action = case action of
           unless (T.null newItemDesc) $ do
               tsItems       %= (TodoItem False newItemDesc :)
               tsNewItemDesc .= ""
+              persistItems
 
       UpdateNewItemDescA newText ->
           tsNewItemDesc .= newText
@@ -172,6 +180,10 @@ applyTodoA action = case action of
         (itemIdx, newDesc) <- MaybeT $ use tsEditFocus
         tsEditFocus                   .= Nothing
         tsItems . ix itemIdx . tdDesc .= newDesc
+
+    persistItems :: ApplyActionM TodoS TodoR ()
+    persistItems =
+        submitRequest . (:[]) . Store.WriteR =<< use tsItems
 
 
 ------------------------------------------------------------------------------
