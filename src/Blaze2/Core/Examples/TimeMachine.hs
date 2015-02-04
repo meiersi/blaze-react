@@ -34,7 +34,6 @@ import           Prelude hiding (div)
 -- Time Machine
 -------------------------------------------------------------------------------
 
-
 -- state
 --------
 
@@ -123,14 +122,10 @@ applyTMAction initialInternalState applyInternalAction action =
 -- the application transformer
 ------------------------------
 
--- TODO (asayers): Apps which want to recieve WindowActions will no longer get
--- them once wrapped by the Time Machine. One option would be to implement a
--- transformer along the lines of:
+-- | If the inner app cares about WindowActions, be sure to wrap the wrapper
+-- with @passWindowActionsThrough@ like so:
 --
--- passWindowActionsThrough
---    :: (actI -> actO)
---    -> App st (actO actI) req
---    -> App st (Either WindowAction (actO (Either WindowAction actI)) req
+--     passWindowActionsThrough wrapApp innerApp
 --
 wrapApp :: (Show act, Show st)
      => App st act req

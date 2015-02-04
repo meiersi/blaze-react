@@ -1,10 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Blaze2.ReactJS.Base
     ( WindowState(..), wsBody, wsPath
     , WindowAction(..)
+
     , ignoreWindowActions
+    , passWindowActionsThrough
     ) where
 
 import           Blaze2.Core
@@ -32,6 +35,7 @@ data WindowAction
 
 makeLenses ''WindowState
 
+
 ignoreWindowActions
     :: Monoid req => App st act req -> App st (Either WindowAction act) req
 ignoreWindowActions app = app
@@ -40,3 +44,14 @@ ignoreWindowActions app = app
         Right innerAction      -> appApplyAction app innerAction
     }
 
+passWindowActionsThrough
+   :: (forall x. x -> actO x)
+   -> App st (actO (Either WindowAction actI)) req
+   -> App st (Either WindowAction (actO (Either WindowAction actI))) req
+passWindowActionsThrough wrapAction (App initSt initReq apply) = App
+    { appInitialState   = initSt
+    , appInitialRequest = initReq
+    , appApplyAction    = \act -> case act of
+          Left wa -> apply (wrapAction $ Left wa)
+          Right x -> apply x
+    }
