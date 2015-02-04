@@ -48,15 +48,16 @@
     padding-right: 1em;
     background-color: #333;
     color: #999;
+    font-size: smaller;
 }
 
 .tm-history-browser {
-    height: 45%;
+    height: 25%;
     overflow: scroll;
 }
 
 .tm-app-state-browser {
-  height: 30%;
+    height: 25%;
     overflow: scroll;
 }
 

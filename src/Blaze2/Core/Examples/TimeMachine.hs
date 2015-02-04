@@ -21,7 +21,7 @@ module Blaze2.Core.Examples.TimeMachine
 import           Blaze2.Core
 
 import           Control.Applicative
-import           Control.Lens    (makeLenses, (.=), (%=), use, (+=))
+import           Control.Lens    (makeLenses, (.=), (%=), use, (+=), (<>=))
 import           Control.Monad
 
 import           Data.List       (foldl')
@@ -37,15 +37,16 @@ import           Prelude hiding (div)
 -- state
 --------
 
-data TMState st act = TMState
-    { _tmsInternalState :: !st
-    , _tmsActionHistory :: [act]
+data TMState st act req = TMState
+    { _tmsInternalState  :: !st
+    , _tmsActionHistory  :: [act]
       -- ^ List of actions, from earliest to latest
-    , _tmsActiveAction  :: !Int
+    , _tmsRequestHistory :: [req]
+    , _tmsActiveAction   :: !Int
       -- ^ Index of the current position in the action list. 1-indexed,
       -- where 0 indicates that the app is in the initial state.
-    , _tmsPaused        :: !Bool
-    , _tmsActionBuffer  :: [act]
+    , _tmsPaused         :: !Bool
+    , _tmsActionBuffer   :: [act]
       -- ^ This is where async internal actions go while the app is paused
     } deriving (Show)
 
@@ -55,12 +56,13 @@ makeLenses ''TMState
 -- state transitions
 --------------------
 
-data TMAction act
+data TMAction act req
     = TogglePauseAppA
     | ClearAppHistoryA
     | RevertAppHistoryA Int
     | InternalA act
     | AsyncInternalA act
+    | LogRequestA req
     deriving (Eq, Ord, Read, Show, Typeable)
 
 type TMRequest req = [req]
@@ -69,8 +71,8 @@ applyTMAction
     :: forall st act req.
        st
     -> (act -> st -> (st, req))
-    -> TMAction act
-    -> ApplyActionM (TMState st act) (TMRequest req) ()
+    -> TMAction act req
+    -> ApplyActionM (TMState st act req) (TMRequest req) ()
 applyTMAction initialInternalState applyInternalAction action =
     case action of
       TogglePauseAppA -> do
@@ -96,8 +98,10 @@ applyTMAction initialInternalState applyInternalAction action =
       InternalA action' -> do
         paused <- use tmsPaused
         unless paused $ applyInternalAction' action'
+      LogRequestA req -> do
+        tmsRequestHistory <>= [req]
   where
-    flushActionBuffer :: ApplyActionM (TMState st act) (TMRequest req) ()
+    flushActionBuffer :: ApplyActionM (TMState st act req) (TMRequest req) ()
     flushActionBuffer = do
       buffer <- use tmsActionBuffer
       sequence_ $ map applyInternalAction' buffer
@@ -107,7 +111,7 @@ applyTMAction initialInternalState applyInternalAction action =
     -- history, bumping the active action pointer, and possibly truncating
     -- the history first.
     applyInternalAction'
-        :: act -> ApplyActionM (TMState st act) (TMRequest req) ()
+        :: act -> ApplyActionM (TMState st act req) (TMRequest req) ()
     applyInternalAction' act = do
       history      <- use tmsActionHistory
       activeAction <- use tmsActiveAction
@@ -129,7 +133,7 @@ applyTMAction initialInternalState applyInternalAction action =
 --
 wrapApp :: (Show act, Show st)
      => App st act req
-     -> App (TMState st act) (TMAction act) (TMRequest req)
+     -> App (TMState st act req) (TMAction act req) (TMRequest req)
 wrapApp innerApp = App
     { appInitialState    = initialTMState initialInnerState
     , appInitialRequest  = [initialInnerReq]
@@ -139,11 +143,12 @@ wrapApp innerApp = App
   where
     App initialInnerState initialInnerReq applyInnerAction = innerApp
 
-initialTMState :: s -> TMState s a
+initialTMState :: st -> TMState st act req
 initialTMState internalState = TMState
-    { _tmsInternalState = internalState
-    , _tmsActionHistory = []
-    , _tmsActiveAction  = 0       -- 0 indicates the initial state.
-    , _tmsPaused        = False
-    , _tmsActionBuffer  = []
+    { _tmsInternalState  = internalState
+    , _tmsActionHistory  = []
+    , _tmsRequestHistory = []
+    , _tmsActiveAction   = 0       -- 0 indicates the initial state.
+    , _tmsPaused         = False
+    , _tmsActionBuffer   = []
     }
