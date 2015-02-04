@@ -51,6 +51,20 @@ readState = lift get
 writeState :: Monoid req => st -> ApplyActionM st req ()
 writeState = lift . put
 
+zoomTransition
+    :: (innerR -> outerR)
+    -> LensLike' (Zoomed (State outerS) ((), outerR)) outerS innerS
+       -- ^ This this unifies with:
+       -- - @'Lens\'' innerS outerS@
+       -- - @'Traversal\'' innerS outerS@
+    -> ApplyActionM innerS innerR ()
+    -> ApplyActionM outerS outerR ()
+zoomTransition wrapRequest stateLens =
+    mapWriterT $
+      zoom stateLens .
+        fmap -- State
+          (fmap -- Pair
+              wrapRequest)
 
 -- instances
 ------------
