@@ -63,6 +63,7 @@ library
                      , pretty-show          == 1.*
                      , profunctors          == 4.*
                      , QuickCheck           == 2.6.*
+                     , safe                 == 0.3.*
                      , testing-feat         == 0.4.*
                      , text                 == 1.*
                      , transformers         == 0.4.*

@@ -35,9 +35,15 @@ import qualified Text.Blaze.Html5.Attributes          as A
 -- Handling
 ------------------------------------------------------------------------------
 
-handleRequest :: IORef TodoItems -> (TodoA -> IO ()) -> TodoR -> IO ()
-handleRequest ref channel reqs = forM_ reqs $
-    Store.handleRequest ref (channel . ReadFromStoreA)
+handleRequest :: String -> (TodoA -> IO ()) -> TodoR -> IO ()
+handleRequest storeName channel reqs = forM_ reqs $
+    Store.handleRequest storeName defaultItems (channel . ReadFromStoreA)
+  where
+    defaultItems =
+      [ TodoItem True "Implement persistent storage"
+      , TodoItem False "???"
+      , TodoItem False "Profit!"
+      ]
 
 
 ------------------------------------------------------------------------------

@@ -1,5 +1,4 @@
 /dist
-/blaze-react-ng/dist
 /vendor/
 /GNUmakefile
 *.js_hi
