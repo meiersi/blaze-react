@@ -9,20 +9,17 @@
  -}
 
 module Blaze2.ReactJS.Examples.TimeMachine
-    ( withTimeMachine
+    ( wrapRenderer
+    , wrapHandler
     ) where
 
 
-import           Blaze2.Core
 import           Blaze2.Core.Examples.TimeMachine
 
-import           Control.Applicative
-import           Control.Lens    (makeLenses, view, (.=), (%=), use, (+=))
-import           Control.Monad
-import           Control.Monad.Trans.Writer (tell)
+import           Blaze2.ReactJS.Base
 
-import           Data.List       (foldl')
-import           Data.Typeable   (Typeable)
+import           Control.Lens    (view)
+import           Control.Monad
 
 import           Prelude hiding (div)
 
@@ -32,16 +29,25 @@ import qualified Text.Blaze.Html5.Attributes          as A
 import           Text.Show.Pretty (ppShow)
 
 
+-- request handling
+--------------------
+
+wrapHandler
+    :: ((act -> IO ()) -> req -> IO ())
+    -> (TMAction act -> IO ()) -> TMRequest req -> IO ()
+wrapHandler handleInner channel =
+    mapM_ $ handleInner (channel . AsyncInternalA)
+
 
 -- rendering
 ------------
 
-renderTMState
-    :: (Show a, Show s)
-    => (s -> WindowState (WithWindowActions a))
-    -> TMState s a
-    -> WindowState (TMAction a)
-renderTMState renderInternalState state =
+wrapRenderer
+    :: (Show act, Show st)
+    => (st -> WindowState act)
+    -> TMState st act
+    -> WindowState (TMAction act)
+wrapRenderer renderInternalState state =
     let (WindowState internalBody internalPath) =
           renderInternalState (view tmsInternalState state)
     in WindowState
@@ -50,21 +56,21 @@ renderTMState renderInternalState state =
       }
 
 renderBody
-    :: (Show a, Show s)
-    => H.Html (WithWindowActions a)
-    -> TMState s a
-    -> H.Html (TMAction a)
+    :: (Show act, Show st)
+    => H.Html act
+    -> TMState st act
+    -> H.Html (TMAction act)
 renderBody internalBody state = do
     H.div H.! A.class_ "tm-time-machine" $ do
       H.h1 "Time machine"
-      H.span H.! A.class_ "tm-button" H.! E.onClick' (AppAction TogglePauseAppA) $
+      H.span H.! A.class_ "tm-button" H.! E.onClick' TogglePauseAppA $
         if (_tmsPaused state) then "Resume app" else "Pause app"
-      H.span H.! A.class_ "tm-button" H.! E.onClick' (AppAction ClearAppHistoryA) $
+      H.span H.! A.class_ "tm-button" H.! E.onClick' ClearAppHistoryA $
         "Clear history"
       renderHistoryBrowser
       renderAppStateBrowser
     H.div H.! A.class_ "tm-internal-app" $
-      E.mapActions (AppAction . InternalA) $ internalBody
+      E.mapActions InternalA $ internalBody
   where
     actionsWithIndices :: [(Int, String)]
     actionsWithIndices = reverse $
@@ -75,7 +81,7 @@ renderBody internalBody state = do
       H.div H.! A.class_ "tm-history-browser" $ do
         H.ol $ forM_ actionsWithIndices $ \(idx, action) ->
           H.li H.! A.value (H.toValue $ idx + 1)
-               H.! E.onMouseEnter (\_ -> AppAction $ RevertAppHistoryA idx)
+               H.! E.onMouseEnter (\_ -> RevertAppHistoryA idx)
                H.!? (idx == view tmsActiveAction state, A.class_ "tm-active-item")
                $ H.toHtml action
 
