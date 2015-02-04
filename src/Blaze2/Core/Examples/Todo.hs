@@ -20,6 +20,8 @@ module Blaze2.Core.Examples.Todo
     , TodoItem(..), tdDone, tdDesc
     , TodoItems
     , EditFocus
+
+    , testTodo
     ) where
 
 import           Prelude hiding (div)
@@ -129,7 +131,6 @@ type TodoR = [Store.StoreR TodoItems]
 ------------
 
 instance Arbitrary TodoItem where
-instance Arbitrary v => Arbitrary (Store.StoreA v)   where
 instance Arbitrary TodoItemsAction where
 instance Arbitrary TodoA           where
 
@@ -236,33 +237,4 @@ testTodo =
     reqToActs (Store.WriteR _items) = []
     reqToActs Store.ReadR           =
         [ReadFromStoreA (Store.ReadA (view tsItems $ appInitialState app))]
-
-
-testApp
-    :: (Show act)
-    => (st -> Bool)
-    -> (req -> [act])
-    -> App st act req
-    -> [act]
-    -> Bool
-testApp validState reqToActs app =
-    go (appInitialState app)
-  where
-    go st acts0 =
-        validState st &&
-        case acts0 of
-          []         -> True
-          (act:acts) ->
-            case appApplyAction app act st of
-              (st', req) -> go st' (reqToActs req ++ acts)
-
-
-
-
-
-
-
-
-
-
 

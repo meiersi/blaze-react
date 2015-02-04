@@ -7,6 +7,7 @@ module Blaze2.Core.Service.Store
   ) where
 
 import Data.Typeable
+import           Test.QuickCheck (Arbitrary)
 
 data StoreR v
     = ReadR
@@ -18,3 +19,8 @@ newtype StoreA v
     = ReadA v
     deriving (Eq, Ord, Show, Read, Typeable)
 
+
+-- Instances
+--------------
+
+instance Arbitrary v => Arbitrary (StoreA v) where

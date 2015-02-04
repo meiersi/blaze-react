@@ -11,6 +11,9 @@ module Blaze2.Core
   , readState
   , writeState
   , zoomTransition
+
+    -- * Support for testing apps
+  , testApp
   ) where
 
 import           Control.Lens (zoom, over, _2, LensLike')
@@ -76,4 +79,26 @@ instance Functor (App st act) where
 instance Profunctor (App st) where
     dimap g f (App st0 req0 apply) =
         App st0 (f req0) (\act st -> over _2 f (apply (g act) st))
+
+
+-- Helpers for writing tests
+-------------------------------------------------------------------------------
+
+testApp
+    :: (Show act)
+    => (st -> Bool)
+    -> (req -> [act])
+    -> App st act req
+    -> [act]
+    -> Bool
+testApp validState reqToActs app =
+    go (appInitialState app)
+  where
+    go st acts0 =
+        validState st &&
+        case acts0 of
+          []         -> True
+          (act:acts) ->
+            case appApplyAction app act st of
+              (st', req) -> go st' (reqToActs req ++ acts)
 
