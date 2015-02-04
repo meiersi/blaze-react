@@ -14,6 +14,7 @@ import           Control.Monad
 
 import           Data.Foldable   (foldMap)
 import           Data.Monoid     ((<>), mempty)
+import qualified Data.Text       as T
 
 import           Prelude hiding (div)
 
@@ -26,7 +27,7 @@ import qualified Text.Blaze.Html5.Attributes          as A
 -- Handling
 ------------------------------------------------------------------------------
 
-handleRequest :: String -> (TodoA -> IO ()) -> TodoR -> IO ()
+handleRequest :: T.Text -> (TodoA -> IO ()) -> TodoR -> IO ()
 handleRequest storeName channel reqs = forM_ reqs $
     Store.handleRequest storeName defaultItems (channel . ReadFromStoreA)
   where

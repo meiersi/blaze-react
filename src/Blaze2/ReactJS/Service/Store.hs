@@ -13,14 +13,16 @@ module Blaze2.ReactJS.Service.Store
     ( handleRequest
     ) where
 
-import Blaze2.Core.Service.Store
+import           Blaze2.Core.Service.Store
 
-import Data.Maybe
+import qualified Data.Aeson           as Aeson
+import qualified Data.ByteString.Lazy as BL
+import           Data.Maybe
+import qualified Data.Text            as T
+import qualified Data.Text.Encoding   as T
 
-import GHCJS.Foreign
-import GHCJS.Types
-
-import Safe (readMay)
+import           GHCJS.Foreign
+import           GHCJS.Types
 
 
 -- HTML5 Local Storage
@@ -37,14 +39,14 @@ foreign import javascript unsafe
     "localStorage.setItem($1, $2)"
     writeLocalStorage_ :: JSString -> JSString -> IO ()
 
-readLocalStorage :: String -> IO (Maybe String)
+readLocalStorage :: T.Text -> IO (Maybe T.Text)
 readLocalStorage key = do
     valRef <- readLocalStorage_ (toJSString key)
     if isNull valRef
       then return Nothing
       else return $ Just $ fromJSString valRef
 
-writeLocalStorage :: String -> String -> IO ()
+writeLocalStorage :: T.Text -> T.Text -> IO ()
 writeLocalStorage key val =
     writeLocalStorage_ (toJSString key) (toJSString val)
 
@@ -52,17 +54,19 @@ writeLocalStorage key val =
 -- The request handler
 -------------------------------------------------------------------------------
 
--- TODO (asayers): Better to use ToJSON/FromJSON contraints, and then to
--- serialise the JSON to strings. Note that we can't store the values as
--- javascript objects, because HTML5 LocalStorage only accepts strings :(
+-- NOTE (asayers): We can't store the values as javascript objects, because
+-- HTML5 LocalStorage only accepts strings :(
 handleRequest
-    :: (Read v, Show v)
-    => String -> v -> (StoreA v -> IO ()) -> StoreR v -> IO ()
+    :: (Aeson.ToJSON v, Aeson.FromJSON v)
+    => T.Text -> v -> (StoreA v -> IO ()) -> StoreR v -> IO ()
 handleRequest storeName defaultVal channel req =
     case req of
       ReadR -> do
-          mbValStr <- readLocalStorage storeName
-          let mbVal = readMay =<< mbValStr
-          channel $ ReadA $ fromMaybe defaultVal mbVal
+          mbValTxt <- readLocalStorage storeName
+          let val = fromMaybe defaultVal $ do
+                valTxt <- mbValTxt
+                Aeson.decode $ BL.fromStrict $ T.encodeUtf8 valTxt
+          channel $ ReadA val
       WriteR val ->
-          writeLocalStorage storeName $ show val
+          writeLocalStorage storeName $
+            T.decodeUtf8 $ BL.toStrict $ Aeson.encode val

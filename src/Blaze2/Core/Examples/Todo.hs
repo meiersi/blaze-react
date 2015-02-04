@@ -35,6 +35,7 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Trans.Maybe        (MaybeT(..), runMaybeT)
 
+import           Data.Aeson      (ToJSON(..), FromJSON(..), (.:), Value(..), object)
 import           Data.Maybe      (fromMaybe)
 import           Data.Monoid     ((<>))
 import qualified Data.Text       as T
@@ -69,6 +70,15 @@ data TodoS = TodoS
     } deriving (Eq, Show)
 
 
+-- Instances
+--------------
+
+instance ToJSON TodoItem where
+    toJSON (TodoItem done desc) = object [("done", toJSON done), ("desc", toJSON desc)]
+
+instance FromJSON TodoItem where
+    parseJSON (Object v) = TodoItem <$> v .: "done" <*> v .: "desc"
+    parseJSON _          = mzero
 
 -- lenses
 ---------
