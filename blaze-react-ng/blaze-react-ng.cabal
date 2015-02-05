@@ -45,10 +45,12 @@ library
                        Text.Blaze.Event.Internal
 
                        Blaze2.Core
+                       Blaze2.Core.Examples.Clock
                        Blaze2.Core.Examples.Todo
                        Blaze2.Core.Examples.TimeMachine
 
                        Blaze2.ReactJS.Run
+                       Blaze2.ReactJS.Examples.Clock
                        Blaze2.ReactJS.Examples.Todo
                        Blaze2.ReactJS.Examples.TimeMachine
 
