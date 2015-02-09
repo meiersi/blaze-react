@@ -49,7 +49,8 @@ renderSocketOpen (SocketOpenS target messages inputBox) = do
             H.! E.onClick' CloseConnection $ "Close connection"
     H.table $ forM_ (reverse messages) $ \(Message sender msg) ->
       H.tr $ do
-        H.td $ H.toHtml $ show sender
+        H.td H.! A.style senderStyle $
+          H.toHtml $ show sender <> ":"
         H.td H.! A.style (case sender of Us -> usStyle; Them -> themStyle) $
           H.toHtml msg
     H.input H.! A.type_ "text"
@@ -67,6 +68,7 @@ renderSocketOpen (SocketOpenS target messages inputBox) = do
     msgStyle  = HMS.fromList [("border", "1px solid black"), ("width", "75%")]
     usStyle   = HMS.union msgStyle $ HMS.fromList [("background-color", "#E4F1FE")]
     themStyle = HMS.union msgStyle $ HMS.fromList [("background-color", "#FDE3A7")]
+    senderStyle = HMS.fromList [("text-align", "right")]
 
 handleRequest :: Socket -> (SocketTestA -> IO ()) -> SocketTestR -> IO ()
 handleRequest sock chan = mapM_ $ sock (chan . SA)

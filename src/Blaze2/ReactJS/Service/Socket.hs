@@ -27,22 +27,6 @@ foreign import javascript unsafe
     "$1.close()"
     closeWebSocket_ :: JSRef JSWebSocket -> IO ()
 
-foreign import javascript unsafe
-    "$1.onopen = $2"
-    onOpen_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
-
-foreign import javascript unsafe
-    "$1.onmessage = $2"
-    onMessage_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
-
-foreign import javascript unsafe
-    "$1.onclose = $2"
-    onClose_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
-
-foreign import javascript unsafe
-    "$1.onerror = $2"
-    onError_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
-
 -- | Type tags for javascript objects
 data JSWebSocket
 data JSEvent
@@ -51,13 +35,15 @@ data JSEvent
 -- Each instantiation can handle at most one websocket.
 newtype WSState = WSState (Maybe (JSRef JSWebSocket))
 
+-- | Just a helper function for setting callbacks on the websocket object
 setCallback
-    :: (JSFun (JSRef JSEvent -> IO ()) -> IO ())
+    :: JSRef JSWebSocket
+    -> JSString
     -> (JSRef JSEvent -> IO ())
     -> IO ()
-setCallback setCallback_ callback = do
+setCallback webSocket property callback = do
     callback_ <- syncCallback1 AlwaysRetain False callback
-    setCallback_ callback_
+    setProp property callback_ webSocket
 
 -- | FIXME (asayers): Leaks memory. Since this will probably only be called
 -- once in the lifetime of an application, it's not so bad. It should still be
@@ -77,19 +63,22 @@ openWebSocket wsRef chan url protocols = do
         protocols_ <- toArray $ map (castRef . toJSString) protocols
         webSocket <- createWebSocket_ (toJSString url) protocols_
         writeIORef wsRef (WSState $ Just webSocket)
-        setCallback (onOpen_ webSocket) $ \_e ->
-          chan SocketOpened
-        setCallback (onClose_ webSocket) $ \_e -> do
+        setCallback webSocket "onopen" $ \_e -> do
+          mbProtocol <- getPropMaybe ("protocol" :: JSString) webSocket
+          case mbProtocol of
+            Nothing       -> chan $ SocketError "couldn't read protocol"
+            Just protocol -> chan $ SocketOpened (fromJSString protocol)
+        setCallback webSocket "onclose" $ \_e -> do
           writeIORef wsRef (WSState Nothing)
           -- TODO (asayers): Return the reason the socket was closed
           chan SocketClosed
-        setCallback (onError_ webSocket) $ \_e ->
+        setCallback webSocket "onerror" $ \_e ->
           -- FIXME (asayers): This isn't very descriptive
           chan $ SocketError "websocket error"
-        setCallback (onMessage_ webSocket) $ \e -> do
+        setCallback webSocket "onmessage" $ \e -> do
           mbMessage <- getPropMaybe ("data" :: JSString) e
           case mbMessage of
-            Nothing      -> return () -- Hopefully unreachable
+            Nothing      -> chan $ SocketError "couldn't read message"
             Just message -> chan $ MessageReceived (fromJSString message)
 
 closeWebSocket :: IORef WSState -> (SocketA -> IO ()) -> IO ()

@@ -25,7 +25,7 @@ data SocketR
     deriving (Show, Eq)
 
 data SocketA
-    = SocketOpened
+    = SocketOpened Protocol
     | SocketClosed
     | MessageReceived T.Text
     | SocketError T.Text

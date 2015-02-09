@@ -87,7 +87,7 @@ applyActionConnecting
     :: SocketTestA
     -> ApplyActionM SocketTestS SocketTestR ()
 applyActionConnecting act = case act of
-    SA SocketOpened -> do
+    SA (SocketOpened _) -> do
       url <- use (_STConnecting . scgTarget)
       writeState $ STOpen $ SocketOpenS url [] ""
     SA (SocketError _) -> do
@@ -114,7 +114,7 @@ applyActionOpen act = case act of
       _STOpen . soMessages %= (Message Them message :)
     SA (SocketError _) ->
       return ()
-    SA SocketOpened ->
+    SA (SocketOpened _) ->
       return ()
 
 
