@@ -36,6 +36,9 @@ import           Text.Show.Pretty (ppShow)
 
 -- TODO (asayers): This is actually platform-independent, so it can be moved to
 -- Core.Examples.TimeMachine.
+--
+-- FIXME (asayers): Imposing Eq on the request type is a bit ugly. Perhaps it's
+-- better to take `isNull :: req -> Bool` as a parameter?
 wrapHandler
     :: (Monoid req, Eq req)
     => ((act -> IO ()) -> req -> IO ())

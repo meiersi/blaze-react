@@ -143,7 +143,7 @@ runApp (App initialState initialRequest apply) renderState reqHandler = do
             handleRequest request
             if requireSyncRedraw then syncRedraw else asyncRedraw
         handleRequest request =
-            forkIO $ reqHandler (handleAction False . Right) request
+            void $ forkIO $ reqHandler (handleAction False . Right) request
 
 
         mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
