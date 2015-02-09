@@ -28,6 +28,5 @@ data SocketA
     = SocketOpened
     | SocketClosed
     | MessageReceived T.Text
-    | MessageSent    -- This isn't very useful without a way to indentify msgs
     | SocketError T.Text
     deriving (Show)

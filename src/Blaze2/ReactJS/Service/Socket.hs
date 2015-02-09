@@ -20,6 +20,14 @@ foreign import javascript unsafe
     createWebSocket_ :: JSString -> JSArray JSString -> IO (JSRef JSWebSocket)
 
 foreign import javascript unsafe
+    "$1.send($2)"
+    sendMessage_ :: JSRef JSWebSocket -> JSString -> IO ()
+
+foreign import javascript unsafe
+    "$1.close()"
+    closeWebSocket_ :: JSRef JSWebSocket -> IO ()
+
+foreign import javascript unsafe
     "$1.onopen = $2"
     onOpen_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
 
@@ -28,8 +36,12 @@ foreign import javascript unsafe
     onMessage_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
 
 foreign import javascript unsafe
-    "$1.send($2)"
-    sendMessage_ :: JSRef JSWebSocket -> JSString -> IO ()
+    "$1.onclose = $2"
+    onClose_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
+
+foreign import javascript unsafe
+    "$1.onerror = $2"
+    onError_ :: JSRef JSWebSocket -> JSFun (JSRef JSEvent -> IO ()) -> IO ()
 
 -- | Type tags for javascript objects
 data JSWebSocket
@@ -65,7 +77,15 @@ openWebSocket wsRef chan url protocols = do
         protocols_ <- toArray $ map (castRef . toJSString) protocols
         webSocket <- createWebSocket_ (toJSString url) protocols_
         writeIORef wsRef (WSState $ Just webSocket)
-        setCallback (onOpen_ webSocket) $ \_e -> chan SocketOpened
+        setCallback (onOpen_ webSocket) $ \_e ->
+          chan SocketOpened
+        setCallback (onClose_ webSocket) $ \_e -> do
+          writeIORef wsRef (WSState Nothing)
+          -- TODO (asayers): Return the reason the socket was closed
+          chan SocketClosed
+        setCallback (onError_ webSocket) $ \_e ->
+          -- FIXME (asayers): This isn't very descriptive
+          chan $ SocketError "websocket error"
         setCallback (onMessage_ webSocket) $ \e -> do
           mbMessage <- getPropMaybe ("data" :: JSString) e
           case mbMessage of
@@ -73,7 +93,13 @@ openWebSocket wsRef chan url protocols = do
             Just message -> chan $ MessageReceived (fromJSString message)
 
 closeWebSocket :: IORef WSState -> (SocketA -> IO ()) -> IO ()
-closeWebSocket wsRef chan = undefined
+closeWebSocket wsRef chan = do
+    (WSState mbWebSocket) <- readIORef wsRef
+    case mbWebSocket of
+      Nothing ->
+        chan $ SocketError "socket already closed"
+      Just webSocket ->
+        closeWebSocket_ webSocket
 
 sendMessage
     :: IORef WSState
@@ -87,8 +113,6 @@ sendMessage wsRef chan message = do
         chan $ SocketError "socket not open"
       Just webSocket -> do
         sendMessage_ webSocket (toJSString message)
-
-
 
 
 newSocket :: IO Socket

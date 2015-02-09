@@ -46,7 +46,6 @@ applyAction act = case act of
     SA SocketOpened -> stSocketOpen .= True
     SA SocketClosed -> stSocketOpen .= False
     SA (MessageReceived message) -> stMessages %= ((Them, message):)
-    SA MessageSent -> return ()
     SA (SocketError _) -> return ()
 
 app :: App SocketTestS SocketTestA SocketTestR
