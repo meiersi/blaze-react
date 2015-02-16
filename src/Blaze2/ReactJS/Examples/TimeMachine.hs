@@ -41,12 +41,14 @@ import           Text.Show.Pretty (ppShow)
 -- better to take `isNull :: req -> Bool` as a parameter?
 wrapHandler
     :: (Monoid req, Eq req)
-    => ((act -> IO ()) -> req -> IO ())
-    -> (TMAction act req -> IO ()) -> TMRequest req -> IO ()
-wrapHandler handleInner channel reqs =
+    => (req -> (act -> IO ()) -> IO ())
+    -> TMRequest req
+    -> (TMAction act req -> IO ())
+    -> IO ()
+wrapHandler handleInner reqs channel =
     forM_ reqs $ \req -> do
         unless (req == mempty) $ channel $ LogRequestA req
-        handleInner (channel . AsyncInternalA) req
+        handleInner req (channel . AsyncInternalA)
 
 
 -- rendering

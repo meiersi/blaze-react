@@ -8,8 +8,6 @@ module Blaze2.ReactJS.Base
     , WindowAction(..)
     ) where
 
-import           Blaze2.Core
-
 import           Control.Lens          (makeLenses)
 
 import qualified Data.Text             as T

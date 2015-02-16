@@ -27,8 +27,8 @@ import qualified Text.Blaze.Html5.Attributes          as A
 -- Handling
 ------------------------------------------------------------------------------
 
-handleRequest :: T.Text -> (TodoA -> IO ()) -> TodoR -> IO ()
-handleRequest storeName channel reqs = forM_ reqs $
+handleRequest :: T.Text -> TodoR -> (TodoA -> IO ()) -> IO ()
+handleRequest storeName reqs channel = forM_ reqs $
     Store.handleRequest storeName defaultItems (channel . ReadFromStoreA)
   where
     defaultItems =

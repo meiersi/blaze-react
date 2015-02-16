@@ -11,10 +11,14 @@ import qualified Blaze2.ReactJS.Service.Socket       as Socket
 
 import qualified Blaze2.ReactJS.Run                  as ReactJS
 
+import           Control.Applicative ((<$>))
+
 main :: IO ()
 main = do
     sock <- Socket.newSocket
-    ReactJS.runApp' (TimeMachine.wrapApp       SocketTest.app)
-                    (TimeMachine.wrapRenderer  SocketTest.renderState)
-                    (TimeMachine.wrapHandler $ SocketTest.handleRequest sock)
+    ReactJS.runApp' renderState (handleRequest sock <$> app)
+  where
+    app           = TimeMachine.wrapApp       SocketTest.app
+    handleRequest = TimeMachine.wrapHandler . SocketTest.handleRequest
+    renderState   = TimeMachine.wrapRenderer  SocketTest.renderState
 

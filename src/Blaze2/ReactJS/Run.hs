@@ -18,7 +18,7 @@ import           Control.Monad
 
 import           Data.IORef
 import           Data.Maybe            (fromMaybe)
-import           Data.Monoid           ((<>), Monoid, mempty)
+import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
@@ -87,23 +87,20 @@ atAnimationFrame io = do
     requestAnimationFrame cb
 
 runApp'
-    :: (Show act, Monoid req)
-    => App st act req
-    -> (st -> WindowState act)
-    -> ((act -> IO ()) -> req -> IO ())
+    :: (Show act)
+    => (st -> WindowState act)
+    -> App st act ((act -> IO ()) -> IO ())
     -> IO ()
-runApp' app renderState handleRequest =
-    runApp (ignoreActions mempty app)
-           (over wsBody (E.mapActions Right) . renderState)
-           handleRequest
+runApp' renderState app =
+    runApp (over wsBody (E.mapActions Right) . renderState)
+           (ignoreActions (const $ return ()) app)
 
 runApp
     :: (Show act)
-    => App st (Either WindowAction act) req
-    -> (st -> WindowState (Either WindowAction act))
-    -> ((act -> IO ()) -> req -> IO ())
+    => (st -> WindowState (Either WindowAction act))
+    -> App st (Either WindowAction act) ((act -> IO ()) -> IO ())
     -> IO ()
-runApp (App initialState initialRequest apply) renderState reqHandler = do
+runApp renderState (App initialState initialRequest apply) = do
     -- create root element in body for the app
     root <- [js| document.createElement('div') |]
     [js_| document.body.appendChild(`root); |]
@@ -143,7 +140,7 @@ runApp (App initialState initialRequest apply) renderState reqHandler = do
             handleRequest request
             if requireSyncRedraw then syncRedraw else asyncRedraw
         handleRequest request =
-            void $ forkIO $ reqHandler (handleAction False . Right) request
+            void $ forkIO $ request (handleAction False . Right)
 
 
         mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))

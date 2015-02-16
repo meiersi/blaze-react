@@ -70,5 +70,5 @@ renderSocketOpen (SocketOpenS target messages inputBox) = do
     themStyle = HMS.union msgStyle $ HMS.fromList [("background-color", "#FDE3A7")]
     senderStyle = HMS.fromList [("text-align", "right")]
 
-handleRequest :: Socket -> (SocketTestA -> IO ()) -> SocketTestR -> IO ()
-handleRequest sock chan = mapM_ $ sock (chan . SA)
+handleRequest :: Socket -> SocketTestR -> (SocketTestA -> IO ()) -> IO ()
+handleRequest sock req chan = mapM_ (sock (chan . SA)) req

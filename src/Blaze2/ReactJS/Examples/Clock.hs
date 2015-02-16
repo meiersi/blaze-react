@@ -9,7 +9,7 @@ import           Blaze2.Core.Examples.Clock
 import           Blaze2.ReactJS.Base
 
 import           Control.Concurrent (threadDelay)
-import           Control.Monad (forever)
+import           Control.Monad (forever, forM_)
 
 import           Data.Monoid ((<>))
 import           Data.Time (getCurrentTime)
@@ -24,8 +24,8 @@ renderState (ClockS mbTime) = WindowState
         Nothing   -> "Loading..."
     }
 
-handleRequest :: (ClockA -> IO ()) -> [ClockR] -> IO ()
-handleRequest chan = mapM_ $ \req ->
+handleRequest :: [ClockR] -> (ClockA -> IO ()) -> IO ()
+handleRequest reqs chan = forM_ reqs $ \req ->
     case req of
       StartHeartbeat -> forever $ do
         time <- getCurrentTime
