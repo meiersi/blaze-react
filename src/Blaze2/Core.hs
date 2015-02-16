@@ -32,16 +32,58 @@ import           Data.Profunctor  (Profunctor(dimap))
 import           Data.Tuple       (swap)
 
 
--- Helpers for writing state transitions
--------------------------------------------------------------------------------
-
-type ApplyActionM st req = WriterT req (State st)
-
+-- | This type is the heart of the blaze-react API. In short, an `App` is a
+-- state machine which can make external requests. Three things need to be
+-- defined:
+--
+-- - The machine's state-space. This is captured in the `st` type parameter.
+-- - The possible transitions. This is captured in the `act` type parameter.
+-- - The interface against which the machine can make external requests. This
+--   is captured by the `req` type parameter.
+--
+-- A machine must have an initial state, and we need to know what effect the
+-- possible transitions should have. The `act` type is expected to be an
+-- enumeration of the ways in which the outside world can affect your
+-- application's internal state, although it is perfectly possible to just use
+-- `st -> st` as your action type.
+--
+-- These `App`s differ from garden-variety state machines in only one way: when
+-- making a state transition, they are allowed to emit requests. Typically,
+-- these requests are captured, some IO is performed as a result, and some kind
+-- of return value is given by applying an action to the machine.
+--
+-- Thus, the `act` and `req` types give the interface through which your `App`s
+-- interact with the world: I/O becomes `act`/`req`. This differs from standard
+-- IO in two regards:
+--
+-- 1. The model is completely asyncronous. This better suits certain targets,
+--    such as browsers.
+-- 2. The app logic is written against an opaque interface. All
+--    platform-dependent code is contained in an implementation, which can be
+--    easily swapped out. This means that application logic is completely
+--    portable, and, as a result, easily testable.
 data App st act req = App
     { appInitialState   :: !st
     , appInitialRequest :: !req
     , appApplyAction    :: !(act -> st -> (st, req))
     }
+
+-- instances
+------------
+
+instance Functor (App st act) where
+    fmap f (App st0 req0 apply) =
+        App st0 (f req0) (\act st -> over _2 f (apply act st))
+
+instance Profunctor (App st) where
+    dimap g f (App st0 req0 apply) =
+        App st0 (f req0) (\act st -> over _2 f (apply (g act) st))
+
+
+-- Helpers for writing state transitions
+-------------------------------------------------------------------------------
+
+type ApplyActionM st req = WriterT req (State st)
 
 runApplyActionM :: ApplyActionM st req () -> (st -> (st, req))
 runApplyActionM m = swap . runState (execWriterT m)
@@ -70,16 +112,6 @@ zoomTransition wrapRequest stateLens =
           (fmap -- Pair
               wrapRequest)
 
--- instances
-------------
-
-instance Functor (App st act) where
-    fmap f (App st0 req0 apply) =
-        App st0 (f req0) (\act st -> over _2 f (apply act st))
-
-instance Profunctor (App st) where
-    dimap g f (App st0 req0 apply) =
-        App st0 (f req0) (\act st -> over _2 f (apply (g act) st))
 
 -- Some useful app transformers
 -------------------------------------------------------------------------------
