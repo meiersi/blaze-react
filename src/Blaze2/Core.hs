@@ -1,20 +1,24 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TypeOperators #-}
 module Blaze2.Core
-  ( App(..)
-  , (:+:)
+    ( App(..)
 
-    -- * Support for writing the state transitions
-  , ApplyActionM
-  , runApplyActionM
-  , submitRequest
-  , readState
-  , writeState
-  , zoomTransition
+      -- * Support for writing the state transitions
+    , ApplyActionM
+    , runApplyActionM
+    , submitRequest
+    , readState
+    , writeState
+    , zoomTransition
 
-    -- * Support for testing apps
-  , testApp
-  ) where
+      -- * Some useful app transformers
+    , (:+:)
+    , ignoreActions
+    , passActionsThrough
+
+      -- * Support for testing apps
+    , testApp
+    ) where
 
 import           Control.Lens (zoom, over, _2, LensLike')
 import           Control.Lens.Internal.Zoom (Zoomed)
@@ -27,9 +31,6 @@ import           Data.Monoid      (Monoid())
 import           Data.Profunctor  (Profunctor(dimap))
 import           Data.Tuple       (swap)
 
-
--- | Allow eas
-type (:+:) = Either
 
 -- Helpers for writing state transitions
 -------------------------------------------------------------------------------
@@ -79,6 +80,43 @@ instance Functor (App st act) where
 instance Profunctor (App st) where
     dimap g f (App st0 req0 apply) =
         App st0 (f req0) (\act st -> over _2 f (apply (g act) st))
+
+-- Some useful app transformers
+-------------------------------------------------------------------------------
+
+-- | Allow easy anonymous sum types
+--
+-- FIXME (asayers): Clearly this doesn't belong here. Perhaps it'll go in
+-- Data.Either, once TypeOperators makes its way into the Haskell Report...
+type (:+:) = Either
+
+-- NOTE: Originally I used a `Monoid req` constraint, but I want to be able to
+-- use this function on Apps with request type `((act -> IO ()) -> IO ())`, and
+-- IO () is not a monoid.
+ignoreActions
+    :: req
+    -> App st                  act  req
+    -> App st (irrelevantA :+: act) req
+ignoreActions emptyReq app = app
+    { appApplyAction = \action -> case action of
+          Left _  -> \state -> (state, emptyReq)
+          Right x -> appApplyAction app x
+    }
+
+-- | This functions allows you to lift cases from the action type of an app
+-- into the action type of an app which wraps it. For instance, if an app knows
+-- how to handle WindowActions, then any app which wraps it also knows how to
+-- handle WindowActions - it can just pass them through to the inner app. That
+-- is what this function does.
+passActionsThrough
+   :: ((act :+: innnerA) -> outerA)
+   -> App st          outerA  req
+   -> App st (act :+: outerA) req
+passActionsThrough wrapAction app = app
+    { appApplyAction = \action -> case action of
+          Left  x -> appApplyAction app (wrapAction $ Left x)
+          Right x -> appApplyAction app x
+    }
 
 
 -- Helpers for writing tests

@@ -18,7 +18,7 @@ import           Control.Monad
 
 import           Data.IORef
 import           Data.Maybe            (fromMaybe)
-import           Data.Monoid           ((<>), Monoid)
+import           Data.Monoid           ((<>), Monoid, mempty)
 import qualified Data.Text             as T
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
@@ -93,7 +93,7 @@ runApp'
     -> ((act -> IO ()) -> req -> IO ())
     -> IO ()
 runApp' app renderState handleRequest =
-    runApp (ignoreWindowActions app)
+    runApp (ignoreActions mempty app)
            (over wsBody (E.mapActions Right) . renderState)
            handleRequest
 
