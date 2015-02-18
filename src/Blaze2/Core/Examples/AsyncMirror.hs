@@ -1,30 +1,50 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- | An app that allows to play the client for an arbitrary other app running
 -- on the server.
 module Blaze2.Core.Examples.AsyncMirror
   ( mirror
+  , serveMirror
+  , ReactJSEvent(..)
   ) where
 
+-- import Control.Applicative
+import Control.Concurrent.STM.TVar (TVar, newTVarIO, readTVar, writeTVar)
+import Control.Lens                (preview, _Left)
+import Control.Monad
+import Control.Monad.STM           (STM, atomically)
+import Control.Monad.State
+
+import Data.Traversable
+
 import Blaze2.Core
+
+
+import Prelude hiding (lookup)
+
 
 data ReactJSEvent = ReactJSEvent -- placeholder
 
 type BlazeHtml a = [a]
 
 -- | Client state encapsulating server-state 'ss' and view 'v'.
-type MirrorS ss = Maybe (ss, BlazeHtml Int)
+type MirrorS st = Maybe (RevId, st, BlazeHtml Int)
 
 -- | Report that the server failed to return a new state or that there is a
 -- new state.
-data MirrorA ss
-    = UpdateReflectionA !ss !(BlazeHtml Int)
+data MirrorA st
+    = UpdateReflectionA !RevId !st !(BlazeHtml Int)
       -- ^ Update the state and view of the reflection that we are
       -- maintaining.
-    | HandleEventA !ReactJSEvent
-      -- ^ Handle event that was triggered in our view.
+    | HandleEventA !RevId !Int !ReactJSEvent
+      -- ^ Handle the event that was triggered in our view, which is the
+      -- rendered version of the state with the given revision-id.
 
 data MirrorR
-    = GetNextReflectionR
-    | HandleEventR !ReactJSEvent
+    = GetReflectionR !(Maybe RevId)
+      -- ^ Request the next mirror-image, which must have a revision-id that
+      -- is larger than the one that we are currently displaying.
+    | HandleEventR !RevId !Int !ReactJSEvent
 
 -- | Create an app for proxying the session with the given 'SessionId', which
 -- is usually chosen randomly.
@@ -34,19 +54,20 @@ data MirrorR
 --
 -- TODO (SM): this is more like mirroring a session over an unreliable channel
 -- => consider a rename.
-mirror :: App (MirrorS ss) (MirrorA ss) [MirrorR ss]
+mirror :: App (MirrorS st) (MirrorA st) [MirrorR]
 mirror = App
     { appInitialState   = Nothing
-    , appInitialRequest = [GetNextReflectionR]
+    , appInitialRequest = [GetReflectionR Nothing]
     , appApplyAction    = \act -> runApplyActionM $ do
         case act of
-          HandleEventA ev           -> submitRequest [HandleEventR ev]
-          UpdateReflectionA ss view -> do
-            writeState (Just (ss, view))
-            submitRequest [GetNextReflectionR]
+          HandleEventA revId pos ev ->
+            submitRequest [HandleEventR revId pos ev]
+          UpdateReflectionA revId st view -> do
+            writeState (Just (revId, st, view))
+            submitRequest [GetReflectionR (Just revId)]
     }
-
-  do 
+{-
+  do
     -- setup capturing server
     (handleEvent, handleGetReflection) <- startServer app
     let evalMirrorR GetNextReflectionR = handleGetReflection
@@ -56,11 +77,11 @@ mirror = App
 
     -- run blaze react on mirrored app
     runBlazeReact (evalMirrorR <$> mirror)
+-}
 
-{-
 lookupById :: Traversable f => Int -> f a -> Maybe a
-lookupById i =
-    preview _Left $ execStateT (traverse lookup) 0
+lookupById i t =
+    preview _Left $ execStateT (traverse lookup t) 0
   where
     lookup x = do
         nextId <- get
@@ -68,52 +89,74 @@ lookupById i =
         when (nextId == i) (lift (Left x))
 
 
-annotateWithId :: Traversable f => f a -> f (a, Int)
-annotateWithId =
-    evalState (traverse annotate) 0
+annotateWithId :: Traversable f => f a -> f Int
+annotateWithId t =
+    evalState (traverse annotate t) 0
   where
-    annotate x = do
+    annotate _x = do
         nextId <- get
         put (succ nextId)
-        return (x, nextId)
--}
+        return nextId
+
 
 type IORequest act = (act -> IO ()) -> IO ()
 
+type RevId = Int
+
 serveMirror
-    :: (st -> BlazeHtml (ReactJSEvent -> Maybe act))
-    -> App st act (IORequest act) -> IO ....
-serveMirror app = do
+    :: forall st act.
+       (st -> BlazeHtml (ReactJSEvent -> Maybe act))
+    -> App st act (IORequest act)
+    -> IO ( Maybe RevId -> IO (BlazeHtml Int, RevId)
+          , Int -> ReactJSEvent -> RevId -> IO ()
+          )
+serveMirror render app = do
     -- allocate state reference
-    stRef <- newTVarIO (appInitialState app, 0)
-    let applyAction act = atomically $ do
-            req <- atomicModifyIORef' stRef $ \(st, revId) ->
-                let (st', req) = appApplyAction app act st
-                 in ((st', succ revId), req)
-            req applyAction
+    stVar <- newTVarIO (appInitialState app, 0)
 
-    forkIO $ appInitialRequest app applyAction
+    -- execute the initial request
+    appInitialRequest app (applyActionIO stVar)
 
-    return (handleEvent stRef, handleGetReflection stRef)
+    -- return event handlers
+    return (handleGetReflection stVar, handleHandleEvent stVar)
   where
-    handleEvent stRef ev evRevId = do
-        atomicModifyIORef' stRef $ \(st, revId) ->
+    applyAction :: TVar (st, RevId) -> act -> STM (IORequest act)
+    applyAction stVar act = do
+        (st, revId) <- readTVar stVar
+        let (!st', !req) = appApplyAction app act st
+        writeTVar stVar (st', succ revId)
+        return req
+
+    applyActionIO :: TVar (st, RevId) -> act -> IO ()
+    applyActionIO stVar act = do
+        req <- atomically (applyAction stVar act)
+        req (applyActionIO stVar)
+
+    renderWithId = annotateWithId . render
+
+    -- function to handle a 'HandleEvent' mirror-request
+    handleHandleEvent stVar pos ev evRevId = do
+        req <- atomically $ do
+            (st, revId) <- readTVar stVar
             case lookupById pos (render st) of
-              Nothing -> return () -- ignore event that we cannot locate
+              Nothing -> return emptyRequest-- ignore event that we cannot locate
               Just evToAct
-                | revId /= evRevId -> return () -- ignore event that was too late
+                | revId /= evRevId -> return emptyRequest -- event does not match revision-id
                 | otherwise        -> do
                     case evToAct ev of
-                      Nothing  -> return ()
-                      Just act ->
-                        let (st', req) = appApplyAction app act st
-                         in ((st', succ revId), req)
+                      Nothing  -> return emptyRequest -- event does not result in an action
+                      Just act -> applyAction stVar act
+        -- execute resulting request
+        req (applyActionIO stVar)
+      where
+        emptyRequest _applyActionIO = return ()
 
-    handleGetReflection stRef clientRevId = atomicaly $ do
-        (st, revId) <- readTVar stRef
-        guard (clientRevId /= revId)
+    -- function to handle a 'GetReflection' mirror-request
+    handleGetReflection stVar mbClientRevId = atomically $ do
+        (st, revId) <- readTVar stVar
+        -- only return an update once the revision-id has changed
+        guard (mbClientRevId /= Just revId)
         return (renderWithId st, revId)
-
 
 
 
