@@ -44,6 +44,8 @@ var GhcjsApp = React.createClass({
                      }
     });
 
+var GhcjsAppFactory = React.createFactory(GhcjsApp);
+
 function mountApp(domNode, renderCb) {
     return { onRender: renderCb,
              domNode : domNode
@@ -51,7 +53,7 @@ function mountApp(domNode, renderCb) {
 }
 
 function syncRedrawApp(app) {
-    React.renderComponent(GhcjsApp({onRender: app.onRender}), app.domNode);
+    React.render(GhcjsAppFactory({onRender: app.onRender}), app.domNode);
 }
 
 function attachRouteWatcher(routeChangeCb) {
