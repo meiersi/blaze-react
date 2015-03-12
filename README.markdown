@@ -1,30 +1,43 @@
-# `blaze-react` v0.1
+# `blaze-react` v0.2
 
-**It's recommended that you use the release-candidate for blaze-react 0.2.
-You can find it in the v0.2-rc1 branch.**
+This is an experimental library for writing highly portable applications. It
+allows you to express the pure logic of your application in a way which is
+completely independent of the execution context.
 
-These are experimental bindings for ReactJS using GHCJS. The rendering API is
-modeled analogously to blaze-html and the application architecture is based on
-simply specifying the complete UI state together with the state transitions
-that implement the application's logic.
+This means that the same app could be compiled to a client-side web app by
+GHCJS for snappy performance, or to a server-side web app using Snap, in order
+to support old browsers. An app written for the command-line could be given a
+web interface, or a GUI using OpenGL or GTK. So long as the logic of the app
+doesn't change, neither does your code.
 
-This purity simplifies both implementation and debugging. For example one can
-generically implement a time-machine wrapper which wraps an application such
-that one can go back and inspect all intermediate states. To see it in action,
-take a look at the classic TodoMVC example in `todomvc` directory, which is
-also available [online][1].
+See the `Blaze.Core.App` datatype for the fundamental abstraction, and see
+`Blaze.ReactJS.Run.runApp'` for an example of how these `App`s can be used. To
+see the whole thing in action, take a look in the `example-app/` directory.
 
-[1]: https://meiersi.github.io/blaze-react/
+This abstraction has some other benefits. It makes it possible to write some
+cool "app transformers", such as the Time Machine, which records the internal
+state of an app as it runs, and allows the user to scrub backwards and forwards
+through time, replaying the app's behaviour. [See it in action][demo].
+
+It should also make it easy to do sane integration tests.
+
+[demo]: https://meiersi.github.io/blaze-react/
+
+Right now there's only one way to run your `App`s - as client-side web-apps.
+This library provides an API for writing HTML-based UIs which is modeled on
+`blaze-html`. The DOM is then updated using react.js. The name of this library
+is due to these implementation details.
+
 
 ## Building
 
-First of all, make sure you have ghcjs installed (including the patched version
-of cabal), as well as nodejs and npm.
+First of all, make sure you have GHCJS installed, as well as nodejs and npm.
 
-Blaze-react depends on [ghcjs-ffiqq][2], which is not on hackage, so you'll
-have to install it from github. The suggested way is to run `cabal sandbox
-add-source <path to a checkout of ghcjs-ffiqq>`. Once this is done, you need to
-do a bit of fairly standard set-up, and then you can build the library:
+Blaze-react depends on `ghcjs-ffiqq`, which is not on hackage, so you'll have
+to [grab it from github][ffiqq]. Then either install it globally, or (better)
+point your local sandbox to the checkout with `cabal sandbox add-source <path
+to checkout>`. Once this is done, you need to do a bit of fairly standard
+set-up, and then you can build the library:
 
 ```
 make dev-tools
@@ -33,7 +46,9 @@ cabal configure
 make build
 ```
 
-If you want to build the example app as well (found in the 'todomvc' directory)
+[ffiqq]: https://github.com/ghcjs/ghcjs-ffiqq
+
+If you want to build the example app as well (found in the `example-app/` directory)
 then you should configure the project with the `build-example` flag set:
 
 ```
@@ -42,20 +57,16 @@ make build
 open todomvc/index.html
 ```
 
-[2]: https://github.com/ghcjs/ghcjs-ffiqq
-
 ## Known problems
 
-- The versions in the .cabal file are not properly pinned, which might lead to
-  build problems.
 - The `extra-sources` field is missing some files, which means `cabal sdist`
   won't work.
 
 ## Acknowledgements
 
-* The bindings were heavily inspired by Luite Stegeman's
-  [virtual-dom](https://github.com/ghcjs/ghcjs-vdom) bindings.
-* [Alex Sayers](https://github.com/asayers) implemented the Clock and
-  TimeMachine examples.
-* [Tomas Carnekcy](https://github.com/werehamster) helped debug some nasty
-  GHCJS FFI issues.
+* The bindings were heavily inspired by Luite Stegeman's [virtual-dom][]
+  bindings.
+* [Tomas Carnekcy][] helped debug some nasty GHCJS FFI issues.
+
+[virtual-dom]: https://github.com/ghcjs/ghcjs-vdom
+[Tomas Carnekcy]: https://github.com/werehamster
