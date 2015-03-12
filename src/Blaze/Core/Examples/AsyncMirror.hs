@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 -- | An app that allows to play the client for an arbitrary other app running
 -- on the server.
-module Blaze2.Core.Examples.AsyncMirror
+module Blaze.Core.Examples.AsyncMirror
   ( mirror
   , serveMirror
   , ReactJSEvent(..)
@@ -17,7 +17,7 @@ import Control.Monad.State
 
 import Data.Traversable
 
-import Blaze2.Core
+import Blaze.Core
 
 
 import Prelude hiding (lookup)

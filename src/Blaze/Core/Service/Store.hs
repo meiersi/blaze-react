@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Blaze2.Core.Service.Store
+module Blaze.Core.Service.Store
   ( StoreA(..)
   , StoreR(..)
   ) where

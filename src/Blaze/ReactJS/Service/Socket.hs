@@ -2,11 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | An implementation of the Socket service which uses websockets.
-module Blaze2.ReactJS.Service.Socket
+module Blaze.ReactJS.Service.Socket
     ( newSocket
     ) where
 
-import           Blaze2.Core.Service.Socket
+import           Blaze.Core.Service.Socket
 
 import           Data.IORef
 import qualified Data.Text      as T

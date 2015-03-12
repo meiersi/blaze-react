@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Blaze2.Core.Examples.SocketTest
+module Blaze.Core.Examples.SocketTest
     ( app
 
     , SocketTestS(..)
@@ -13,8 +13,8 @@ module Blaze2.Core.Examples.SocketTest
     , Message(..), Sender(..)
     ) where
 
-import           Blaze2.Core
-import           Blaze2.Core.Service.Socket
+import           Blaze.Core
+import           Blaze.Core.Service.Socket
 
 import           Control.Lens (makeLenses, (.=), (%=), use, makePrisms)
 

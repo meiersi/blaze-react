@@ -20,7 +20,7 @@ cabal-version:       >=1.10
 library
   ghc-options: -Wall
   exposed-modules:
-      Blaze2.React
+      Blaze.React
 
   build-depends:       base                 >=4.7     && <4.8
                      , bytestring           >= 0.10.4 && < 0.11

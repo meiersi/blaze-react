@@ -1,6 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TypeOperators #-}
-module Blaze2.Core
+module Blaze.Core
     ( App(..)
 
       -- * Support for writing the state transitions

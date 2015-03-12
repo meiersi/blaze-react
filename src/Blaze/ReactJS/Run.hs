@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Blaze2.ReactJS.Run
+module Blaze.ReactJS.Run
     ( runApp
     , runApp'
     ) where
 
 
-import           Blaze2.Core
-import           Blaze2.ReactJS.Base
+import           Blaze.Core
+import           Blaze.ReactJS.Base
 
 import           Control.Applicative
 import           Control.Concurrent        (threadDelay, forkIO)

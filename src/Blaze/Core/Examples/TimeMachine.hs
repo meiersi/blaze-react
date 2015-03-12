@@ -8,7 +8,7 @@
   The time-machine app transformer
  -}
 
-module Blaze2.Core.Examples.TimeMachine
+module Blaze.Core.Examples.TimeMachine
     ( wrapApp
 
     , TMState(..), tmsInternalState, tmsActionHistory, tmsActiveAction
@@ -18,7 +18,7 @@ module Blaze2.Core.Examples.TimeMachine
     ) where
 
 
-import           Blaze2.Core
+import           Blaze.Core
 
 import           Control.Applicative
 import           Control.Lens    (makeLenses, (.=), (%=), use, (+=), (<>=))

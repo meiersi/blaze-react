@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Blaze2.ReactJS.Examples.Clock
+module Blaze.ReactJS.Examples.Clock
     ( renderState
     , handleRequest
     ) where
 
-import           Blaze2.Core.Examples.Clock
-import           Blaze2.ReactJS.Base
+import           Blaze.Core.Examples.Clock
+import           Blaze.ReactJS.Base
 
 import           Control.Concurrent (threadDelay)
 import           Control.Monad (forever, forM_)

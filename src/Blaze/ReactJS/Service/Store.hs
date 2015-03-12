@@ -9,11 +9,11 @@
 --   the storage, they have to do polling. We could implement some API where an
 --   app subscribes to an action stream which shows writes.
 
-module Blaze2.ReactJS.Service.Store
+module Blaze.ReactJS.Service.Store
     ( handleRequest
     ) where
 
-import           Blaze2.Core.Service.Store
+import           Blaze.Core.Service.Store
 
 import qualified Data.Aeson           as Aeson
 import qualified Data.ByteString.Lazy as BL

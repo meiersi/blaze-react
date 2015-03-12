@@ -2,14 +2,14 @@
 
 module Main (main) where
 
-import qualified Blaze2.Core.Examples.TimeMachine    as TimeMachine
-import qualified Blaze2.Core.Examples.SocketTest     as SocketTest
+import qualified Blaze.Core.Examples.TimeMachine    as TimeMachine
+import qualified Blaze.Core.Examples.SocketTest     as SocketTest
 
-import qualified Blaze2.ReactJS.Examples.TimeMachine as TimeMachine
-import qualified Blaze2.ReactJS.Examples.SocketTest  as SocketTest
-import qualified Blaze2.ReactJS.Service.Socket       as Socket
+import qualified Blaze.ReactJS.Examples.TimeMachine as TimeMachine
+import qualified Blaze.ReactJS.Examples.SocketTest  as SocketTest
+import qualified Blaze.ReactJS.Service.Socket       as Socket
 
-import qualified Blaze2.ReactJS.Run                  as ReactJS
+import qualified Blaze.ReactJS.Run                  as ReactJS
 
 import           Control.Applicative ((<$>))
 

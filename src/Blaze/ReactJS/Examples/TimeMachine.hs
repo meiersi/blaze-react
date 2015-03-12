@@ -8,15 +8,15 @@
   The time-machine app transformer
  -}
 
-module Blaze2.ReactJS.Examples.TimeMachine
+module Blaze.ReactJS.Examples.TimeMachine
     ( wrapRenderer
     , wrapHandler
     ) where
 
 
-import           Blaze2.Core.Examples.TimeMachine
+import           Blaze.Core.Examples.TimeMachine
 
-import           Blaze2.ReactJS.Base
+import           Blaze.ReactJS.Base
 
 import           Control.Lens    (view)
 import           Control.Monad

@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Blaze2.ReactJS.Examples.Todo
+module Blaze.ReactJS.Examples.Todo
     ( renderState
     , handleRequest
     ) where
 
-import           Blaze2.Core.Examples.Todo
-import           Blaze2.ReactJS.Base
-import qualified Blaze2.ReactJS.Service.Store as Store
+import           Blaze.Core.Examples.Todo
+import           Blaze.ReactJS.Base
+import qualified Blaze.ReactJS.Service.Store as Store
 
 import           Control.Lens    (folded, to, sumOf)
 import           Control.Monad

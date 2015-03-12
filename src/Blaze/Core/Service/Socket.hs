@@ -2,7 +2,7 @@
 -- | An untyped socket service. Perhaps a better abstractions would be typed
 -- sockets, where the types are serialised either as json and sent as text, or
 -- as binary and sent as blobs.
-module Blaze2.Core.Service.Socket
+module Blaze.Core.Service.Socket
     ( SocketA(..)
     , SocketR(..)
 

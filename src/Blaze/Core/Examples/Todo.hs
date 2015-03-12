@@ -8,7 +8,7 @@
   Platform-independent formulation of the TodoMVC app.
  -}
 
-module Blaze2.Core.Examples.Todo
+module Blaze.Core.Examples.Todo
     ( app
 
       -- NOTE (asayers): This stuff is required for implementing rendering and
@@ -26,8 +26,8 @@ module Blaze2.Core.Examples.Todo
 
 import           Prelude hiding (div)
 
-import           Blaze2.Core
-import qualified Blaze2.Core.Service.Store as Store
+import           Blaze.Core
+import qualified Blaze.Core.Service.Store as Store
 
 import           Control.Applicative
 import           Control.Lens

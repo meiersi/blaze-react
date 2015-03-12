@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Blaze2.Core.Examples.Clock
+module Blaze.Core.Examples.Clock
     ( app
 
     , ClockS(..)
@@ -8,7 +8,7 @@ module Blaze2.Core.Examples.Clock
     , ClockR(..)
     ) where
 
-import           Blaze2.Core
+import           Blaze.Core
 import           Data.Time (UTCTime)
 import           Data.Typeable
 

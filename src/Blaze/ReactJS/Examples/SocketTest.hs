@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Blaze2.ReactJS.Examples.SocketTest
+module Blaze.ReactJS.Examples.SocketTest
     ( renderState
     , handleRequest
     ) where
 
-import           Blaze2.Core.Examples.SocketTest
-import           Blaze2.Core.Service.Socket
-import           Blaze2.ReactJS.Base
+import           Blaze.Core.Examples.SocketTest
+import           Blaze.Core.Service.Socket
+import           Blaze.ReactJS.Base
 
 import           Control.Monad (forM_)
 import qualified Data.HashMap.Strict as HMS

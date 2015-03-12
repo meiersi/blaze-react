@@ -3,7 +3,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Blaze2.ReactJS.Base
+module Blaze.ReactJS.Base
     ( WindowState(..), wsBody, wsPath
     , WindowAction(..)
     ) where

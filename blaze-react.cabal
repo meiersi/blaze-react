@@ -44,18 +44,18 @@ library
                        Text.Blaze.Internal
                        Text.Blaze.Event.Internal
 
-                       Blaze2.Core
-                       Blaze2.Core.Examples.Clock
-                       Blaze2.Core.Examples.SocketTest
-                       Blaze2.Core.Examples.Todo
-                       Blaze2.Core.Examples.TimeMachine
+                       Blaze.Core
+                       Blaze.Core.Examples.Clock
+                       Blaze.Core.Examples.SocketTest
+                       Blaze.Core.Examples.Todo
+                       Blaze.Core.Examples.TimeMachine
 
-                       Blaze2.ReactJS.Run
-                       Blaze2.ReactJS.Service.Socket
-                       Blaze2.ReactJS.Examples.Clock
-                       Blaze2.ReactJS.Examples.SocketTest
-                       Blaze2.ReactJS.Examples.Todo
-                       Blaze2.ReactJS.Examples.TimeMachine
+                       Blaze.ReactJS.Run
+                       Blaze.ReactJS.Service.Socket
+                       Blaze.ReactJS.Examples.Clock
+                       Blaze.ReactJS.Examples.SocketTest
+                       Blaze.ReactJS.Examples.Todo
+                       Blaze.ReactJS.Examples.TimeMachine
 
 
   build-depends:       aeson                == 0.8.*
