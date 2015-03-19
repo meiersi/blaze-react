@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -42,8 +41,6 @@ import           Data.Maybe      (fromMaybe)
 import           Data.Monoid     ((<>))
 import qualified Data.Text       as T
 import           Data.Typeable   (Typeable)
-
-import           GHC.Generics (Generic)
 
 import           Test.QuickCheck
 
@@ -121,7 +118,7 @@ data TodoA
     | CommitAndStopEditingA
     | ReadFromStoreA (Store.StoreA TodoItems)
       -- ^ The answer from the initial store read.
-    deriving (Eq, Ord, Show, Read, Typeable, Generic)
+    deriving (Eq, Ord, Show, Read, Typeable)
 
 -- | The todo app will issue a request to read the 'TodoItems' from some
 -- store.
