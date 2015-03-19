@@ -71,4 +71,4 @@ renderSocketOpen (SocketOpenS target messages inputBox) = do
     senderStyle = HMS.fromList [("text-align", "right")]
 
 handleRequest :: Socket -> SocketTestR -> (SocketTestA -> IO ()) -> IO ()
-handleRequest sock req chan = mapM_ (sock (chan . SA)) req
+handleRequest sock (SocketTestR reqs) chan = mapM_ (sock (chan . SA)) reqs

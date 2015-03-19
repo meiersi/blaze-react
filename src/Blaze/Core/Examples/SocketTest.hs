@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Blaze.Core.Examples.SocketTest
     ( app
@@ -9,7 +11,7 @@ module Blaze.Core.Examples.SocketTest
     , SocketConnectingS(..)
     , SocketOpenS(..)
     , SocketTestA(..)
-    , SocketTestR
+    , SocketTestR(..)
     , Message(..), Sender(..)
     ) where
 
@@ -18,14 +20,16 @@ import           Blaze.Core.Service.Socket
 
 import           Control.Lens (makeLenses, (.=), (%=), use, makePrisms)
 
-import qualified Data.Text as T
+import           Data.Monoid   (Monoid)
+import qualified Data.Text     as T
+import           Data.Typeable (Typeable)
 
 
 data SocketTestS
     = STClosed SocketClosedS
     | STConnecting SocketConnectingS
     | STOpen SocketOpenS
-    deriving Show
+    deriving (Show, Typeable)
 
 data SocketClosedS = SocketClosedS
     { _scInputBox :: T.Text
@@ -50,9 +54,9 @@ data SocketTestA
     | SubmitInputA
     | CloseConnection
     | SA SocketA
-    deriving Show
+    deriving (Show, Typeable)
 
-type SocketTestR = [SocketR]
+newtype SocketTestR = SocketTestR [SocketR] deriving (Monoid, Typeable, Show)
 
 makeLenses ''SocketClosedS
 makeLenses ''SocketConnectingS
@@ -77,7 +81,7 @@ applyActionClosed act = case act of
       _STClosed . scInputBox .= txt
     SubmitInputA -> do
       url <- use (_STClosed . scInputBox)
-      submitRequest [OpenSocket url []]
+      submitRequest $ SocketTestR [OpenSocket url []]
       writeState $ STConnecting $ SocketConnectingS url
     _ -> return ()
 
@@ -103,11 +107,11 @@ applyActionOpen act = case act of
       _STOpen . soInputBox .= txt
     SubmitInputA -> do
       message <- use (_STOpen . soInputBox)
-      submitRequest [SendMessage message]
+      submitRequest $ SocketTestR [SendMessage message]
       _STOpen . soMessages %= (Message Us message :)
       _STOpen . soInputBox .= ""
     CloseConnection ->
-      submitRequest [CloseSocket]
+      submitRequest $ SocketTestR [CloseSocket]
     SA SocketClosed ->
       writeState initialState
     SA (MessageReceived message) ->
@@ -124,6 +128,6 @@ initialState = STClosed $ SocketClosedS "ws://echo.websocket.org"
 app :: App SocketTestS SocketTestA SocketTestR
 app = App
     { appInitialState = initialState
-    , appInitialRequest = []
+    , appInitialRequest = SocketTestR []
     , appApplyAction = applyAction
     }

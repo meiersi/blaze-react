@@ -54,7 +54,7 @@ import           Test.QuickCheck
 data TodoItem = TodoItem
     { _tdDone :: !Bool
     , _tdDesc :: !T.Text
-    } deriving (Eq, Ord, Show, Read)
+    } deriving (Eq, Ord, Show, Read, Typeable)
 
 -- TODO (AS): Use an IntMap so we can persist the identity of the items when
 -- new ones are added.
@@ -69,7 +69,7 @@ data TodoS = TodoS
     { _tsNewItemDesc :: !T.Text
     , _tsEditFocus   :: !EditFocus
     , _tsItems       :: !TodoItems
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Typeable)
 
 
 -- Instances

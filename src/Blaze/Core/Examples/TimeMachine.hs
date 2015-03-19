@@ -48,7 +48,7 @@ data TMState st act req = TMState
     , _tmsPaused         :: !Bool
     , _tmsActionBuffer   :: [act]
       -- ^ This is where async internal actions go while the app is paused
-    } deriving (Show)
+    } deriving (Show, Typeable)
 
 makeLenses ''TMState
 
