@@ -50,14 +50,16 @@ library
                        Blaze.Core.Examples.TabbedApps
                        Blaze.Core.Examples.Todo
                        Blaze.Core.Examples.TimeMachine
+                       Blaze.Core.Service.Socket
 
+                       Blaze.ReactJS.Base
                        Blaze.ReactJS.Run
-                       Blaze.ReactJS.Service.Socket
                        Blaze.ReactJS.Examples.Clock
                        Blaze.ReactJS.Examples.SocketTest
                        Blaze.ReactJS.Examples.TabbedApps
                        Blaze.ReactJS.Examples.Todo
                        Blaze.ReactJS.Examples.TimeMachine
+                       Blaze.ReactJS.Service.Socket
 
 
   build-depends:       aeson                == 0.8.*
