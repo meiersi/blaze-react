@@ -47,6 +47,7 @@ library
                        Blaze.Core
                        Blaze.Core.Examples.Clock
                        Blaze.Core.Examples.SocketTest
+                       Blaze.Core.Examples.TabbedApps
                        Blaze.Core.Examples.Todo
                        Blaze.Core.Examples.TimeMachine
 
@@ -54,6 +55,7 @@ library
                        Blaze.ReactJS.Service.Socket
                        Blaze.ReactJS.Examples.Clock
                        Blaze.ReactJS.Examples.SocketTest
+                       Blaze.ReactJS.Examples.TabbedApps
                        Blaze.ReactJS.Examples.Todo
                        Blaze.ReactJS.Examples.TimeMachine
 
