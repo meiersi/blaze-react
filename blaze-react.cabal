@@ -55,11 +55,11 @@ library
                        Blaze.React.Examples.TimeMachine
                        Blaze.React.Examples.Todo
 
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base >=4.7 && < 5
                      , bytestring
                      , either
                      , ghcjs-base
-                     , ghcjs-ffiqq
+                     -- , ghcjs-ffiqq
                      , ghcjs-prim
                      , hashable
                      , lens

@@ -1,6 +1,4 @@
-
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Blaze.React.Run.ReactJS
     ( runApp
@@ -22,7 +20,6 @@ import qualified Data.Text             as T
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
 import qualified GHCJS.Foreign         as Foreign
-import           GHCJS.Foreign.QQ      (js, js_)
 
 import           Prelude hiding (div)
 
@@ -77,6 +74,19 @@ foreign import javascript unsafe
     "window.requestAnimationFrame($1)"
     requestAnimationFrame :: JSFun (IO ()) -> IO ()
 
+foreign import javascript unsafe
+    "document.createElement(\"div\")"
+    documentCreateDiv :: IO (JSRef DOMNode_)
+
+foreign import javascript unsafe
+    "document.body.appendChild($1)"
+    documentBodyAppendChild :: JSRef DOMNode_ -> IO ()
+
+foreign import javascript unsafe
+    "location.hash"
+    getLocationFragment :: IO JSString
+
+
 atAnimationFrame :: IO () -> IO ()
 atAnimationFrame io = do
     cb <- fixIO $ \cb ->
@@ -91,8 +101,8 @@ runApp' = runApp . ignoreWindowActions
 runApp :: (Show act) => App st (WithWindowActions act) -> IO ()
 runApp (App initialState initialRequests apply renderAppState) = do
     -- create root element in body for the app
-    root <- [js| document.createElement('div') |]
-    [js_| document.body.appendChild(`root); |]
+    root <- documentCreateDiv
+    documentBodyAppendChild root
 
     -- state variables
     stateVar           <- newIORef initialState  -- The state of the app
@@ -101,7 +111,7 @@ runApp (App initialState initialRequests apply renderAppState) = do
 
     -- This is a cache of the URL fragment (hash) to prevent unnecessary
     -- updates.
-    urlFragmentVar <- newIORef =<< Foreign.fromJSString <$> [js|location.hash|]
+    urlFragmentVar <- newIORef =<< Foreign.fromJSString <$> getLocationFragment
 
     -- rerendering
     let syncRedraw = join $ fromMaybe (return ()) <$> readIORef rerenderVar
