@@ -96,7 +96,7 @@ renderString =
             in go attrs' h
         AddObjectAttribute key object h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
-                       . ((T.unpack $ renderMap object) ++)
+                       . ((T.unpack $ renderMap object) ++) . ('"' :) .  attrs
             in go attrs' h
         Content content -> fromChoiceString content
         Append h1 h2    -> go attrs h1 . go attrs h2
