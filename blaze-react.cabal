@@ -72,7 +72,7 @@ library
                      , lens                 == 4.*
                      , mtl                  == 2.*
                      , pretty-show          == 1.*
-                     , profunctors          == 4.*
+                     , profunctors          >= 4 && < 6
                      , QuickCheck           == 2.6.*
                      , testing-feat         == 0.4.*
                      , text                 == 1.*
