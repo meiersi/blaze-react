@@ -1,5 +1,5 @@
 name:                blaze-react-spa
-version:             0.2.0.0
+version:             0.2.0
 synopsis:            Run blaze-react apps as single-page apps using ReactJS.
 description:         Bindings to ReactJS that allow running a blaze-react app
                      as a client-side single-page application.
@@ -17,7 +17,7 @@ extra-source-files:  reactjs-bindings/lib.require.js
 
 library
   js-sources: jsbits/global-react.js
-              reactjs-bindings/lib.js
+              jsbits/blaze-react-reactjs-bindings.js
   ghcjs-options: -O -Wall
   exposed-modules:
                        Text.Blaze.Renderer.ReactJS
@@ -25,7 +25,7 @@ library
                        Blaze.ReactJS.Base
                        Blaze.ReactJS.Run
 
-  build-depends:       base                 
+  build-depends:       base
                      , blaze-react-core
                      , bytestring
                      , either
