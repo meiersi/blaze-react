@@ -88,15 +88,15 @@ renderString =
             in go attrs' h
         AddBoolAttribute key value h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
-                       . ((if value then "true" else "false") ++) .  ('"' :) .  attrs
+                       . ((if value then "true" else "false") ++) . ('"' :) .  attrs
             in go attrs' h
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
-                       . fromChoiceString value .  ('"' :) .  attrs
+                       . fromChoiceString value . ('"' :) .  attrs
             in go attrs' h
         AddObjectAttribute key object h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
-                       . ((T.unpack $ renderMap object) ++)
+                       . ((T.unpack $ renderMap object) ++) . ('"' :) .  attrs
             in go attrs' h
         Content content -> fromChoiceString content
         Append h1 h2    -> go attrs h1 . go attrs h2
