@@ -1,0 +1,6 @@
+# Only for the GHC-compilable bits
+flags: {}
+packages:
+  - libs/hs/blaze-react-core
+extra-deps: []
+resolver: lts-3.2

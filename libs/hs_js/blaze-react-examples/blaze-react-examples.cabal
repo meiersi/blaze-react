@@ -1,0 +1,48 @@
+name:                blaze-react-examples
+version:             1.0.0
+synopsis:            State-machine and service examples for blaze-react.
+description:         Examples for state machines and services (i.e., request
+                     types) that might prove useful in other applications. No
+                     guarantee of stability is given.
+
+license:             MIT
+license-file:        LICENSE
+author:              Simon Meier, Alex Sayers
+maintainer:          iridcode@gmail
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  default-language:    Haskell2010
+  ghc-options: -Wall
+
+  hs-source-dirs:      src
+
+  exposed-modules:
+      Blaze.Core.Examples.Clock
+      Blaze.Core.Examples.SocketTest
+      Blaze.Core.Examples.TabbedApps
+      Blaze.Core.Examples.Todo
+      Blaze.Core.Examples.TimeMachine
+
+      Blaze.Core.Service.Socket
+      Blaze.Core.Service.Store
+
+  build-depends:
+      aeson
+    , base
+    , blaze-react-core
+    , bytestring
+    , either
+    , hashable
+    , lens
+    , mtl
+    , profunctors
+    , QuickCheck
+    , text
+    , transformers
+    , time
+    , unordered-containers
+    , void
+

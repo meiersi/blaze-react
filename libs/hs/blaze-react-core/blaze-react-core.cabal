@@ -1,13 +1,12 @@
-name:                blaze-react-server-side
-version:             0.1.0.0
-synopsis:            Server-side execution of blaze-react apps.
+name:                blaze-react-core
+version:             1.0.0
+synopsis:            Pure and core part of blaze-react.
 description:         This is an experimental library exploring a design for
                      writing GUI apps in a compositional and portable fashion.
-                     The rendering is based on using Facebooks ReactJS and
-                     ReactNative to achieve proper web/native UI's. The
-                     compositionality is achieved by separating the UI state
-                     and state transitions from the concrete rendering
-                     backend.
+                     Applications are written as reactive, deterministic
+                     state-machines (similar to Mealy machines) and rendered
+                     to an HTML AST that can be rendered to Facebooks ReactJS
+                     DOM model.
 
 license:             MIT
 license-file:        LICENSE
@@ -26,12 +25,7 @@ library
   exposed-modules:
       Blaze.Core
 
-      Blaze.Core.Examples.Clock
-      Blaze.Core.Examples.SocketTest
-      Blaze.Core.Examples.TabbedApps
-      Blaze.Core.Examples.Todo
-      Blaze.Core.Examples.TimeMachine
-
+      Text.Blaze
       Text.Blaze.Event
       Text.Blaze.Event.Charcode
       Text.Blaze.Event.Keycode
@@ -41,6 +35,9 @@ library
       Text.Blaze.Svg.Attributes
       Text.Blaze.Renderer.String
 
+      Text.Blaze.Event.Internal
+      Text.Blaze.Internal
+
   build-depends:
       aeson
     , base
@@ -49,10 +46,8 @@ library
     , hashable
     , lens
     , mtl
-    -- , pretty-show
     , profunctors
     , QuickCheck
-    -- , testing-feat
     , text
     , transformers
     , time
