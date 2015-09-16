@@ -7,6 +7,7 @@ module Text.Blaze.Renderer.String
     ( -- fromChoiceString
     -- , renderMarkup
       renderHtml
+      , renderHtmlPretty
     ) where
 
 import qualified Data.ByteString         as S
@@ -58,48 +59,57 @@ fromChoiceString EmptyChoiceString = id
 -- | Render some 'Markup' to an appending 'String'.
 --
 renderString
-    :: Markup ev  -- ^ Markup to render
+    :: Bool       -- ^ Whether the output should be pretty printed
+    -> Markup ev  -- ^ Markup to render
     -> String     -- ^ String to append
     -> String     -- ^ Resulting String
-renderString =
-    go id
+renderString pretty markup append =
+    -- If we are pretty printing, then we end up with one new line
+    -- character in the beginning of the result string, so in that
+    -- case we simply get rid of it with a tail.
+    (if pretty then tail else id) (go id 0 markup append)
   where
-    go :: (String -> String) -> MarkupM ev b -> String -> String
-    go attrs html = case html of
+    indentBy :: Int -> String -> String
+    indentBy indent = if pretty then (('\n' : replicate (indent * 2) ' ') ++) else id
+
+    go :: (String -> String) -> Int -> MarkupM ev b -> String -> String
+    go attrs indent html = case html of
         MapActions _f content ->
-            go attrs content
+            go attrs indent content
         OnEvent _ev content ->
             -- TODO (meiersi): add more details about the event handler registered.
-            go attrs content
+            go attrs indent content
         Parent _ open close content ->
-            getString open . attrs . ('>' :) . go id content . getString close
+            indentBy indent . getString open . attrs . ('>' :) .
+            go id (indent + 1) content .
+            getString close
         CustomParent tag content ->
-            ('<' :) . fromChoiceString tag . attrs . ('>' :) .
-            go id content .
+            indentBy indent . ('<' :) . fromChoiceString tag . attrs . ('>' :) .
+            go id (indent + 1) content .
             ("</" ++) . fromChoiceString tag . ('>' :)
         Leaf _ begin end ->
-            getString begin . attrs . getString end
+            indentBy indent . getString begin . attrs . getString end
         CustomLeaf tag close ->
-            ('<' :) . fromChoiceString tag . attrs .
+            indentBy indent . ('<' :) . fromChoiceString tag . attrs .
             (if close then (" />" ++) else ('>' :))
         AddAttribute _ key value h ->
             let attrs' = getString key . fromChoiceString value
                        . ('"' :) . attrs
-            in go attrs' h
+            in go attrs' indent h
         AddBoolAttribute key value h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
                        . ((if value then "true" else "false") ++) . ('"' :) .  attrs
-            in go attrs' h
+            in go attrs' indent h
         AddCustomAttribute key value h ->
             let attrs' = (' ' :) . fromChoiceString key . ("=\"" ++)
                        . fromChoiceString value . ('"' :) .  attrs
-            in go attrs' h
+            in go attrs' indent h
         AddObjectAttribute key object h ->
             let attrs' = (' ' :) . getString key . ("=\"" ++)
                        . ((T.unpack $ renderMap object) ++) . ('"' :) .  attrs
-            in go attrs' h
+            in go attrs' indent h
         Content content -> fromChoiceString content
-        Append h1 h2    -> go attrs h1 . go attrs h2
+        Append h1 h2    -> go attrs indent h1 . go attrs indent h2
         Empty           -> id
 
 -- | Render a text-text map to the form used in CSS. Eg:
@@ -114,9 +124,12 @@ renderMap =
 
 -- | Render markup to a lazy 'String'.
 --
-renderMarkup :: Show ev => Markup ev -> String
-renderMarkup html =
-    renderString html ""
+renderMarkup :: Show ev => Bool -> Markup ev -> String
+renderMarkup pretty html =
+    renderString pretty html ""
 
 renderHtml :: Show ev => Markup ev -> String
-renderHtml = renderMarkup
+renderHtml = renderMarkup False
+
+renderHtmlPretty :: Show ev => Markup ev -> String
+renderHtmlPretty = renderMarkup True
