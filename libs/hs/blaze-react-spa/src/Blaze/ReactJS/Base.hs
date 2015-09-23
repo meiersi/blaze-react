@@ -16,10 +16,11 @@ import           Data.Typeable         (Typeable)
 import           Prelude               hiding (div)
 
 import qualified Text.Blaze.Html5      as H
+import qualified Text.Blaze.Event      as E
 
 
 data WindowState act = WindowState
-    { _wsBody  :: !(H.Html act)
+    { _wsBody  :: !(H.Html (E.EventHandler act))
     , _wsPath  :: !T.Text
       -- TODO (asayers): _wsTitle :: T.Text
     }

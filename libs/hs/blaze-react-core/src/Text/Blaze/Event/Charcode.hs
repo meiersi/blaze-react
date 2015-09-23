@@ -17,6 +17,7 @@ module Text.Blaze.Event.Charcode
 
 -- | A representation of an ASCII character.
 newtype Charcode = Charcode { unCharcode :: Int }
+    deriving (Eq, Ord, Show)
 
 
 -- TODO (AS): Make explicit constructors, or perhaps a quasi-quotation.

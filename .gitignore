@@ -1,5 +1,5 @@
 .stack-work/
-/dist
+dist/
 /vendor/
 /GNUmakefile
 *.js_hi

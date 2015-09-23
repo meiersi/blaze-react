@@ -2,5 +2,8 @@
 flags: {}
 packages:
   - libs/hs/blaze-react-core
+  - libs/hs/blaze-react-dev-mode-server
+  - libs/hs/blaze-react-dev-mode-shared
+  - libs/hs/servant-blaze-react
 extra-deps: []
 resolver: lts-3.2

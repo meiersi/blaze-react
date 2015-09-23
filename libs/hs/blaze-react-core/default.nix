@@ -1,6 +1,6 @@
 { mkDerivation, aeson, base, bytestring, either, hashable, lens
 , mtl, profunctors, QuickCheck, stdenv, text, time, transformers
-, unordered-containers, void
+, unordered-containers, vector, void
 }:
 mkDerivation {
   pname = "blaze-react-core";
@@ -8,7 +8,7 @@ mkDerivation {
   src = ./.;
   libraryHaskellDepends = [
     aeson base bytestring either hashable lens mtl profunctors
-    QuickCheck text time transformers unordered-containers void
+    QuickCheck text time transformers unordered-containers vector void
   ];
   description = "Pure and core part of blaze-react";
   license = stdenv.lib.licenses.mit;

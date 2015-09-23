@@ -1,5 +1,7 @@
 # `blaze-react` v0.2
 
+Note that we only support GHC 7.10.x and higher.
+
 This is an experimental library for writing highly portable applications. It
 allows you to express the pure logic of your application in a way which is
 completely independent of the execution context.

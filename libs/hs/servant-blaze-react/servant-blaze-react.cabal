@@ -1,0 +1,47 @@
+name:                servant-blaze-react
+version:             1.0.0
+synopsis:            Servant integration for blaze-react
+description:         Integration for serving the blaze-react HTML type using
+                     servant, as explained on
+                     <http://haskell-servant.github.io/tutorial/server.html#case-studies-servant-blaze-and-servant-lucid>.
+
+license:             MIT
+license-file:        LICENSE
+author:              Simon Meier
+maintainer:          iridcode@gmail
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  default-language:    Haskell2010
+  ghc-options: -Wall
+
+  hs-source-dirs:      src
+
+  exposed-modules:
+      Servant.HTML.BlazeReact
+
+  build-depends:
+      base
+    , blaze-react-core
+    , bytestring
+    -- , either
+    -- , hashable
+    , http-media
+    -- , lens
+    -- , mtl
+    -- , wai
+    -- , warp
+    -- , profunctors
+    -- , QuickCheck
+    , servant
+    -- , servant-server
+    -- , servant-docs
+    -- , stm
+    , text
+    -- , transformers
+    -- , time
+    -- , unordered-containers
+    -- , void
+

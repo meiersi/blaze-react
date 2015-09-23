@@ -1,0 +1,39 @@
+name:                blaze-react-dev-mode-server
+version:             1.0.0
+synopsis:            Development mode server for blaze-react.
+description:         A development mode for blaze-react that allows testing a
+                     blaze-react app while serving over HTTP from GHCi.
+
+license:             MIT
+license-file:        LICENSE
+author:              Simon Meier
+maintainer:          iridcode@gmail
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  default-language:    Haskell2010
+  ghc-options: -Wall
+
+  hs-source-dirs:      src
+
+  exposed-modules:
+      Blaze.Development.Server
+
+  build-depends:
+      base
+    , bytestring
+    , blaze-react-core
+    , blaze-react-dev-mode-shared
+    , lens
+    , mtl
+    , wai
+    , wai-cors
+    , warp
+    , servant-server
+    , servant-blaze-react
+    , stm
+    , text
+    , time
+

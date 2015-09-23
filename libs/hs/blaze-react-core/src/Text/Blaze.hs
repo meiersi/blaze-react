@@ -46,8 +46,6 @@ module Text.Blaze
 
       -- * Converting values to Markup.
     , ToMarkup (..)
-    , unsafeByteString
-    , unsafeLazyByteString
 
       -- * Creating tags.
     , textTag
@@ -55,19 +53,15 @@ module Text.Blaze
 
       -- * Converting values to attribute values.
     , ToValue (..)
-    , unsafeByteStringValue
-    , unsafeLazyByteStringValue
 
       -- * Setting attributes
     , (!)
     , (!?)
 
-      -- * Modifiying Markup trees
-    , contents
     ) where
 
 import Data.Int (Int32, Int64)
-import Data.Word (Word, Word32, Word64)
+import Data.Word (Word32, Word64)
 
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
@@ -81,37 +75,17 @@ class ToMarkup a where
     --
     toMarkup :: a -> Markup ev
 
-    -- | Convert a value to Markup without escaping
-    --
-    preEscapedToMarkup :: a -> Markup ev
-    preEscapedToMarkup = toMarkup
-    {-# INLINE preEscapedToMarkup #-}
-
--- instance ToMarkup (Markup ev) where
---     toMarkup = id
---     {-# INLINE toMarkup #-}
---
--- instance ToMarkup [Markup ev] where
---     toMarkup = mconcat
---     {-# INLINE toMarkup #-}
-
 instance ToMarkup Text where
     toMarkup = text
     {-# INLINE toMarkup #-}
-    preEscapedToMarkup = preEscapedText
-    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup LT.Text where
     toMarkup = lazyText
     {-# INLINE toMarkup #-}
-    preEscapedToMarkup = preEscapedLazyText
-    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup String where
     toMarkup = string
     {-# INLINE toMarkup #-}
-    preEscapedToMarkup = preEscapedString
-    {-# INLINE preEscapedToMarkup #-}
 
 instance ToMarkup Int where
     toMarkup = string . show
@@ -164,12 +138,6 @@ class ToValue a where
     --
     toValue :: a -> AttributeValue
 
-    -- | Convert a value to an attribute value without escaping
-    --
-    preEscapedToValue :: a -> AttributeValue
-    preEscapedToValue = toValue
-    {-# INLINE preEscapedToValue #-}
-
 instance ToValue AttributeValue where
     toValue = id
     {-# INLINE toValue #-}
@@ -177,20 +145,14 @@ instance ToValue AttributeValue where
 instance ToValue Text where
     toValue = textValue
     {-# INLINE toValue #-}
-    preEscapedToValue = preEscapedTextValue
-    {-# INLINE preEscapedToValue #-}
 
 instance ToValue LT.Text where
     toValue = lazyTextValue
     {-# INLINE toValue #-}
-    preEscapedToValue = preEscapedLazyTextValue
-    {-# INLINE preEscapedToValue #-}
 
 instance ToValue String where
     toValue = stringValue
     {-# INLINE toValue #-}
-    preEscapedToValue = preEscapedStringValue
-    {-# INLINE preEscapedToValue #-}
 
 instance ToValue Int where
     toValue = stringValue . show

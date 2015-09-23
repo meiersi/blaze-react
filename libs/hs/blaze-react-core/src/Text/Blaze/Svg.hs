@@ -5,7 +5,6 @@ module Text.Blaze.Svg
     ( module Text.Blaze
     , Svg
     , toSvg
-    , preEscapedToSvg
 
     , circle
     , defs
@@ -33,53 +32,50 @@ type Svg ev = Markup ev
 toSvg :: ToMarkup a => a -> Svg ev
 toSvg = toMarkup
 
-preEscapedToSvg :: ToMarkup a => a -> Svg ev
-preEscapedToSvg = preEscapedToMarkup
-
 circle :: Svg ev
-circle = Leaf "circle" "<circle" ">"
+circle = Leaf "circle" False
 
 defs :: Svg ev -> Svg ev
-defs = Parent "defs" "<defs" "</defs>"
+defs = Parent "defs"
 
 ellipse :: Svg ev
-ellipse = Leaf "ellipse" "<ellipse" ">"
+ellipse = Leaf "ellipse" False
 
 g :: Svg ev -> Svg ev
-g = Parent "g" "<g" "</g>"
+g = Parent "g"
 
 line :: Svg ev
-line = Leaf "line" "<line" ">"
+line = Leaf "line" False
 
 linearGradient :: Svg ev -> Svg ev
-linearGradient = Parent "linearGradient" "<linearGradient" "</linearGradient>"
+linearGradient = Parent "linearGradient"
 
 mask :: Svg ev -> Svg ev
-mask = Parent "mask" "<mask" "</mask>"
+mask = Parent "mask"
 
 path :: Svg ev
-path = Leaf "path" "<path" ">"
+path = Leaf "path" False
 
 pattern :: Svg ev -> Svg ev
-pattern = Parent "pattern" "<pattern" "</pattern>"
+pattern = Parent "pattern"
 
 polygon :: Svg ev
-polygon = Leaf "polygon" "<polygon" ">"
+polygon = Leaf "polygon" False
 
 polyline :: Svg ev
-polyline = Leaf "polyline" "<polyline" ">"
+polyline = Leaf "polyline" False
 
 radialGradient :: Svg ev -> Svg ev
-radialGradient = Parent "radialGradient" "<radialGradient" "</radialGradient>"
+radialGradient = Parent "radialGradient"
 
 rect :: Svg ev
-rect = Leaf "rect" "<rect" ">"
+rect = Leaf "rect" False
 
 stop :: Svg ev
-stop = Leaf "stop" "<stop" ">"
+stop = Leaf "stop" False
 
 text :: Svg ev -> Svg ev
-text = Parent "text" "<text" "</text>"
+text = Parent "text"
 
 tspan :: Svg ev -> Svg ev
-tspan = Parent "tspan" "<tspan" "</tspan>"
+tspan = Parent "tspan"

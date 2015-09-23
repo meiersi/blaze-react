@@ -52,5 +52,6 @@ library
     , transformers
     , time
     , unordered-containers
+    , vector
     , void
 

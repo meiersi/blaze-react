@@ -1,4 +1,6 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeOperators #-}
 module Blaze.Core
     ( App(..)
@@ -11,25 +13,33 @@ module Blaze.Core
     , writeState
     , zoomTransition
 
-      -- * Some useful app transformers
-    , (:+:)
-    , ignoreActions
-    , passActionsThrough
-
       -- * Support for testing apps
     , testApp
+
+      -- * Support for IORequests
+    , IORequest
+    , ioRequest
+    , runIORequest
+    , performIO_
+    , concurrently
     ) where
 
 import           Control.Lens (zoom, over, _2, LensLike')
 import           Control.Lens.Internal.Zoom (Zoomed)
 
+import           Control.Concurrent                (forkIO)
+import           Control.Monad                     (void)
+import           Control.Monad.Cont                (ContT(..))
+import           Control.Monad.IO.Class            (MonadIO)
 import           Control.Monad.Trans               (lift)
 import           Control.Monad.Trans.State.Strict  (State, runState, get, put)
 import           Control.Monad.Trans.Writer.Strict (WriterT, execWriterT, tell, mapWriterT)
 
+#if !MIN_VERSION_base(4,8,0)
 import           Data.Monoid      (Monoid())
-import           Data.Profunctor  (Profunctor(dimap))
-import           Data.Tuple       (swap)
+#endif
+import           Data.Profunctor            (Profunctor(dimap))
+import           Data.Tuple                 (swap)
 
 
 -- | This type is the heart of the blaze-react API. In short, an `App` is a
@@ -113,43 +123,6 @@ zoomTransition wrapRequest stateLens =
               wrapRequest)
 
 
--- Some useful app transformers
--------------------------------------------------------------------------------
-
--- | Allow easy anonymous sum types
---
--- FIXME (asayers): Clearly this doesn't belong here. Perhaps it'll go in
--- Data.Either, once TypeOperators makes its way into the Haskell Report...
-type (:+:) = Either
-
--- NOTE: Originally I used a `Monoid req` constraint, but I want to be able to
--- use this function on Apps with request type `((act -> IO ()) -> IO ())`, and
--- IO () is not a monoid.
-ignoreActions
-    :: req
-    -> App st                  act  req
-    -> App st (irrelevantA :+: act) req
-ignoreActions emptyReq app = app
-    { appApplyAction = \action -> case action of
-          Left _  -> \state -> (state, emptyReq)
-          Right x -> appApplyAction app x
-    }
-
--- | This functions allows you to lift cases from the action type of an app
--- into the action type of an app which wraps it. For instance, if an app knows
--- how to handle WindowActions, then any app which wraps it also knows how to
--- handle WindowActions - it can just pass them through to the inner app. That
--- is what this function does.
-passActionsThrough
-   :: ((act :+: innnerA) -> outerA)
-   -> App st          outerA  req
-   -> App st (act :+: outerA) req
-passActionsThrough wrapAction app = app
-    { appApplyAction = \action -> case action of
-          Left  x -> appApplyAction app (wrapAction $ Left x)
-          Right x -> appApplyAction app x
-    }
-
 
 -- Helpers for writing tests
 -------------------------------------------------------------------------------
@@ -171,4 +144,44 @@ testApp validState reqToActs app =
           (act:acts) ->
             case appApplyAction app act st of
               (st', req) -> go st' (reqToActs req ++ acts)
+
+
+------------------------------------------------------------------------------
+-- IO Requests
+------------------------------------------------------------------------------
+
+-- FIXME (SM): understand this type better and move it to a proper place.
+
+
+-- | A request to the environment to execute some IO and possibly apply some
+-- actions to the state.
+newtype IORequest act = IORequest { unIORequest :: ContT () IO act }
+    deriving (Functor, Applicative, Monad, MonadIO)
+
+-- | Execute an 'IORequest' with the given callback.
+runIORequest :: IORequest act -> (act -> IO ()) -> IO ()
+runIORequest = runContT . unIORequest
+
+-- | Construct an 'IORequest'.
+ioRequest :: ((act -> IO ()) -> IO ()) -> IORequest act
+ioRequest = IORequest . ContT
+
+-- | Perform some IO as part of executing that 'IORequest'.
+performIO_ :: IO () -> IORequest act
+performIO_ io = ioRequest $ \_k -> io
+
+-- | Execute this IORequest concurrently.
+concurrently :: IORequest act -> IORequest act
+concurrently r1 = ioRequest $ \k -> void $ forkIO $ runIORequest r1 k
+
+
+-- instances
+------------
+
+instance Monoid (IORequest act) where
+    mempty          = ioRequest $ \_k -> return ()
+    r1 `mappend` r2 =
+        ioRequest $ \k  -> runIORequest r1 k >> runIORequest r2 k
+
+
 

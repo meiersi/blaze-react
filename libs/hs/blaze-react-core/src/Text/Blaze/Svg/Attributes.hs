@@ -51,130 +51,130 @@ module Text.Blaze.Svg.Attributes
 import Text.Blaze.Internal (Attribute, AttributeValue, attribute)
 
 cx :: AttributeValue -> Attribute ev
-cx = attribute "cx" " cx=\""
+cx = attribute "cx"
 
 cy :: AttributeValue -> Attribute ev
-cy = attribute "cy" " cy=\""
+cy = attribute "cy"
 
 d :: AttributeValue -> Attribute ev
-d = attribute "d" " d=\""
+d = attribute "d"
 
 dx :: AttributeValue -> Attribute ev
-dx = attribute "dx" " dx=\""
+dx = attribute "dx"
 
 dy :: AttributeValue -> Attribute ev
-dy = attribute "dy" " dy=\""
+dy = attribute "dy"
 
 fill :: AttributeValue -> Attribute ev
-fill = attribute "fill" " fill=\""
+fill = attribute "fill"
 
 fillOpacity :: AttributeValue -> Attribute ev
-fillOpacity = attribute "fillOpacity" " fillOpacity=\""
+fillOpacity = attribute "fillOpacity"
 
 fontFamily :: AttributeValue -> Attribute ev
-fontFamily = attribute "fontFamily" " fontFamily=\""
+fontFamily = attribute "fontFamily"
 
 fontSize :: AttributeValue -> Attribute ev
-fontSize = attribute "fontSize" " fontSize=\""
+fontSize = attribute "fontSize"
 
 fx :: AttributeValue -> Attribute ev
-fx = attribute "fx" " fx=\""
+fx = attribute "fx"
 
 fy :: AttributeValue -> Attribute ev
-fy = attribute "fy" " fy=\""
+fy = attribute "fy"
 
 gradientTransform :: AttributeValue -> Attribute ev
-gradientTransform = attribute "gradientTransform" " gradientTransform=\""
+gradientTransform = attribute "gradientTransform"
 
 gradientUnits :: AttributeValue -> Attribute ev
-gradientUnits = attribute "gradientUnits" " gradientUnits=\""
+gradientUnits = attribute "gradientUnits"
 
 markerEnd :: AttributeValue -> Attribute ev
-markerEnd = attribute "markerEnd" " markerEnd=\""
+markerEnd = attribute "markerEnd"
 
 markerMid :: AttributeValue -> Attribute ev
-markerMid = attribute "markerMid" " markerMid=\""
+markerMid = attribute "markerMid"
 
 markerStart :: AttributeValue -> Attribute ev
-markerStart = attribute "markerStart" " markerStart=\""
+markerStart = attribute "markerStart"
 
 offset :: AttributeValue -> Attribute ev
-offset = attribute "offset" " offset=\""
+offset = attribute "offset"
 
 opacity :: AttributeValue -> Attribute ev
-opacity = attribute "opacity" " opacity=\""
+opacity = attribute "opacity"
 
 patternContentUnits :: AttributeValue -> Attribute ev
-patternContentUnits = attribute "patternContentUnits" " patternContentUnits=\""
+patternContentUnits = attribute "patternContentUnits"
 
 patternUnits :: AttributeValue -> Attribute ev
-patternUnits = attribute "patternUnits" " patternUnits=\""
+patternUnits = attribute "patternUnits"
 
 points :: AttributeValue -> Attribute ev
-points = attribute "points" " points=\""
+points = attribute "points"
 
 preserveAspectRatio :: AttributeValue -> Attribute ev
-preserveAspectRatio = attribute "preserveAspectRatio" " preserveAspectRatio=\""
+preserveAspectRatio = attribute "preserveAspectRatio"
 
 r :: AttributeValue -> Attribute ev
-r = attribute "r" " r=\""
+r = attribute "r"
 
 rx :: AttributeValue -> Attribute ev
-rx = attribute "rx" " rx=\""
+rx = attribute "rx"
 
 ry :: AttributeValue -> Attribute ev
-ry = attribute "ry" " ry=\""
+ry = attribute "ry"
 
 spreadMethod :: AttributeValue -> Attribute ev
-spreadMethod = attribute "spreadMethod" " spreadMethod=\""
+spreadMethod = attribute "spreadMethod"
 
 stopColor :: AttributeValue -> Attribute ev
-stopColor = attribute "stopColor" " stopColor=\""
+stopColor = attribute "stopColor"
 
 stopOpacity :: AttributeValue -> Attribute ev
-stopOpacity = attribute "stopOpacity" " stopOpacity=\""
+stopOpacity = attribute "stopOpacity"
 
 stroke :: AttributeValue -> Attribute ev
-stroke = attribute "stroke" " stroke=\""
+stroke = attribute "stroke"
 
 strokeDasharray :: AttributeValue -> Attribute ev
-strokeDasharray = attribute "strokeDasharray" " strokeDasharray=\""
+strokeDasharray = attribute "strokeDasharray"
 
 strokeLinecap :: AttributeValue -> Attribute ev
-strokeLinecap = attribute "strokeLinecap" " strokeLinecap=\""
+strokeLinecap = attribute "strokeLinecap"
 
 strokeOpacity :: AttributeValue -> Attribute ev
-strokeOpacity = attribute "strokeOpacity" " strokeOpacity=\""
+strokeOpacity = attribute "strokeOpacity"
 
 strokeWidth :: AttributeValue -> Attribute ev
-strokeWidth = attribute "strokeWidth" " strokeWidth=\""
+strokeWidth = attribute "strokeWidth"
 
 textAnchor :: AttributeValue -> Attribute ev
-textAnchor = attribute "textAnchor" " textAnchor=\""
+textAnchor = attribute "textAnchor"
 
 transform :: AttributeValue -> Attribute ev
-transform = attribute "transform" " transform=\""
+transform = attribute "transform"
 
 version :: AttributeValue -> Attribute ev
-version = attribute "version" " version=\""
+version = attribute "version"
 
 viewBox :: AttributeValue -> Attribute ev
-viewBox = attribute "viewBox" " viewBox=\""
+viewBox = attribute "viewBox"
 
 x1 :: AttributeValue -> Attribute ev
-x1 = attribute "x1" " x1=\""
+x1 = attribute "x1"
 
 x2 :: AttributeValue -> Attribute ev
-x2 = attribute "x2" " x2=\""
+x2 = attribute "x2"
 
 x :: AttributeValue -> Attribute ev
-x = attribute "x" " x=\""
+x = attribute "x"
 
 y1 :: AttributeValue -> Attribute ev
-y1 = attribute "y1" " y1=\""
+y1 = attribute "y1"
 
 y2 :: AttributeValue -> Attribute ev
-y2 = attribute "y2" " y2=\""
+y2 = attribute "y2"
 
 y :: AttributeValue -> Attribute ev
-y = attribute "y" " y=\""
+y = attribute "y"

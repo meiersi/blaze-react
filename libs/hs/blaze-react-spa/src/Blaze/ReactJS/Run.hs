@@ -12,7 +12,6 @@ import           Blaze.ReactJS.Base
 import           Control.Applicative
 import           Control.Concurrent        (threadDelay, forkIO)
 import           Control.Exception         (bracket)
-import           Control.Lens              (over)
 import           Control.Monad
 
 import           Data.IORef
@@ -26,6 +25,7 @@ import qualified GHCJS.Foreign         as Foreign
 import           Prelude hiding (div)
 
 import qualified Text.Blaze.Renderer.ReactJS    as ReactJS
+import qualified Text.Blaze.Html5               as H
 import qualified Text.Blaze.Event               as E
 
 import           System.IO             (fixIO)
@@ -97,14 +97,23 @@ atAnimationFrame io = do
                              (Foreign.release cb >> io)
     requestAnimationFrame cb
 
+-- | Run an application that is indifferent to the hash-fragment of the path.
 runApp'
     :: (Show act)
-    => (st -> WindowState act)
+    => (st -> H.Html (E.EventHandler act))
     -> App st act ((act -> IO ()) -> IO ())
     -> IO ()
-runApp' renderState app =
-    runApp (over wsBody (E.mapActions Right) . renderState)
-           (ignoreActions (const $ return ()) app)
+runApp' render0 app0 =
+    runApp render app
+  where
+    render st = WindowState (E.mapActions Right (render0 st)) ""
+    app = App
+      { appInitialState   = appInitialState app0
+      , appInitialRequest = appInitialRequest app0
+      , appApplyAction    = \act0 st -> case act0 of
+          Left _    -> (st, const (return ()))
+          Right act -> appApplyAction app0 act st
+      }
 
 runApp
     :: (Show act)
