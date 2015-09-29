@@ -25,6 +25,7 @@ module Blaze.Development.Server
   , testMain
   ) where
 
+
 import           Blaze.Core
 import qualified Blaze.Development.Internal.Logger as Logger
 import           Blaze.Development.Internal.Types
@@ -34,24 +35,36 @@ import qualified Blaze.Development.ProxyApi        as ProxyApi
 
 import           Control.Concurrent           (threadDelay)
 import qualified Control.Concurrent.Async     as Async
-import           Control.Concurrent.STM.TVar  (TVar, newTVarIO, readTVar, writeTVar)
-import           Control.Exception            (finally)
+import           Control.Concurrent.STM.TVar
+                 ( TVar, newTVarIO, readTVar, writeTVar, readTVarIO
+                 )
+import           Control.Exception            (finally, evaluate, catch)
 import           Control.Lens                 (preview, _Left)
 import           Control.Monad
+import           Control.Monad.Managed        (Managed, runManaged, managed)
 import           Control.Monad.STM            (STM, atomically)
 import           Control.Monad.State
 
+import qualified Data.Aeson                   as Aeson
+import qualified Data.ByteString.Lazy         as BL
 import           Data.Maybe
 import           Data.Monoid
 import qualified Data.Text                    as T
 
 import           Network.Wai.Handler.Warp     (run)
+import           Numeric                      (showHex)
 
 import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
 
-import           System.Directory             (getCurrentDirectory)
+import           System.Directory
+                 ( getCurrentDirectory, renameFile, removeFile, doesFileExist
+                 )
 import           System.FilePath              ((</>))
+import           System.IO
+                 ( withBinaryFile, IOMode(ReadMode, WriteMode)
+                 )
+import           System.Random                (getStdRandom, randomR)
 
 import qualified Text.Blaze.Event.Internal    as EI
 import qualified Text.Blaze.Html5             as H
@@ -76,6 +89,9 @@ data Config = Config
     , cExternalStylesheets :: ![StylesheetUrl]
       -- ^ A list of URL's pointing to external stylesheets that should be
       -- loaded as well.
+    , cStateFile :: !FilePath
+      -- ^ Path to the file that should be used to persist the application
+      -- state.
     } deriving (Eq, Show)
 
 
@@ -110,10 +126,11 @@ defaultConfig externalStylesheets =
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
     , cStaticFilesDir      = Nothing
+    , cStateFile           = "blaze-react-dev-mode_state.json"
     }
 
 -- | Start a development server with the given configuation.
-main :: Config -> HtmlApp st act -> IO ()
+main :: (Aeson.ToJSON st, Aeson.FromJSON st) => Config -> HtmlApp st act -> IO ()
 main config app = do
     -- allocate logger
     loggerH <- Logger.newStdoutLogger
@@ -125,22 +142,25 @@ main config app = do
           pwd <- getCurrentDirectory
           return $! pwd </> "libs/hs/blaze-react-dev-mode-server/static"
 
-    -- create executable app instance
-    h <- newHandle loggerH app
+    -- destroy all allocated resources when exiting here
+    runManaged $ do
+        -- create executable app instance
+        h <- newHandle (cStateFile config) loggerH app
 
-    -- announce that we serve the app over http
-    Logger.logInfo loggerH $ unlines
-      [ "Server started at: " <> T.unpack (cExternalServerUrl config)
-      , "Press CTRL-C to stop it"
-      ]
+        -- announce that we serve the app over http
+        liftIO $ Logger.logInfo loggerH $ unlines
+          [ "Server started at: " <> T.unpack (cExternalServerUrl config)
+          , "Press CTRL-C to stop it"
+          ]
 
-    -- actually serve the app
-    ( run port $ serve api $
-          serveApi staticFilesDir
-                   (cExternalServerUrl config)
-                   (cExternalStylesheets config)
-                   h
-     ) `finally` Logger.logInfo loggerH "Server stopped."
+        -- actually serve the app
+        liftIO $
+          ( run port $ serve api $
+                serveApi staticFilesDir
+                         (cExternalServerUrl config)
+                         (cExternalStylesheets config)
+                         h
+           ) `finally` Logger.logInfo loggerH "Server stopped."
   where
     port    = cPort config
 
@@ -172,17 +192,53 @@ data Handle = Handle
 
 -- | Create a new handle that allows running with a single instance of an
 -- HtmlApp.
-newHandle :: forall st act. Logger.Handle -> HtmlApp st act -> IO Handle
-newHandle loggerH (RenderableApp render app) = do
+newHandle
+    :: forall st act.
+       (Aeson.ToJSON st, Aeson.FromJSON st)
+    => FilePath -> Logger.Handle -> HtmlApp st act -> Managed Handle
+newHandle stateFile loggerH (RenderableApp render app) = do
     -- allocate state reference
-    stVar <- newTVarIO (appInitialState app, 0)
+    stVar <- liftIO $ do
+        -- try to read initial state, and fallback to app initial state otherwise
+        errOrSt <- readFileAsJson stateFile
+        case errOrSt of
+          Left err -> do
+            Logger.logInfo loggerH $ unlines
+                [ "Failed to read state from '" <> stateFile <> "': "
+                , err
+                , "Falling back to initial application state at revision 0."
+                ]
+            newTVarIO (appInitialState app, 0)
+          Right st -> do
+            Logger.logInfo loggerH $
+                "Using state at revision " <> show (snd st) <>
+                " from '" <> stateFile <> "'."
+            newTVarIO st
+
+    -- start asynchronous state writer thread
+    currentRevId <- liftIO $ snd <$> readTVarIO stVar
+    void $ managed $ Async.withAsync $ persistStateOnChange stVar currentRevId
 
     -- execute the initial request
-    runIORequest (appInitialRequest app) (applyActionIO stVar)
+    liftIO $ runIORequest (appInitialRequest app) (applyActionIO stVar)
 
     -- return event handlers
     return $ Handle (handleGetView stVar) (handleHandleEvent stVar)
   where
+    persistStateOnChange :: TVar (st, ProxyApi.RevisionId) -> ProxyApi.RevisionId -> IO ()
+    persistStateOnChange stVar currentRevId = do
+        st <- atomically $ do
+            st@(_, revId) <- readTVar stVar
+            guard (currentRevId /= revId)
+            return st
+        -- write file and persist state on a change
+        writeFileAsJson stateFile st `catch` handleIOError
+        persistStateOnChange stVar (snd st)
+      where
+        handleIOError :: IOError -> IO ()
+        handleIOError err = Logger.logInfo loggerH $
+            "Error when writing '" <> stateFile <> "': " <> show err
+
     applyAction :: TVar (st, ProxyApi.RevisionId) -> act -> STM (IORequest act)
     applyAction stVar act = do
         (st, revId) <- readTVar stVar
@@ -301,3 +357,45 @@ serverUrlScript externalApiUrl =
     "BLAZE_REACT_DEV_MODE_SERVER_URL = \"" <> externalApiUrl <> "\""
 
 
+
+------------------------------------------------------------------------------
+-- File storage
+------------------------------------------------------------------------------
+
+writeFileAsJson :: Aeson.ToJSON a => FilePath -> a -> IO ()
+writeFileAsJson file = writeFileRaceFree file . Aeson.encode
+
+readFileAsJson :: Aeson.FromJSON a => FilePath -> IO (Either String a)
+readFileAsJson file =
+    -- make sure that file is closed on exit
+    ( withBinaryFile file ReadMode $ \h -> do
+          content <- BL.hGetContents h
+          -- force the lazy file reading here, as it will be closed as soon as
+          -- we return from this do-block
+          evaluate (Aeson.eitherDecode' content)
+     ) `catch` handleIOError
+  where
+    handleIOError :: IOError -> IO (Either String a)
+    handleIOError = return . Left . show 
+
+
+-- | A probalistically race-free version for writing a state file.
+writeFileRaceFree :: FilePath -> BL.ByteString -> IO ()
+writeFileRaceFree stateFile content = do
+    -- compute random filename
+    suffix <- getRandomHex32BitNumber
+    let tempStateFile = stateFile <> "-" <> suffix
+    -- overwrite in an atomic fashion
+    writeAndMove tempStateFile `finally` tryRemoveFile tempStateFile
+  where
+    writeAndMove tempFile = do
+        withBinaryFile tempFile WriteMode $ \h -> BL.hPut h content
+        renameFile tempFile stateFile
+
+    tryRemoveFile file = do
+        doesExist <- doesFileExist file
+        when doesExist (removeFile file)
+
+    getRandomHex32BitNumber = do
+        i <- getStdRandom (randomR (0x10000000::Int,0xffffffff))
+        return $ showHex i ""

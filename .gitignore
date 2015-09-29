@@ -19,3 +19,4 @@ cabal.sandbox.config
 /reactjs-bindings/lib.js
 tags
 .DS_Store
+blaze-react-dev-mode_state.json

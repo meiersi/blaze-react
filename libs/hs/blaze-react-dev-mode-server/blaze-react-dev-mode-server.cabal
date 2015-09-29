@@ -22,7 +22,8 @@ library
       Blaze.Development.Server
 
   build-depends:
-      async
+      aeson
+    , async
     , base
     , bytestring
     , blaze-react-core
@@ -30,12 +31,14 @@ library
     , directory
     , filepath
     , lens
+    , managed
     , mtl
-    , wai
-    , warp
+    , random
     , servant-server
     , servant-blaze-react
     , stm
     , text
     , time
+    , wai
+    , warp
 
