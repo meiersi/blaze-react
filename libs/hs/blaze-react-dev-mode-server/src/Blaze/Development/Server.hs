@@ -7,14 +7,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 -- | A HTTP server that serves a blaze-react app to a proxy running in a
 -- browser.
 module Blaze.Development.Server
-  ( Config(..)
+  (
+    -- * Applications
+    RenderableApp(..)
+  , HtmlApp
+
+    -- * Starting a development server
+  , Config(..)
+  , defaultConfig
+
   , main
-  , defaultMain
 
     -- * Testing
   , testMain
@@ -38,12 +43,9 @@ import           Control.Monad.State
 
 import           Data.Maybe
 import           Data.Monoid
-import qualified Data.ByteString.Lazy         as BL
 import qualified Data.Text                    as T
-import qualified Data.Text.Encoding           as TE
 
 import           Network.Wai.Handler.Warp     (run)
-import           Network.Wai.Middleware.Cors  (simpleCors)
 
 import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
@@ -57,6 +59,27 @@ import qualified Text.Blaze.Html5.Attributes  as A
 
 
 ------------------------------------------------------------------------------
+-- Configuration
+------------------------------------------------------------------------------
+
+-- | A URL of an external stylesheet.
+type StylesheetUrl = T.Text
+
+data Config = Config
+    { cPort :: !Int
+      -- ^ The port that we should serve from.
+    , cStaticFilesDir :: !(Maybe FilePath)
+      -- ^ The directory containing the static files for the proxy. The
+      -- built-in files are served if 'Nothing' is given.
+    , cExternalServerUrl :: !T.Text
+      -- ^ The URL under which our server will be reachable by the client.
+    , cExternalStylesheets :: ![StylesheetUrl]
+      -- ^ A list of URL's pointing to external stylesheets that should be
+      -- loaded as well.
+    } deriving (Eq, Show)
+
+
+------------------------------------------------------------------------------
 -- Extended API definition
 ------------------------------------------------------------------------------
 
@@ -66,7 +89,7 @@ type GetIndexHtml = Get '[HTML] (H.Html ())
 type Api
     =    ProxyApi.Api
     :<|> GetIndexHtml
-    :<|> ("api" :> "proxy" :> Get '[PlainText] String)
+    :<|> ("api" :> "proxy" :> Get '[PlainText] T.Text)
     :<|> ("static" :> "js" :> "SERVER-URL.js" :> Get '[PlainText] T.Text)
     :<|> ("static" :> Raw)
 
@@ -75,95 +98,61 @@ api = Proxy
 
 
 ------------------------------------------------------------------------------
--- API serving
+-- 'main' functions
 ------------------------------------------------------------------------------
 
-
-indexHtml :: H.Html ()
-indexHtml =
-    -- FIXME (SM): add doctype once it is supported by H.Html
-    H.html
-      ( H.head
-         ( stylesheet bootstrapUrl <>
-           H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico" <>
-           foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
-         ) <>
-        H.body mempty <>
-        -- FIXME (SM): we should support for attributes without a value.
-        (script "runmain.js" H.! A.defer "defer" $ mempty)
-      )
-  where
-    stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href url
-    script  url = H.script H.! A.src ("static/js/" <> url)
-    script_ url = script url mempty
-    bootstrapUrl =
-        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
-
-
-serverUrlScript :: T.Text -> T.Text
-serverUrlScript externalApiUrl =
-    "BLAZE_REACT_DEV_MODE_SERVER_URL = \"" <> externalApiUrl <> "\""
-
-
-serveApi :: Config -> Handle -> Server Api
-serveApi config h =
-         (servePostEventApi :<|> serveViewApi)
-    :<|> return indexHtml
-    :<|> return ProxyApi.markdownDocs
-    :<|> return (serverUrlScript (cExternalApiUrl config))
-    -- FIXME (SM): will need to embed these files into library for
-    -- location-independent-deployment; or make this directory configurable.
-    :<|> serveDirectory (cStaticFilesDir config)
-  where
-    servePostEventApi ev      = liftIO $ hHandleEvent h ev
-    serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
-
-
-data Config = Config
-    { cPort           :: !Int
-      -- ^ The port that we should serve from.
-    , cStaticFilesDir :: !FilePath
-      -- ^ The directory containing the static files for the proxy.
-    , cExternalApiUrl :: !T.Text
-      -- ^ The URL under which our API will be reachable by the client.
+-- | The defualt configuration starting the server on port 8081 serving the
+-- given external stylesheets.
+defaultConfig :: [T.Text] -> Config
+defaultConfig externalStylesheets =
+    Config
+    { cPort                = 8081
+    , cExternalServerUrl   = "http://localhost:8081"
+    , cExternalStylesheets = externalStylesheets
+    , cStaticFilesDir      = Nothing
     }
 
-
-defaultMain :: HtmlApp st act -> IO ()
-defaultMain app = do
-    -- construct path to proxy-srcs
-    pwd <- getCurrentDirectory
-    let proxySrcs = pwd </> "libs/hs/blaze-react-dev-mode-server/static"
-    -- start app
-    main (Config 8081 proxySrcs "http://localhost:8081") app
-
+-- | Start a development server with the given configuation.
 main :: Config -> HtmlApp st act -> IO ()
 main config app = do
+    -- allocate logger
     loggerH <- Logger.newStdoutLogger
+
+    -- get static file serving directory
+    staticFilesDir <- case cStaticFilesDir config of
+        Just staticFilesDir -> return staticFilesDir
+        Nothing             -> do
+          pwd <- getCurrentDirectory
+          return $! pwd </> "libs/hs/blaze-react-dev-mode-server/static"
+
     -- create executable app instance
     h <- newHandle loggerH app
-    -- serve the app over http
+
+    -- announce that we serve the app over http
     Logger.logInfo loggerH $ unlines
-      [ "Server started at: " <> ourUrl
+      [ "Server started at: " <> T.unpack (cExternalServerUrl config)
       , "Press CTRL-C to stop it"
       ]
-    (run port $ simpleCors $ serve api $ serveApi config h)
-        `finally` Logger.logInfo loggerH "Server stopped."
+
+    -- actually serve the app
+    ( run port $ serve api $
+          serveApi staticFilesDir
+                   (cExternalServerUrl config)
+                   (cExternalStylesheets config)
+                   h
+     ) `finally` Logger.logInfo loggerH "Server stopped."
   where
     port    = cPort config
-    ourUrl  = "http://localhost:" <> show port
 
 
-instance MimeRender PlainText String where
-    mimeRender _ = BL.fromStrict . TE.encodeUtf8 . T.pack
-
-
-------------------------------------------------------------------------------
--- Testing the dummy HTML App
-------------------------------------------------------------------------------
-
+-- | Start a server with a dummy HTML application. We use this for testing
+-- purposes.
 testMain :: IO ()
-testMain = defaultMain dummyHtmlApp
+testMain =
+    main (defaultConfig [bootstrapUrl]) dummyHtmlApp
+  where
+    bootstrapUrl =
+       "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
 
 
 ------------------------------------------------------------------------------
@@ -181,6 +170,8 @@ data Handle = Handle
       -- application state.
     }
 
+-- | Create a new handle that allows running with a single instance of an
+-- HtmlApp.
 newHandle :: forall st act. Logger.Handle -> HtmlApp st act -> IO Handle
 newHandle loggerH (RenderableApp render app) = do
     -- allocate state reference
@@ -239,10 +230,6 @@ newHandle loggerH (RenderableApp render app) = do
         adapt pos (EI.EventHandler sel _mkAct) = (pos, EI.SomeEventSelector sel)
 
 
-------------------------------------------------------------------------------
--- Annotating traversable structures with their position
-------------------------------------------------------------------------------
-
 -- | Lookup the element at the given position.
 --
 -- TODO (SM): this code could be shortened using the fact that 'traversed'
@@ -270,3 +257,47 @@ traverseWithPosition f t =
         let !nextId' = succ nextId
         put nextId'
         return (f nextId x)
+
+
+------------------------------------------------------------------------------
+-- API serving
+------------------------------------------------------------------------------
+
+serveApi :: FilePath -> T.Text -> [StylesheetUrl] -> Handle -> Server Api
+serveApi staticFilesDir externalServerUrl stylesheetUrls h =
+         (servePostEventApi :<|> serveViewApi)
+    :<|> return (indexHtml stylesheetUrls)
+    :<|> return (T.pack ProxyApi.markdownDocs)
+    :<|> return (serverUrlScript externalServerUrl)
+    -- FIXME (SM): will need to embed these files into library for
+    -- location-independent-deployment; or make this directory configurable.
+    :<|> serveDirectory staticFilesDir
+  where
+    servePostEventApi ev      = liftIO $ hHandleEvent h ev
+    serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
+
+
+indexHtml :: [T.Text] -> H.Html ()
+indexHtml stylesheetUrls =
+    -- FIXME (SM): add doctype once it is supported by H.Html
+    H.html
+      ( H.head
+         ( foldMap (stylesheet . H.toValue) stylesheetUrls <>
+           H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico" <>
+           foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
+         ) <>
+        H.body mempty <>
+        -- FIXME (SM): we should support for attributes without a value.
+        (script "runmain.js" H.! A.defer "defer" $ mempty)
+      )
+  where
+    stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href url
+    script  url = H.script H.! A.src ("static/js/" <> url)
+    script_ url = script url mempty
+
+
+serverUrlScript :: T.Text -> T.Text
+serverUrlScript externalApiUrl =
+    "BLAZE_REACT_DEV_MODE_SERVER_URL = \"" <> externalApiUrl <> "\""
+
+

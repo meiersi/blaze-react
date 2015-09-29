@@ -32,7 +32,6 @@ library
     , lens
     , mtl
     , wai
-    , wai-cors
     , warp
     , servant-server
     , servant-blaze-react
