@@ -22,7 +22,7 @@ module Text.Blaze.Event
     -- , onBlur
 
     --   -- ** Form events
-    -- , onValueChange
+    , onValueChange
     -- , onCheckedChange
     -- , onSubmit
 
@@ -45,7 +45,7 @@ module Text.Blaze.Event
 
     ) where
 
--- import qualified Data.Text                 as T
+import qualified Data.Text                 as T
 
 import           Text.Blaze.Event.Keycode  (Keycode)
 import           Text.Blaze.Event.Charcode (Charcode)
@@ -107,18 +107,15 @@ onBlurM = onEvent . OnBlur
 
 -- Form events
 -------------------------------------------------------------------------------
+-}
 
 -- | The 'value' property of the target element has changed. The new value is
 -- passed as a parameter to the callback. This handler is supported for
 -- <input>, <textarea>, and <select> elements.
-onValueChange :: (T.Text -> act) -> Attribute act
-onValueChange mkAct = onValueChangeM $ return . mkAct
+onValueChange :: (T.Text -> act) -> Attribute (EventHandler act)
+onValueChange = onEvent OnValueChange
 
--- | A version of 'onValueChange' which allows I/O to be performed in the
--- callback.
-onValueChangeM :: (T.Text -> IO act) -> Attribute act
-onValueChangeM = onEvent . OnValueChange
-
+{-
 -- | The 'checked' property of the target element has changed. This handler is
 -- supported for <input> elements of type 'checkbox' or 'radio'.
 onCheckedChange :: (Bool -> act) -> Attribute act

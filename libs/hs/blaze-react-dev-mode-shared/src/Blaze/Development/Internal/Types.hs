@@ -18,9 +18,11 @@ module Blaze.Development.Internal.Types
 import           Blaze.Core
 
 import           Data.Monoid
+import qualified Data.Text                    as T
 
 import qualified Text.Blaze.Event             as E
 import qualified Text.Blaze.Html5             as H
+import qualified Text.Blaze.Html5.Attributes  as A
 import qualified Text.Blaze.Renderer.String
 
 
@@ -50,18 +52,31 @@ htmlToStringApp = fmap Text.Blaze.Renderer.String.renderHtml
 -- Dummy HTML App for testing
 ------------------------------------------------------------------------------
 
-dummyHtmlApp :: HtmlApp Integer ()
+type DummyState     = (Integer, T.Text)
+type DummyAction    = (Maybe T.Text)
+type DummyHtmlApp   = HtmlApp DummyState DummyAction
+type DummyStringApp = StringApp DummyState DummyAction
+
+dummyHtmlApp :: DummyHtmlApp
 dummyHtmlApp = RenderableApp
     { raApp = App
-        { appInitialState   = 0
+        { appInitialState   = (0, "change me")
         , appInitialRequest = mempty
-        , appApplyAction    = \_act numClicks -> (succ numClicks, mempty)
+        , appApplyAction    = \mbNewValue (numClicks, value) ->
+              case mbNewValue of
+                Nothing       -> ((succ numClicks, value), mempty)
+                Just newValue -> ((numClicks, newValue), mempty)
         }
-    , raRender = \numClicks ->
-        H.h1 H.! E.onClick' ()
-             $ "Number of clicks: " <> H.toHtml numClicks
+    , raRender = \(numClicks, value) ->
+        ( H.h1 H.! E.onClick' Nothing
+               $ "Number of clicks: " <> H.toHtml numClicks
+        ) <>
+        ( H.input H.! A.value (H.toValue value)
+                  H.! E.onValueChange Just
+        ) <>
+        ( H.p $ H.toHtml $ T.reverse value )
     }
 
-dummyStringApp :: StringApp Integer ()
+dummyStringApp :: DummyStringApp
 dummyStringApp = htmlToStringApp dummyHtmlApp
 

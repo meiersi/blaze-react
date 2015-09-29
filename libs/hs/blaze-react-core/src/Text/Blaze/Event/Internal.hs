@@ -26,7 +26,7 @@ import qualified Data.Aeson                as Aeson
 import qualified Data.Aeson.Types          as Aeson
 -- import qualified Data.ByteString           as BS
 import           Data.Monoid               ((<>))
--- import qualified Data.Text                 as T
+import qualified Data.Text                 as T
 -- import           Data.Time.Clock           (UTCTime)
 import           Data.Typeable             (Typeable )
 import qualified Data.Vector               as V
@@ -103,7 +103,7 @@ data EventSelector evData where
     -- -- seems to be discouraged in ReactJS (doing this throws a warning).
     -- -- Therefore I'm removing OnSelectedChange in favour of using OnValueChange
     -- -- on the <select> element.
-    -- OnValueChange   :: EventSelector T.Text
+    OnValueChange   :: EventSelector T.Text
     -- OnCheckedChange :: EventSelector Bool
     -- OnSubmit        :: EventSelector ()
 
@@ -179,14 +179,16 @@ instance FromJSON MousePosition
 
 eventDataToJson :: EventSelector evData -> evData -> Aeson.Value
 eventDataToJson sel = case sel of
-    OnKeyDown _ -> toJSON
-    OnClick _   -> toJSON
+    OnKeyDown _   -> toJSON
+    OnValueChange -> toJSON
+    OnClick _     -> toJSON
 
 eventDataParseJson
     :: EventSelector evData -> Aeson.Value -> Aeson.Parser evData
 eventDataParseJson sel = case sel of
-    OnKeyDown _ -> parseJSON
-    OnClick _   -> parseJSON
+    OnKeyDown _   -> parseJSON
+    OnValueChange -> parseJSON
+    OnClick _     -> parseJSON
 
 instance ToJSON (Event evData) where
     toJSON (Event sel evData) = toJSON (toJSON sel, eventDataToJson sel evData)
@@ -211,6 +213,7 @@ instance FromJSON SomeEvent where
 instance ToJSON (EventSelector evData) where
     toJSON sel = case sel of
         OnKeyDown keys  -> tagged 0 [toJSON keys]
+        OnValueChange   -> tagged 5 []
         OnClick buttons -> tagged 8 [toJSON buttons]
       where
         tagged :: Int -> [Aeson.Value] -> Aeson.Value
@@ -233,11 +236,15 @@ instance FromJSON SomeEventSelector where
                   "Expected length " <> show l <>
                   ", got " <> show (V.length arr) <> "."
 
+            lift0 :: a -> Aeson.Parser a
+            lift0 v = check 1 (Just (return v))
+
             lift1 :: FromJSON a => (a -> b) -> Aeson.Parser b
             lift1 constr = check 2 (fmap constr <$> pos 1)
 
         case (tag :: Int) of
           0 -> lift1 (SomeEventSelector . OnKeyDown)
+          5 -> lift0 (SomeEventSelector OnValueChange)
           8 -> lift1 (SomeEventSelector . OnClick)
           _ -> fail $ "Unexpected tag " <> show tag
 
@@ -264,9 +271,10 @@ instance FromJSON MouseButton where
 someEventData :: SomeEvent -> EventSelector evData -> Maybe evData
 someEventData (SomeEvent (Event sel evData)) sel' =
     case (sel, sel') of
-      (OnKeyDown x, OnKeyDown x') -> ifEqual x x' evData
-      (OnClick x,   OnClick x')   -> ifEqual x x' evData
-      _                           -> Nothing
+      (OnKeyDown x,   OnKeyDown x')  -> ifEqual x x' evData
+      (OnValueChange, OnValueChange) -> Just evData
+      (OnClick x,     OnClick x')    -> ifEqual x x' evData
+      _                              -> Nothing
   where
     ifEqual :: Eq a => a -> a -> b -> Maybe b
     ifEqual a a' b = guard (a == a') >> return b

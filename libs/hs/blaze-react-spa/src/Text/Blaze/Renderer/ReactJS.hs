@@ -323,10 +323,10 @@ registerEventHandler (EventHandler sel mkAct) props = case sel of
     -- OnBlur mkAct             -> register False OnBlurE        $ \_eventRef ->
     --   return $ Right $ HandleEvent mkAct
 
-    -- OnValueChange mkAct      -> register True  OnChangeE      $ \eventRef ->
-    --   runEitherT $ do
-    --     valueRef <- lookupProp "value" =<< lookupProp "target" eventRef
-    --     return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
+    OnValueChange            -> register True  OnChangeE      $ \eventRef ->
+      runEitherT $ do
+        valueRef <- lookupProp "value" =<< lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct $ Foreign.fromJSString valueRef
     -- OnCheckedChange mkAct    -> register False OnChangeE      $ \eventRef ->
     --   runEitherT $ do
     --     valueRef <- lookupProp "checked" =<< lookupProp "target" eventRef
