@@ -22,7 +22,8 @@ library
       Blaze.Development.Server
 
   build-depends:
-      base
+      async
+    , base
     , bytestring
     , blaze-react-core
     , blaze-react-dev-mode-shared

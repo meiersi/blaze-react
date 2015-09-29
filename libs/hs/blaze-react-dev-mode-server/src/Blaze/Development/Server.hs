@@ -27,6 +27,8 @@ import           Blaze.Development.Internal.Types
                  )
 import qualified Blaze.Development.ProxyApi        as ProxyApi
 
+import           Control.Concurrent           (threadDelay)
+import qualified Control.Concurrent.Async     as Async
 import           Control.Concurrent.STM.TVar  (TVar, newTVarIO, readTVar, writeTVar)
 import           Control.Exception            (finally)
 import           Control.Lens                 (preview, _Left)
@@ -34,6 +36,7 @@ import           Control.Monad
 import           Control.Monad.STM            (STM, atomically)
 import           Control.Monad.State
 
+import           Data.Maybe
 import           Data.Monoid
 import qualified Data.ByteString.Lazy         as BL
 import qualified Data.Text                    as T
@@ -215,11 +218,17 @@ newHandle loggerH (RenderableApp render app) = do
         logInfo' msg = return $ performIO_ (Logger.logInfo loggerH msg)
 
     -- function to handle a 'GetView' mirror-request
-    handleGetView stVar mbClientRevId = atomically $ do
-        (st, revId) <- readTVar stVar
-        -- only return an update once the revision-id has changed
-        guard (mbClientRevId /= Just revId)
-        return $ ProxyApi.View revId  (traverseWithPosition adapt (render st))
+    handleGetView stVar mbClientRevId =
+        -- TODO (SM): replace 20s teimout with a configurable one and do not
+        -- return full data
+        Async.withAsync (threadDelay (20 * 1000000)) $ \timeout ->
+            atomically $ do
+                (st, revId) <- readTVar stVar
+                timedOut <- isJust <$> Async.pollSTM timeout
+                -- only return an update after a timeout or when the revision-id
+                -- has changed
+                guard (timedOut || mbClientRevId /= Just revId)
+                return $ ProxyApi.View revId  (traverseWithPosition adapt (render st))
       where
         adapt pos (EI.EventHandler sel _mkAct) = (pos, EI.SomeEventSelector sel)
 
