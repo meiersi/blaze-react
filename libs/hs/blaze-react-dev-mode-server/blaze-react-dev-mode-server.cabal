@@ -27,6 +27,8 @@ library
     , bytestring
     , blaze-react-core
     , blaze-react-dev-mode-shared
+    , directory
+    , filepath
     , lens
     , mtl
     , wai

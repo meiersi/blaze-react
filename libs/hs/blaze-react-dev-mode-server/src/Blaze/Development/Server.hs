@@ -48,6 +48,9 @@ import           Network.Wai.Middleware.Cors  (simpleCors)
 import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
 
+import           System.Directory             (getCurrentDirectory)
+import           System.FilePath              ((</>))
+
 import qualified Text.Blaze.Event.Internal    as EI
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
@@ -65,7 +68,7 @@ type Api
     :<|> GetIndexHtml
     :<|> ("api" :> "proxy" :> Get '[PlainText] String)
     :<|> ("static" :> "js" :> "SERVER-URL.js" :> Get '[PlainText] T.Text)
-    :<|> ("static" :> "js" :> Raw)
+    :<|> ("static" :> Raw)
 
 api :: Proxy Api
 api = Proxy
@@ -82,6 +85,7 @@ indexHtml =
     H.html
       ( H.head
          ( stylesheet bootstrapUrl <>
+           H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico" <>
            foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
          ) <>
         H.body mempty <>
@@ -126,10 +130,12 @@ data Config = Config
 
 
 defaultMain :: HtmlApp st act -> IO ()
-defaultMain =
-    main (Config 8081 proxySrcs "http://localhost:8081")
-  where
-    proxySrcs = "/Users/simon/repositories/github.com/elevence/blaze-react/libs/hs/blaze-react-dev-mode-server/js-proxy-src"
+defaultMain app = do
+    -- construct path to proxy-srcs
+    pwd <- getCurrentDirectory
+    let proxySrcs = pwd </> "libs/hs/blaze-react-dev-mode-server/static"
+    -- start app
+    main (Config 8081 proxySrcs "http://localhost:8081") app
 
 main :: Config -> HtmlApp st act -> IO ()
 main config app = do
