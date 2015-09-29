@@ -32,6 +32,7 @@ import           Blaze.Development.Internal.Types
                  ( RenderableApp(..), HtmlApp, dummyHtmlApp
                  )
 import qualified Blaze.Development.ProxyApi        as ProxyApi
+import qualified Blaze.Development.Server.Assets   as Assets
 
 import           Control.Concurrent           (threadDelay)
 import qualified Control.Concurrent.Async     as Async
@@ -46,13 +47,15 @@ import           Control.Monad.STM            (STM, atomically)
 import           Control.Monad.State
 
 import qualified Data.Aeson                   as Aeson
+import qualified Data.ByteString              as B
 import qualified Data.ByteString.Lazy         as BL
 import           Data.Maybe
 import           Data.Monoid
 import qualified Data.Text                    as T
 
-import           Network.Wai.Handler.Warp     (run)
-import           Numeric                      (showHex)
+import qualified Network.Wai.Application.Static  as Static
+import           Network.Wai.Handler.Warp        (run)
+import           Numeric                         (showHex)
 
 import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
@@ -156,8 +159,7 @@ main config app = do
         -- actually serve the app
         liftIO $
           ( run port $ serve api $
-                serveApi staticFilesDir
-                         (cExternalServerUrl config)
+                serveApi (cExternalServerUrl config)
                          (cExternalStylesheets config)
                          h
            ) `finally` Logger.logInfo loggerH "Server stopped."
@@ -319,23 +321,20 @@ traverseWithPosition f t =
 -- API serving
 ------------------------------------------------------------------------------
 
-serveApi :: FilePath -> T.Text -> [StylesheetUrl] -> Handle -> Server Api
-serveApi staticFilesDir externalServerUrl stylesheetUrls h =
+serveApi :: T.Text -> [StylesheetUrl] -> Handle -> Server Api
+serveApi externalServerUrl stylesheetUrls h =
          (servePostEventApi :<|> serveViewApi)
     :<|> return (indexHtml stylesheetUrls)
     :<|> return (T.pack ProxyApi.markdownDocs)
     :<|> return (serverUrlScript externalServerUrl)
-    -- FIXME (SM): will need to embed these files into library for
-    -- location-independent-deployment; or make this directory configurable.
-    :<|> serveDirectory staticFilesDir
+    :<|> serveStaticFiles Assets.staticFiles
   where
     servePostEventApi ev      = liftIO $ hHandleEvent h ev
     serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
 
-
 indexHtml :: [T.Text] -> H.Html ()
 indexHtml stylesheetUrls =
-    -- FIXME (SM): add doctype once it is supported by H.Html
+    -- TODO (SM): add doctype once it is supported by H.Html
     H.html
       ( H.head
          ( foldMap (stylesheet . H.toValue) stylesheetUrls <>
@@ -351,6 +350,8 @@ indexHtml stylesheetUrls =
     script  url = H.script H.! A.src ("static/js/" <> url)
     script_ url = script url mempty
 
+serveStaticFiles :: [(FilePath, B.ByteString)] -> Server Raw
+serveStaticFiles = Static.staticApp . Static.embeddedSettings
 
 serverUrlScript :: T.Text -> T.Text
 serverUrlScript externalApiUrl =

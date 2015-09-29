@@ -21,6 +21,9 @@ library
   exposed-modules:
       Blaze.Development.Server
 
+  other-modules:
+      Blaze.Development.Server.Assets
+
   build-depends:
       aeson
     , async
@@ -30,6 +33,7 @@ library
     , blaze-react-dev-mode-shared
     , directory
     , filepath
+    , file-embed
     , lens
     , managed
     , mtl
@@ -40,5 +44,6 @@ library
     , text
     , time
     , wai
+    , wai-app-static
     , warp
 
