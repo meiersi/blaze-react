@@ -18,7 +18,7 @@ module Blaze.Development.Server
     -- * Starting a development server
   , Config(..)
   , defaultConfig
-  , loadStylesheet
+  , loadStaticFiles
 
   , main
 
@@ -35,6 +35,7 @@ import           Blaze.Development.Internal.Types
 import qualified Blaze.Development.ProxyApi        as ProxyApi
 import qualified Blaze.Development.Server.Assets   as Assets
 
+import           Control.Arrow                ((&&&), second)
 import           Control.Concurrent           (threadDelay)
 import qualified Control.Concurrent.Async     as Async
 import           Control.Concurrent.STM.TVar
@@ -62,9 +63,10 @@ import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
 
 import           System.Directory
-                 ( renameFile, removeFile, doesFileExist
+                 ( renameFile, removeFile, doesFileExist, doesDirectoryExist
+                 , getDirectoryContents
                  )
-import           System.FilePath              ((</>), takeFileName)
+import           System.FilePath              ((</>), takeExtension)
 import           System.IO
                  ( withBinaryFile, IOMode(ReadMode, WriteMode)
                  )
@@ -93,10 +95,9 @@ data Config = Config
     , cExternalStylesheets :: ![StylesheetUrl]
       -- ^ A list of URL's pointing to stylesheets that should be
       -- loaded from an external server.
-    , cInternalStylesheets :: ![(FilePath, B.ByteString)]
+    , cStaticFiles :: ![(FilePath, B.ByteString)]
       -- ^ A list of pairs of the name and the content of additional
-      -- stylesheets that should be served by the development server below
-      -- '/static'.
+      -- static files that should be served from '/static'.
     , cStateFile :: !FilePath
       -- ^ Path to the file that should be used to persist the application
       -- state.
@@ -128,20 +129,15 @@ api = Proxy
 -- | The defualt configuration starting the server on port 8081 serving the
 -- given external stylesheets.
 defaultConfig :: [T.Text] -> [(FilePath, B.ByteString)] -> Config
-defaultConfig externalStylesheets internalStylesheets =
+defaultConfig externalStylesheets staticFiles =
     Config
     { cPort                = 8081
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
-    , cInternalStylesheets = internalStylesheets
+    , cStaticFiles         = staticFiles
     , cStateFile           = "blaze-react-dev-mode_state.json"
     }
 
--- | Load a stylesheet from a local filepath and prepare it for inclusion into
--- the internal stylesheets with just its filename. If the stylesheets cannot
--- be found and 'IOError' is raised.
-loadStylesheet :: FilePath -> IO (FilePath, B.ByteString)
-loadStylesheet file = (,) (takeFileName file) <$> B.readFile file
 
 -- | Start a development server with the given configuation.
 main :: (Aeson.ToJSON st, Aeson.FromJSON st) => Config -> HtmlApp st act -> IO ()
@@ -169,7 +165,7 @@ main config app = do
 
         -- actually serve the app
         liftIO $
-          (run port $ serve api $ serveApi config h) 
+          (run port $ serve api $ serveApi config h)
             `finally` Logger.logInfo loggerH "Server stopped."
   where
     port    = cPort config
@@ -335,7 +331,7 @@ serveApi config h =
     :<|> return (indexHtml config)
     :<|> return (T.pack ProxyApi.markdownDocs)
     :<|> return (serverUrlScript (cExternalServerUrl config))
-    :<|> serveStaticFiles (Assets.staticFiles <> cInternalStylesheets config)
+    :<|> serveStaticFiles (Assets.staticFiles <> cStaticFiles config)
   where
     servePostEventApi ev      = liftIO $ hHandleEvent h ev
     serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
@@ -345,10 +341,8 @@ indexHtml config =
     -- TODO (SM): add doctype once it is supported by H.Html
     H.html $ mconcat
       [ H.head $ mconcat
-         [ foldMap (stylesheet . H.toValue) 
-                   (cExternalStylesheets config)
-         , foldMap (stylesheet . H.toValue . ("static" </>) . fst) 
-                   (cInternalStylesheets config)
+         [ foldMap stylesheet (cExternalStylesheets config)
+         , foldMap (stylesheet . ("static" </>)) staticStylesheets
          , H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico"
          , foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
          ]
@@ -357,9 +351,13 @@ indexHtml config =
       , script "runmain.js" H.! A.defer "defer" $ mempty
       ]
   where
-    stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href url
+    stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href (H.toValue url)
     script  url = H.script H.! A.src ("static/js/" <> url)
     script_ url = script url mempty
+
+    staticStylesheets =
+        filter ((".css" ==) . takeExtension) (fst <$> cStaticFiles config)
+
 
 serveStaticFiles :: [(FilePath, B.ByteString)] -> Server Raw
 serveStaticFiles = Static.staticApp . Static.embeddedSettings
@@ -388,7 +386,7 @@ readFileAsJson file =
      ) `catch` handleIOError
   where
     handleIOError :: IOError -> IO (Either String a)
-    handleIOError = return . Left . show 
+    handleIOError = return . Left . show
 
 
 -- | A probalistically race-free version for writing a state file.
@@ -411,3 +409,27 @@ writeFileRaceFree stateFile content = do
     getRandomHex32BitNumber = do
         i <- getStdRandom (randomR (0x10000000::Int,0xffffffff))
         return $ showHex i ""
+
+-- | Load the additional static files from a local directory.
+loadStaticFiles :: FilePath -> IO [(FilePath, B.ByteString)]
+loadStaticFiles topDir =
+    -- Code copied from
+    -- <http://hackage.haskell.org/package/file-embed-0.0.9/docs/src/Data-FileEmbed.html#embedFile>
+    fileList' topDir ""
+  where
+    notHidden :: FilePath -> Bool
+    notHidden ('.':_) = False
+    notHidden _       = True
+
+    liftPair2 :: Monad m => (a, m b) -> m (a, b)
+    liftPair2 (a, b) = b >>= \b' -> return (a, b')
+
+    fileList' :: FilePath -> FilePath -> IO [(FilePath, B.ByteString)]
+    fileList' realTop top = do
+        allContents <- filter notHidden <$> getDirectoryContents (realTop </> top)
+        let all' = map ((top </>) &&& (\x -> realTop </> top </> x)) allContents
+        files <- filterM (doesFileExist . snd) all' >>=
+                 mapM (liftPair2 . second B.readFile)
+        dirs <- filterM (doesDirectoryExist . snd) all' >>=
+                mapM (fileList' realTop . fst)
+        return $ concat $ files : dirs
