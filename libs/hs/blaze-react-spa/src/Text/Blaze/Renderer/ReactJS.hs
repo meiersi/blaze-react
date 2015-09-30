@@ -107,8 +107,7 @@ fromChoiceString EmptyChoiceString = id
 --
 render
     :: forall act.
-       Show act
-    => (act -> Bool -> IO ())
+       (act -> Bool -> IO ())
        -- ^ Callback for actions raised by event handlers.
     -> Markup (EventHandler act)
     -> IO ReactJSNodes
@@ -202,8 +201,7 @@ toJSRef_hashMap hashmap = fmap castRef $ do
 
 
 renderHtml
-    :: Show act
-    => (act -> Bool -> IO ())
+    :: (act -> Bool -> IO ())
     -> Markup (EventHandler act)
     -> IO (ReactJSNode)
 renderHtml handleAction html = do

@@ -43,6 +43,7 @@ main = do
     postEvent :<|> getView = client ProxyApi.api serverUrl
 
     serverUrl  = BaseUrl Http "localhost" 8081
+
     -- TODO (SM): show the errors once they do not use 'undefined' in the
     -- 'ghcjs-servant-client' package anymore.
     showErrors = bimapEitherT (const "Some ServantError.") id

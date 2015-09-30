@@ -10,7 +10,7 @@ import           Blaze.Core
 import           Blaze.ReactJS.Base
 
 import           Control.Applicative
-import           Control.Concurrent        (threadDelay, forkIO)
+import           Control.Concurrent        (threadDelay)
 import           Control.Exception         (bracket)
 import           Control.Monad
 
@@ -18,6 +18,7 @@ import           Data.IORef
 import           Data.Maybe            (fromMaybe)
 import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
+import           Data.Time.Clock       (getCurrentTime)
 
 import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
 import qualified GHCJS.Foreign         as Foreign
@@ -99,8 +100,7 @@ atAnimationFrame io = do
 
 -- | Run an application that is indifferent to the hash-fragment of the path.
 runApp'
-    :: (Show act)
-    => (st -> H.Html (E.EventHandler act))
+    :: (st -> H.Html (E.EventHandler act))
     -> App st act ((act -> IO ()) -> IO ())
     -> IO ()
 runApp' render0 app0 =
@@ -116,8 +116,7 @@ runApp' render0 app0 =
       }
 
 runApp
-    :: (Show act)
-    => (st -> WindowState (Either WindowAction act))
+    :: (st -> WindowState (Either WindowAction act))
     -> App st (Either WindowAction act) ((act -> IO ()) -> IO ())
     -> IO ()
 runApp renderState (App initialState initialRequest apply) = do
@@ -154,13 +153,15 @@ runApp renderState (App initialState initialRequest apply) = do
 
     -- create render callback for initialState
     let handleAction requireSyncRedraw action = do
-            putStrLn $ "runApp - applying action: " ++ show action ++
-                       (if requireSyncRedraw then " (sync redraw)" else "")
+            now <- getCurrentTime
+            putStrLn $
+                show now ++ " - runApp - applied action" ++
+                (if requireSyncRedraw then " (with sync redraw)" else "")
             request <- atomicModifyIORef' stateVar (\state -> apply action state)
             handleRequest request
             if requireSyncRedraw then syncRedraw else asyncRedraw
         handleRequest request =
-            void $ forkIO $ request (handleAction False . Right)
+            void $ request (handleAction False . Right)
 
 
         mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
