@@ -17,10 +17,7 @@ import qualified Blaze.Development.ProxyApi         as ProxyApi
 
 import           Control.Monad.Trans.Either   (bimapEitherT)
 
-import           Data.Monoid
-
-import qualified Text.Blaze.Event             as E
-import qualified Text.Blaze.Html5             as H
+import qualified Data.Text                    as T
 
 import           Servant.API
 import           Servant.Client
@@ -38,7 +35,7 @@ main = do
           , Client.hPostEvent = showErrors . postEvent
           , Client.hGetView   = showErrors . getView
           }
-        clientApp = Client.clientAppFor serverH
+        clientApp = Client.clientAppFor serverH (T.pack (show serverUrl))
 
     -- run client application using React.js
     runApp' (raRender clientApp) (runIORequest <$> raApp clientApp)

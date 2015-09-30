@@ -12,7 +12,6 @@
 -- > KeyUp Keycode.shift
 module Text.Blaze.Event.Keycode
     ( Keycode(..)
-    , unKeycode
 
       -- * Constructors
     , backspace      , tab         , enter          , shift

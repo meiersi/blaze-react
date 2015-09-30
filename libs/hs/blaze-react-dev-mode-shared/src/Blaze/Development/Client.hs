@@ -27,13 +27,14 @@ import           Blaze.Development.Internal.Types
 import           Control.Applicative
 import           Control.Concurrent           (threadDelay)
 import           Control.Lens
-                 ( (<%=), (.=), preuse, _Just, _1, makeLenses
+                 ( (<%=), (.=), (^.), makeLenses
                  )
 import           Control.Monad
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Trans.Either   (EitherT, runEitherT)
 
 import           Data.Monoid
+import qualified Data.Text                  as T
 import           Data.Time.Clock
                  ( UTCTime, addUTCTime, diffUTCTime, getCurrentTime )
 
@@ -58,6 +59,7 @@ type ViewState = Maybe (RevId, H.Html (Pos, E.SomeEventSelector))
 data State = State
     { _sViewState         :: !ViewState
     , _sNumFailedAttempts :: !Int
+    , _sServerName        :: !T.Text
     }
 
 -- | Actions that happen in the mirror application.
@@ -92,8 +94,13 @@ makeLenses ''State
 render :: State -> H.Html (E.EventHandler Action)
 render st = case _sViewState st of
     Nothing            -> "loading..."
-    Just (revId, html) -> toAction revId <$> html
+    Just (revId, html) ->
+      (if _sNumFailedAttempts st == 0 then mempty else pollingMsg) <>
+      (toAction revId <$> html)
   where
+    pollingMsg =
+        "Could not reach '" <> H.toHtml (st ^. sServerName) <> "': polling..."
+
     toAction revId (pos, EI.SomeEventSelector sel) =
         EI.EventHandler sel $ \evData -> HandleEventA $
             ProxyApi.Event revId pos (EI.SomeEvent (EI.Event sel evData))
@@ -107,11 +114,12 @@ render st = case _sViewState st of
 --
 -- TODO (SM): this is more like mirroring a session over an unreliable channel
 -- => consider a rename.
-app :: App State Action [Request]
-app = App
+app :: T.Text -> App State Action [Request]
+app serverName = App
     { appInitialState   = State
         { _sViewState         = Nothing
         , _sNumFailedAttempts = 0
+        , _sServerName        = serverName
         }
     , appInitialRequest = [GetReflectionR Nothing Nothing]
     , appApplyAction    = \act -> runApplyActionM $ do
@@ -125,11 +133,10 @@ app = App
                 sNumFailedAttempts .= 0
                 submitRequest [GetReflectionR (Just now) (Just revId)]
               Nothing -> do
-                mbCurrentRev      <- preuse (sViewState . _Just . _1)
                 numFailedAttempts <- sNumFailedAttempts <%= succ
-                let backoff   = 0.001 * (2 ^^ numFailedAttempts)
+                let backoff   = min 0.5e6 (0.001 * (1.1 ^^ numFailedAttempts))
                     nextFetch = backoff `addUTCTime` now
-                submitRequest [GetReflectionR (Just nextFetch) mbCurrentRev]
+                submitRequest [GetReflectionR (Just nextFetch) Nothing]
     }
 
 
@@ -137,7 +144,7 @@ app = App
 -- IO Based handling of the requests
 ------------------------------------------------------------------------------
 
--- |
+-- | The monad for executing a client request.
 type ClientM = EitherT String IO
 
 -- | A 'Handle' for a remote proxy-API server and logging support
@@ -148,15 +155,15 @@ data Handle = Handle
     }
 
 
-clientAppFor :: Handle -> HtmlApp State Action
-clientAppFor h = RenderableApp
-    { raApp    = fmap (foldMap runClientRequest) app
+clientAppFor :: Handle -> T.Text -> HtmlApp State Action
+clientAppFor h serverName = RenderableApp
+    { raApp    = fmap (foldMap runClientRequest) (app serverName)
     , raRender = render
     }
   where
     runClientRequest :: Request -> IORequest Action
     runClientRequest = \case
-        -- FIXME (SM): concurrently leads to unintended behaviour here, as it
+        -- FIXME (SM): 'concurrently' leads to unintended behaviour here, as it
         -- will fork an independent thread of execution that is not torn down
         -- when the 'main' function finishes. We'll need to use Async with
         -- linking in the IORequest type to ensure that we do not leak
@@ -188,49 +195,3 @@ clientAppFor h = RenderableApp
       where
         logError ctxt err =
             Logger.logInfo (hLogger h) $ ctxt <> ": " <> show err
-
-
-
-------------------------------------------------------------------------------
---- TEST section for faster development of
-------------------------------------------------------------------------------
-
-
-
-runApp'
-    :: (Show act)
-    => (st -> WindowState act)
-    -> App st act ((act -> IO ()) -> IO ())
-    -> IO ()
-runApp' = error ""
-
-
-main' :: IO ()
-main' = do
-    -- create logger
-    loggerH <- Logger.newStdoutLogger
-    -- TODO (SM): extract server-url from environment
-
-    -- define client application
-    let -- serverUrl = BaseUrl Http "localhost" 8081
-        serverH   = Handle
-          { hLogger    = loggerH
-          , hPostEvent = error "showErrors . postEvent"
-          , hGetView   = error "showErrors . getView"
-          }
-        clientApp = clientAppFor serverH
-
-        render = (`WindowState` "") . raRender clientApp
-
-    -- run client application using React.js
-    runApp' render (runIORequest <$> raApp clientApp)
-  where
-    -- postEvent :<|> getView = client ProxyApi.api serverUrl
-    -- showErrors = bimapEitherT show id
-
-
-data WindowState act = WindowState
-    { _wsBody  :: !(H.Html (E.EventHandler act))
-    , _wsPath  :: !String
-      -- TODO (asayers): _wsTitle :: T.Text
-    }

@@ -75,5 +75,6 @@ executable dev-mode-client
     , either
     , ghcjs-servant-client
     , servant
+    , text
 
 
