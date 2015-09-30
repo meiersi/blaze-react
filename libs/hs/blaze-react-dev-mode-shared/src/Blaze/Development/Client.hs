@@ -134,7 +134,7 @@ app serverName = App
                 submitRequest [GetReflectionR (Just now) (Just revId)]
               Nothing -> do
                 numFailedAttempts <- sNumFailedAttempts <%= succ
-                let backoff   = min 0.5e6 (0.001 * (1.1 ^^ numFailedAttempts))
+                let backoff   = min 1 (0.1 * (1.05 ^^ numFailedAttempts))
                     nextFetch = backoff `addUTCTime` now
                 submitRequest [GetReflectionR (Just nextFetch) Nothing]
     }
