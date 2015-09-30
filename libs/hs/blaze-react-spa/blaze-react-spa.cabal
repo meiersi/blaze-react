@@ -73,6 +73,7 @@ executable dev-mode-client
     , blaze-react-spa
     , blaze-react-dev-mode-shared
     , either
+    , ghcjs-base
     , ghcjs-servant-client
     , servant
     , text
