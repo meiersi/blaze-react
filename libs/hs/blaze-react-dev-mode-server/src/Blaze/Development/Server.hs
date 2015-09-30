@@ -18,6 +18,7 @@ module Blaze.Development.Server
     -- * Starting a development server
   , Config(..)
   , defaultConfig
+  , loadStylesheet
 
   , main
 
@@ -61,9 +62,9 @@ import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
 
 import           System.Directory
-                 ( getCurrentDirectory, renameFile, removeFile, doesFileExist
+                 ( renameFile, removeFile, doesFileExist
                  )
-import           System.FilePath              ((</>))
+import           System.FilePath              ((</>), takeFileName)
 import           System.IO
                  ( withBinaryFile, IOMode(ReadMode, WriteMode)
                  )
@@ -84,14 +85,18 @@ type StylesheetUrl = T.Text
 data Config = Config
     { cPort :: !Int
       -- ^ The port that we should serve from.
-    , cStaticFilesDir :: !(Maybe FilePath)
-      -- ^ The directory containing the static files for the proxy. The
-      -- built-in files are served if 'Nothing' is given.
+    -- , cStaticFilesDir :: !(Maybe FilePath)
+    --   -- ^ The directory containing the static files for the proxy. The
+    --   -- built-in files are served if 'Nothing' is given.
     , cExternalServerUrl :: !T.Text
       -- ^ The URL under which our server will be reachable by the client.
     , cExternalStylesheets :: ![StylesheetUrl]
-      -- ^ A list of URL's pointing to external stylesheets that should be
-      -- loaded as well.
+      -- ^ A list of URL's pointing to stylesheets that should be
+      -- loaded from an external server.
+    , cInternalStylesheets :: ![(FilePath, B.ByteString)]
+      -- ^ A list of pairs of the name and the content of additional
+      -- stylesheets that should be served by the development server below
+      -- '/static'.
     , cStateFile :: !FilePath
       -- ^ Path to the file that should be used to persist the application
       -- state.
@@ -122,15 +127,21 @@ api = Proxy
 
 -- | The defualt configuration starting the server on port 8081 serving the
 -- given external stylesheets.
-defaultConfig :: [T.Text] -> Config
-defaultConfig externalStylesheets =
+defaultConfig :: [T.Text] -> [(FilePath, B.ByteString)] -> Config
+defaultConfig externalStylesheets internalStylesheets =
     Config
     { cPort                = 8081
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
-    , cStaticFilesDir      = Nothing
+    , cInternalStylesheets = internalStylesheets
     , cStateFile           = "blaze-react-dev-mode_state.json"
     }
+
+-- | Load a stylesheet from a local filepath and prepare it for inclusion into
+-- the internal stylesheets with just its filename. If the stylesheets cannot
+-- be found and 'IOError' is raised.
+loadStylesheet :: FilePath -> IO (FilePath, B.ByteString)
+loadStylesheet file = (,) (takeFileName file) <$> B.readFile file
 
 -- | Start a development server with the given configuation.
 main :: (Aeson.ToJSON st, Aeson.FromJSON st) => Config -> HtmlApp st act -> IO ()
@@ -138,12 +149,12 @@ main config app = do
     -- allocate logger
     loggerH <- Logger.newStdoutLogger
 
-    -- get static file serving directory
-    staticFilesDir <- case cStaticFilesDir config of
-        Just staticFilesDir -> return staticFilesDir
-        Nothing             -> do
-          pwd <- getCurrentDirectory
-          return $! pwd </> "libs/hs/blaze-react-dev-mode-server/static"
+    -- -- get static file serving directory
+    -- staticFilesDir <- case cStaticFilesDir config of
+    --     Just staticFilesDir -> return staticFilesDir
+    --     Nothing             -> do
+    --       pwd <- getCurrentDirectory
+    --       return $! pwd </> "libs/hs/blaze-react-dev-mode-server/static"
 
     -- destroy all allocated resources when exiting here
     runManaged $ do
@@ -158,11 +169,8 @@ main config app = do
 
         -- actually serve the app
         liftIO $
-          ( run port $ serve api $
-                serveApi (cExternalServerUrl config)
-                         (cExternalStylesheets config)
-                         h
-           ) `finally` Logger.logInfo loggerH "Server stopped."
+          (run port $ serve api $ serveApi config h) 
+            `finally` Logger.logInfo loggerH "Server stopped."
   where
     port    = cPort config
 
@@ -171,7 +179,7 @@ main config app = do
 -- purposes.
 testMain :: IO ()
 testMain =
-    main (defaultConfig [bootstrapUrl]) dummyHtmlApp
+    main (defaultConfig [bootstrapUrl] []) dummyHtmlApp
   where
     bootstrapUrl =
        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
@@ -321,30 +329,33 @@ traverseWithPosition f t =
 -- API serving
 ------------------------------------------------------------------------------
 
-serveApi :: T.Text -> [StylesheetUrl] -> Handle -> Server Api
-serveApi externalServerUrl stylesheetUrls h =
+serveApi :: Config -> Handle -> Server Api
+serveApi config h =
          (servePostEventApi :<|> serveViewApi)
-    :<|> return (indexHtml stylesheetUrls)
+    :<|> return (indexHtml config)
     :<|> return (T.pack ProxyApi.markdownDocs)
-    :<|> return (serverUrlScript externalServerUrl)
-    :<|> serveStaticFiles Assets.staticFiles
+    :<|> return (serverUrlScript (cExternalServerUrl config))
+    :<|> serveStaticFiles (Assets.staticFiles <> cInternalStylesheets config)
   where
     servePostEventApi ev      = liftIO $ hHandleEvent h ev
     serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
 
-indexHtml :: [T.Text] -> H.Html ()
-indexHtml stylesheetUrls =
+indexHtml :: Config -> H.Html ()
+indexHtml config =
     -- TODO (SM): add doctype once it is supported by H.Html
-    H.html
-      ( H.head
-         ( foldMap (stylesheet . H.toValue) stylesheetUrls <>
-           H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico" <>
-           foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
-         ) <>
-        H.body mempty <>
+    H.html $ mconcat
+      [ H.head $ mconcat
+         [ foldMap (stylesheet . H.toValue) 
+                   (cExternalStylesheets config)
+         , foldMap (stylesheet . H.toValue . ("static" </>) . fst) 
+                   (cInternalStylesheets config)
+         , H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico"
+         , foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
+         ]
+      , H.body mempty
         -- FIXME (SM): we should support for attributes without a value.
-        (script "runmain.js" H.! A.defer "defer" $ mempty)
-      )
+      , script "runmain.js" H.! A.defer "defer" $ mempty
+      ]
   where
     stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href url
     script  url = H.script H.! A.src ("static/js/" <> url)
