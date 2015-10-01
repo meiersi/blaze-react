@@ -98,6 +98,8 @@ data Config = Config
     , cStaticFiles :: ![(FilePath, B.ByteString)]
       -- ^ A list of pairs of the name and the content of additional
       -- static files that should be served from '/static'.
+    , cAdditionalScripts :: ![FilePath]
+      -- ^ A list of scripts that should be loaded at the end of the page.
     , cStateFile :: !FilePath
       -- ^ Path to the file that should be used to persist the application
       -- state.
@@ -128,14 +130,15 @@ api = Proxy
 
 -- | The defualt configuration starting the server on port 8081 serving the
 -- given external stylesheets.
-defaultConfig :: [T.Text] -> [(FilePath, B.ByteString)] -> Config
-defaultConfig externalStylesheets staticFiles =
+defaultConfig :: [T.Text] -> [(FilePath, B.ByteString)] -> [FilePath] -> Config
+defaultConfig externalStylesheets staticFiles additionalScripts =
     Config
     { cPort                = 8081
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
     , cStaticFiles         = staticFiles
     , cStateFile           = "blaze-react-dev-mode_state.json"
+    , cAdditionalScripts   = additionalScripts
     }
 
 
@@ -175,7 +178,7 @@ main config app = do
 -- purposes.
 testMain :: IO ()
 testMain =
-    main (defaultConfig [bootstrapUrl] []) dummyHtmlApp
+    main (defaultConfig [bootstrapUrl] [] []) dummyHtmlApp
   where
     bootstrapUrl =
        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
@@ -344,15 +347,17 @@ indexHtml config =
          [ foldMap stylesheet (cExternalStylesheets config)
          , foldMap (stylesheet . ("static" </>)) staticStylesheets
          , H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico"
-         , foldMap script_ ["rts.js", "lib.js", "out.js", "SERVER-URL.js"]
+         , foldMap script_ ["js/rts.js", "js/lib.js", "js/out.js", "js/SERVER-URL.js"]
          ]
       , H.body mempty
-        -- FIXME (SM): we should support for attributes without a value.
-      , script "runmain.js" H.! A.defer "defer" $ mempty
+      , foldMap (script_ . H.toValue) (cAdditionalScripts config)
+        -- FIXME (SM): we should support for attributes without a value to the
+        -- Html type.
+      , script "js/runmain.js" H.! A.defer "defer" $ mempty
       ]
   where
     stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href (H.toValue url)
-    script  url = H.script H.! A.src ("static/js/" <> url)
+    script  url = H.script H.! A.src ("static/" <> url)
     script_ url = script url mempty
 
     staticStylesheets =
