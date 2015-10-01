@@ -20,6 +20,7 @@ module Servant.HTML.BlazeReact
   ) where
 
 import qualified Data.ByteString.Lazy          as BL
+import           Data.Monoid                   ((<>))
 import qualified Data.Text                     as T
 import qualified Data.Text.Encoding            as TE
 import           Data.Typeable                 (Typeable)
@@ -42,5 +43,7 @@ instance
   where
     mimeRender _ =
         BL.fromStrict . TE.encodeUtf8 . T.pack
+      -- TODO (SM): move doctype support into Html datatype itself.
+      . ("<!DOCTYPE html>" <>)
       . Text.Blaze.Renderer.String.renderHtml
 
