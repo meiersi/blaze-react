@@ -280,10 +280,14 @@ newHandle stateFile loggerH (RenderableApp render app) = do
         req <- atomically $ do
             (st, revId) <- readTVar stVar
             if revId /= evRevId
-              then logInfo' "event does not match revision-id"
+              then logInfo' $
+                     "event revision-id " <> show evRevId <>
+                     " does not match state revision-id " <> show revId <> "."
               else
                 case lookupByPosition pos (render st) of
-                  Nothing -> logInfo' "ignore event that we cannot locate"
+                  Nothing -> logInfo' $
+                    "ignore event that we cannot locate at position " <>
+                    show pos <> "."
                   Just (EI.EventHandler sel evDataToAct) ->
                     case EI.someEventData someEv sel of
                       Nothing     -> logInfo' "event selectors do not match"
