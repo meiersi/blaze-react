@@ -117,6 +117,7 @@ type Api
     =    ProxyApi.Api
     :<|> GetIndexHtml
     :<|> ("api" :> "proxy" :> Get '[PlainText] T.Text)
+    :<|> ("api" :> "kill" :> "server" :> Get '[PlainText] T.Text)
     :<|> ("static" :> "js" :> "SERVER-URL.js" :> Get '[PlainText] T.Text)
     :<|> ("static" :> Raw)
 
@@ -166,10 +167,24 @@ main config app = do
           , "Press CTRL-C to stop it"
           ]
 
-        -- actually serve the app
-        liftIO $
-          (run port $ serve api $ serveApi config h)
-            `finally` Logger.logInfo loggerH "Server stopped."
+        stopServerVar   <- liftIO $ newTVarIO False
+
+        -- run the server in an async coupled to the lifteime of the main
+        -- thread
+        serverStatusVar <- managed $ Async.withAsync $
+            (run port $ serve api $ serveApi config stopServerVar h)
+
+        -- wait until the server terminated or should be stopped
+        liftIO $ do
+          ( do atomically $ do
+                   stopServer   <- readTVar stopServerVar
+                   serverStatus <- Async.pollSTM serverStatusVar
+                   guard (isJust serverStatus || stopServer)
+               -- 5ms delay to ensure that the 'killServer' handler can run to
+               -- completion
+               threadDelay (5 * 1000)
+
+           )`finally` (Logger.logInfo loggerH "Server stopped.")
   where
     port    = cPort config
 
@@ -328,16 +343,22 @@ traverseWithPosition f t =
 -- API serving
 ------------------------------------------------------------------------------
 
-serveApi :: Config -> Handle -> Server Api
-serveApi config h =
+serveApi :: Config -> TVar Bool -> Handle -> Server Api
+serveApi config stopServerVar h =
          (servePostEventApi :<|> serveViewApi)
     :<|> return (indexHtml config)
     :<|> return (T.pack ProxyApi.markdownDocs)
+    :<|> killServer
     :<|> return (serverUrlScript (cExternalServerUrl config))
     :<|> serveStaticFiles (Assets.staticFiles <> cStaticFiles config)
   where
     servePostEventApi ev      = liftIO $ hHandleEvent h ev
     serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
+
+    killServer = do
+        liftIO $ atomically $ writeTVar stopServerVar True
+        return "stopping server...\n"
+
 
 indexHtml :: Config -> H.Html ()
 indexHtml config =
