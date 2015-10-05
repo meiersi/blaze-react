@@ -1,6 +1,6 @@
 # Convenient re-exports of the build functions for the individual cabal
 # packages constituting blaze-react.
-
+{ nixpkgs ? (import <nixpkgs> {}) }:
 let
   # Individual packages
   #####################
@@ -8,7 +8,7 @@ let
   # NOTE (SM): we might want to move that into the repo itself in the future.
   # For now I'm cobbling it together here.
   ghcjs-servant-client =
-    { mkDerivation, fetchFromGitHub, aeson, attoparsec, base, bytestring
+    { mkDerivation, aeson, attoparsec, base, bytestring
     , case-insensitive, deepseq, either, exceptions
     , ghcjs-base, hspec, http-media, http-types, HUnit, network
     , network-uri, QuickCheck, safe, servant, servant-client
@@ -18,7 +18,7 @@ let
     mkDerivation {
       pname = "ghcjs-servant-client";
       version = "0.4.2";
-      src = fetchFromGitHub {
+      src = nixpkgs.fetchFromGitHub {
         owner  = "meiersi";
         repo   = "ghcjs-servant-client";
         sha256 = "0iwsxw6qn4icd13kc6msm8g2zhj1dh9kfv8dr64vk171pl9mqqlr";
@@ -39,41 +39,39 @@ let
       license = stdenv.lib.licenses.bsd3;
     };
 
-  blaze-react-core            = import libs/hs/blaze-react-core;
-  blaze-react-dev-mode-shared = import libs/hs/blaze-react-dev-mode-shared;
-  blaze-react-dev-mode-server = import libs/hs/blaze-react-dev-mode-server;
-  blaze-react-dev-mode-client = import libs/hs/blaze-react-dev-mode-client;
-  blaze-react-spa             = import libs/hs/blaze-react-spa;
-  blaze-react-examples        = import libs/hs/blaze-react-examples;
-  blaze-react-demo            = import apss/hs/blaze-react-example;
 
-  # Assembled packages
-  assemblePackages = { nixpkgs }:
+  libs = {
+    inherit ghcjs-servant-client;
+    servant-blaze-react         = import libs/hs/servant-blaze-react;
+
+    blaze-react-core            = import libs/hs/blaze-react-core;
+    blaze-react-dev-mode-shared = import libs/hs/blaze-react-dev-mode-shared;
+    blaze-react-dev-mode-server = import libs/hs/blaze-react-dev-mode-server;
+    blaze-react-dev-mode-client = import libs/hs/blaze-react-dev-mode-client;
+    blaze-react-spa             = import libs/hs/blaze-react-spa;
+
+    # TODO (SM): make this build
+    blaze-react-examples        = import libs/hs/blaze-react-examples;
+  };
+
+  apps = {
+    # TODO (SM): make this build
+    blaze-react-demo            = import apps/hs/blaze-react-example;
+  };
+
+  # Assembled packages for testing and local building
+  assembled =
   let
       dontHaddock = nixpkgs.pkgs.haskell.lib.dontHaddock;
 
-      # TODO (SM): factor out the redundancy from the list below
       extendHaskellPackages = pkgs: pkgs.override {
-          overrides = self: super: {
-            # buildable on ghc and ghcjs
-            blaze-react-core = dontHaddock
-              (self.callPackage blaze-react-core {});
-            blaze-react-dev-mode-shared = dontHaddock
-              (self.callPackage blaze-react-dev-mode-shared {});
-            blaze-react-dev-mode-client = dontHaddock
-              (self.callPackage blaze-react-dev-mode-client {});
-            blaze-react-dev-mode-server = dontHaddock
-              (self.callPackage blaze-react-dev-mode-server {});
+          overrides = self: super:
+            let
+                buildPackage = name: pkg:
+                    dontHaddock (self.callPackage pkg {});
+                buildPackages = nixpkgs.lib.mapAttrs buildPackage;
 
-            # buildable on ghcjs only
-            ghcjs-servant-client = dontHaddock
-              (self.callPackage ghcjs-servant-client
-                { fetchFromGitHub = nixpkgs.fetchFromGitHub;
-                }
-              );
-            blaze-react-spa = dontHaddock
-              (self.callPackage blaze-react-spa {});
-          };
+            in buildPackages libs // buildPackages apps;
       };
 
   in {
@@ -82,16 +80,10 @@ let
   };
 in
 {
-  libs = {
-    inherit blaze-react-core;
-    inherit blaze-react-spa;
-    inherit blaze-react-examples;
-  };
-  apps = {
-    inherit blaze-react-demo;
-  };
+  # Apps and libs are intended for downstream inclusion in the nix files of
+  # other.
+  inherit libs;
+  inherit apps;
 
-  # The blaze-react packages assembled on top of the Haskell packages in the
-  # current <nixpkgs> sources. For testing purposes only.
-  assembled = assemblePackages {nixpkgs = import <nixpkgs> {};};
+  inherit assembled;
 }

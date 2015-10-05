@@ -1,6 +1,6 @@
 { mkDerivation, aeson, base, blaze-react-core, bytestring, either
-, lens, mtl, servant, servant-docs, stdenv, stm
-, text, time, transformers
+, lens, mtl, servant, servant-docs, stdenv, stm, text, time
+, transformers
 }:
 mkDerivation {
   pname = "blaze-react-dev-mode-shared";
