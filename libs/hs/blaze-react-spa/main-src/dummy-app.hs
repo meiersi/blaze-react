@@ -6,13 +6,13 @@ module Main
   ( main
   ) where
 
-import           Blaze.Core
-import           Blaze.ReactJS.Run
+
+import           Blaze.React.Backend.ReactJS.Run
+import           Blaze.React.Core
+import qualified Blaze.React.Html5             as H
+import qualified Blaze.React.Html5.Event       as E
 
 import           Data.Monoid
-
-import qualified Text.Blaze.Event             as E
-import qualified Text.Blaze.Html5             as H
 
 
 ------------------------------------------------------------------------------

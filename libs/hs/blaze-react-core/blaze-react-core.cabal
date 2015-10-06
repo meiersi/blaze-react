@@ -23,20 +23,22 @@ library
   hs-source-dirs:      src
 
   exposed-modules:
-      Blaze.Core
+      Blaze.React.Core
 
-      Text.Blaze
-      Text.Blaze.Event
-      Text.Blaze.Event.Charcode
-      Text.Blaze.Event.Keycode
-      Text.Blaze.Html5
-      Text.Blaze.Html5.Attributes
-      Text.Blaze.Svg
-      Text.Blaze.Svg.Attributes
-      Text.Blaze.Renderer.String
+      Blaze.React.Html5
+      Blaze.React.Html5.Attributes
+      Blaze.React.Html5.Event
+      Blaze.React.Html5.Event.Charcode
+      Blaze.React.Html5.Event.Keycode
+      Blaze.React.Html5.Event.Internal
 
-      Text.Blaze.Event.Internal
-      Text.Blaze.Internal
+      Blaze.React.Markup
+      Blaze.React.Markup.Internal
+      Blaze.React.Markup.Renderer.String
+
+      Blaze.React.Svg
+      Blaze.React.Svg.Attributes
+
 
   build-depends:
       aeson

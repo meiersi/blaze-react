@@ -7,3 +7,6 @@ packages:
   - libs/hs/servant-blaze-react
 extra-deps: []
 resolver: lts-3.2
+
+system-ghc: false
+require-stack-version: ">= 0.1.5.0"

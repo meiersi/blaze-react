@@ -21,10 +21,11 @@ library
               jsbits/blaze-react-reactjs-bindings.js
   ghcjs-options: -O -Wall
   exposed-modules:
-                       Text.Blaze.Renderer.ReactJS
 
-                       Blaze.ReactJS.Base
-                       Blaze.ReactJS.Run
+                       Blaze.React.Backend.ReactJS.Base
+                       Blaze.React.Backend.ReactJS.Run
+
+                       Blaze.React.Html5.Renderer.ReactJS
 
   build-depends:       base
                      , blaze-react-core
@@ -48,17 +49,17 @@ library
   hs-source-dirs:      src
 
 
--- executable dummy-app
---   default-language:    Haskell2010
---
---   ghcjs-options: -Wall
---   hs-source-dirs:     main-src
---   main-is:            dummy-app.hs
---
---   build-depends:
---       base
---     , blaze-react-core
---     , blaze-react-spa
+executable dummy-app
+  default-language:    Haskell2010
+
+  ghcjs-options: -Wall
+  hs-source-dirs:     main-src
+  main-is:            dummy-app.hs
+
+  build-depends:
+      base
+    , blaze-react-core
+    , blaze-react-spa
 
 executable dev-mode-client
   default-language:    Haskell2010

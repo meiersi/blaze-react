@@ -20,11 +20,11 @@ library
   hs-source-dirs:      src
 
   exposed-modules:
-      Blaze.Development.Client
-      Blaze.Development.Internal.ConsoleRunner
-      Blaze.Development.Internal.Logger
-      Blaze.Development.Internal.Types
-      Blaze.Development.ProxyApi
+      Blaze.React.Development.Client
+      Blaze.React.Development.Internal.ConsoleRunner
+      Blaze.React.Development.Internal.Logger
+      Blaze.React.Development.Internal.Types
+      Blaze.React.Development.ProxyApi
 
   build-depends:
       aeson
