@@ -21,7 +21,6 @@ import qualified Data.Text                    as T
 
 import           Data.JSString         (JSString)
 import qualified Data.JSString         as JSString
-import qualified GHCJS.Foreign         as Foreign
 
 import           Servant.API
 import           Servant.Client

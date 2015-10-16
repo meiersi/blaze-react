@@ -33,7 +33,6 @@ import qualified GHCJS.Foreign.Callback as Foreign
 import           GHCJS.Marshal          as Marshal
 import           GHCJS.Marshal.Pure     as Marshal
 import           GHCJS.Types            (JSVal, jsval)
---import           GHCJS.Internal.Types
 
 import           JavaScript.Array      (MutableJSArray)
 import qualified JavaScript.Array      as Array
