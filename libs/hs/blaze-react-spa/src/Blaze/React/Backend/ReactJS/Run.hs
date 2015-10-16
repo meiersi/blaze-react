@@ -23,8 +23,17 @@ import           Data.Monoid           ((<>))
 import qualified Data.Text             as T
 import           Data.Time.Clock       (getCurrentTime)
 
-import           GHCJS.Types           (JSRef, JSString, JSObject, JSFun)
-import qualified GHCJS.Foreign         as Foreign
+import           GHCJS.Types           (JSVal)
+import qualified GHCJS.Marshal.Pure    as Marshal
+
+import           GHCJS.Foreign.Callback (Callback)
+import qualified GHCJS.Foreign.Callback as Foreign
+
+import           JavaScript.Object.Internal (Object(..))
+import qualified JavaScript.Object          as Object
+
+import           Data.JSString         (JSString)
+import qualified Data.JSString.Text    as JSString
 
 import           Prelude hiding (div)
 
@@ -42,26 +51,26 @@ import           System.IO             (fixIO)
 
 
 -- | A type-tag for an actual Browser DOM node.
-data DOMNode_
-data ReactJSApp_
+type DOMNode = JSVal
+type ReactJSApp = JSVal
 
 foreign import javascript unsafe
     "h$reactjs.mountApp($1, $2)"
     mountReactApp
-        :: JSRef DOMNode_                          -- ^ Browser DOM node
-        -> JSFun (JSObject ReactJS.ReactJSNode -> IO ())
+        :: DOMNode                          -- ^ Browser DOM node
+        -> Callback (JSVal -> IO ())
            -- ^ render callback that stores the created nodes in the 'node'
            -- property of the given object.
-        -> IO (JSRef ReactJSApp_)
+        -> IO ReactJSApp
 
 foreign import javascript unsafe
     "h$reactjs.syncRedrawApp($1)"
-    syncRedrawApp :: JSRef ReactJSApp_ -> IO ()
+    syncRedrawApp :: ReactJSApp -> IO ()
 
 foreign import javascript unsafe
     "h$reactjs.attachRouteWatcher($1)"
     attachPathWatcher
-        :: JSFun (JSString -> IO ())
+        :: Callback (JSVal -> IO ())
            -- ^ Callback that handles a route change.
         -> IO ()
 
@@ -74,15 +83,15 @@ foreign import javascript unsafe
 
 foreign import javascript unsafe
     "window.requestAnimationFrame($1)"
-    requestAnimationFrame :: JSFun (IO ()) -> IO ()
+    requestAnimationFrame :: Callback (IO ()) -> IO ()
 
 foreign import javascript unsafe
     "document.createElement(\"div\")"
-    documentCreateDiv :: IO (JSRef DOMNode_)
+    documentCreateDiv :: IO DOMNode
 
 foreign import javascript unsafe
     "document.body.appendChild($1)"
-    documentBodyAppendChild :: JSRef DOMNode_ -> IO ()
+    documentBodyAppendChild :: DOMNode -> IO ()
 
 foreign import javascript unsafe
     "location.hash"
@@ -92,9 +101,8 @@ foreign import javascript unsafe
 atAnimationFrame :: IO () -> IO ()
 atAnimationFrame io = do
     cb <- fixIO $ \cb ->
-        Foreign.syncCallback Foreign.AlwaysRetain
-                             False
-                             (Foreign.release cb >> io)
+        Foreign.syncCallback Foreign.ThrowWouldBlock
+                             (Foreign.releaseCallback cb >> io)
     requestAnimationFrame cb
 
 -- | Run an application that is indifferent to the hash-fragment of the path.
@@ -130,7 +138,7 @@ runApp renderState (App initialState initialRequest apply) = do
 
     -- This is a cache of the URL fragment (hash) to prevent unnecessary
     -- updates.
-    urlFragmentVar <- newIORef =<< Foreign.fromJSString <$> getLocationFragment
+    urlFragmentVar <- newIORef =<< JSString.textFromJSString <$> getLocationFragment
 
     -- rerendering
     let syncRedraw = join $ fromMaybe (return ()) <$> readIORef rerenderVar
@@ -148,7 +156,7 @@ runApp renderState (App initialState initialRequest apply) = do
           currentPath <- readIORef urlFragmentVar
           unless (newPath == currentPath) $ do
             writeIORef urlFragmentVar newPath
-            setRoute $ Foreign.toJSString $ "#" <> newPath
+            setRoute $ JSString.textToJSString $ "#" <> newPath
 
     -- create render callback for initialState
     let handleAction requireSyncRedraw action = do
@@ -163,19 +171,19 @@ runApp renderState (App initialState initialRequest apply) = do
             void $ request (handleAction False . Right)
 
 
-        mkRenderCb :: IO (JSFun (JSObject ReactJS.ReactJSNode -> IO ()))
+        mkRenderCb :: IO (Callback (JSVal -> IO ()))
         mkRenderCb = do
-            Foreign.syncCallback1 Foreign.AlwaysRetain False $ \objRef -> do
+            Foreign.syncCallback1 Foreign.ThrowWouldBlock $ \objRef -> do
                 state <- readIORef stateVar
                 let (WindowState body path) = renderState state
                 updatePath path
                 node <- ReactJS.renderHtml (flip handleAction) body
-                Foreign.setProp ("node" :: JSString) node objRef
+                Object.setProp ("node" :: JSString) node (Object objRef)
 
-    onPathChange <- Foreign.syncCallback1 Foreign.AlwaysRetain False $
+    onPathChange <- Foreign.syncCallback1 Foreign.ThrowWouldBlock $
       \pathStr -> do
         currentPath <- readIORef urlFragmentVar
-        let newPath = T.drop 1 $ Foreign.fromJSString pathStr
+        let newPath = T.drop 1 $ Marshal.pFromJSVal pathStr
         -- FIXME (asayers): if the route is the same, it seems to trigger a
         -- full-page reload
         unless (newPath == currentPath) $ do
@@ -184,7 +192,7 @@ runApp renderState (App initialState initialRequest apply) = do
     attachPathWatcher onPathChange
 
     -- mount and redraw app
-    bracket mkRenderCb Foreign.release $ \renderCb -> do
+    bracket mkRenderCb Foreign.releaseCallback $ \renderCb -> do
         app <- mountReactApp root renderCb
         -- manually tie the knot between the event handlers
         writeIORef rerenderVar (Just (syncRedrawApp app))

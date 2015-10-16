@@ -21,8 +21,8 @@ let
       src = nixpkgs.fetchFromGitHub {
         owner  = "meiersi";
         repo   = "ghcjs-servant-client";
-        sha256 = "0iwsxw6qn4icd13kc6msm8g2zhj1dh9kfv8dr64vk171pl9mqqlr";
-        rev    = "2ef35c92c7b6402f07d38d0d0f5ec42cad25f883";
+        sha256 = "00gchcy1smygsmdl9l7kd67ysfy6f3cr93v2wqb9m9j5haxvwhya";
+        rev    = "ca958c8cb31e5ed7fbdee394bb3cafc978022c7b";
       };
       libraryHaskellDepends = [
         aeson attoparsec base bytestring case-insensitive either exceptions
@@ -37,6 +37,9 @@ let
       homepage = "http://haskell-servant.github.io/";
       description = "automatical derivation of querying functions for servant webservices";
       license = stdenv.lib.licenses.bsd3;
+      preBuild = ''
+        sed -e "s/JSRef/JSVal/g" -i src/Servant/Common/Req.hs
+      '';
     };
 
 

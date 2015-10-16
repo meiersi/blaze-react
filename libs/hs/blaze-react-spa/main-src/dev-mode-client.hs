@@ -19,7 +19,8 @@ import           Control.Monad.Trans.Either   (bimapEitherT)
 
 import qualified Data.Text                    as T
 
-import           GHCJS.Types           (JSString)
+import           Data.JSString         (JSString)
+import qualified Data.JSString         as JSString
 import qualified GHCJS.Foreign         as Foreign
 
 import           Servant.API
@@ -36,7 +37,7 @@ foreign import javascript safe
 
 -- | Fetch the server url that was injected via the SERVER-URL.js script.
 getServerUrl :: IO String
-getServerUrl = Foreign.fromJSString <$> js_getServerUrl
+getServerUrl = JSString.unpack <$> js_getServerUrl
 
 
 ------------------------------------------------------------------------------
