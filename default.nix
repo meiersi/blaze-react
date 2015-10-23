@@ -5,10 +5,11 @@ let
   # Hardcoding the version of nixpkgs to make it easier to try out
   # this branch, since it needs a very recent version.
   # We can remove this later.
-  nixpkgs = import (pkgs.fetchgit {
-    url = "https://github.com/NixOS/nixpkgs.git";
+  nixpkgs = import (pkgs.fetchFromGitHub {
+    owner = "NixOS";
+    repo = "nixpkgs";
     rev = "38fa633b3aa7f239de0cb8e7554b1a2539257df6";
-    sha256 = "1lpia92z77ijhp9rxwmpnmn9fk6g0xhgrzh7n85k8c9b7v4x9864";
+    sha256 = "1dym1zkzspaqv80abrzqnxi81icbmn1xg0idi1315zdxj54hd0f0";
   }) {};
 
   # Individual packages
