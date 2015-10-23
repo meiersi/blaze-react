@@ -1,76 +1,145 @@
-# `blaze-react` v0.2
+# blaze-react - blazingly fast development of reactive applications
 
-Note that we only support GHC 7.10.x and higher.
+...at least that's what we are working towards ;-)
 
-This is an experimental library for writing highly portable applications. It
-allows you to express the pure logic of your application in a way which is
-completely independent of the execution context.
 
-This means that the same app could be compiled to a client-side web app by
-GHCJS for snappy performance, or to a server-side web app in order to support
-old browsers. An app written for the command-line could be given a web
-interface, or a GUI using OpenGL or GTK. The logic of the app doesn't change -
-only the rendering code needs to be updated.
+## History
 
-See the `Blaze.Core.App` datatype for the fundamental abstraction, and see
-`Blaze.ReactJS.Run.runApp'` for an example of how these `App`s can be used. To
-see the whole thing in action, take a look in the `example-app/` directory.
-
-This abstraction has some other benefits. It makes it possible to write some
-cool "app transformers", such as the Time Machine, which records the internal
-state of an app as it runs, and allows the user to scrub backwards and forwards
-through time, replaying the app's behaviour. [See it in action][demo].
-
-It should also make it possible to write property-based tests for your
-application as a whole, because in general the set of possible user interations
-is enumerable.
+The blaze-react project has its roots in an experiment of using GHCJS together
+with React.js to build single-page web-applications in Haskell. See this
 
 [demo]: https://meiersi.github.io/blaze-react/
 
-Right now there's only one way to run your `App`s: as client-side web-apps.
-This library provides an API for writing HTML-based UIs which is modeled on
-`blaze-html`. The DOM is then updated using react.js. The name of this library
-is due to these implementation details.
+for a show-case of the resulte, whose code can be found on the following
+branches.
+
+- old-master: the latest released version
+- old-rc-v0.2: the last release candidate of the old framework
+
+This work was done in an on-and-off fashion and yielded many of the insights
+for how we'd like our first production-ready version to be structured. We
+describe the ideas and the work left to be done in the following roadmap.
+
+
+## Roadmap
+
+- describe current module layout, and what should go where (core, rendering,
+  backends).
+- describe current library layout
+- explain that we do not plan to support existing JS widgets, as we want our
+  application code to be platform independent
+- explain focus on improved-base GHCJS only
+
+
+### Stage 1 - Correctness
+
+### Write tests, in particular webrunner-based tests.
+
+Whether all features of the blaze-react React.js backend are working or not is
+currently very hard to judge. Tests based on web-runner are essential, and we
+should copy the approaches put forward by `react-flux`. I imagine that we want
+to automate the testing using `nix`.
+
+
+### Memory-leak-free callbacks
+
+We currently allocate callbacks such that they are retained forever. This is
+wrong.
+
+GHCJS has its own garbage collector, which is necessary to implement
+weak references. This means that callbacks must be allocated and deallocated
+explicitly, or we must enable the GC to traverse the ReactJS objects. I'd
+suggest that we look into how react-flux and reflex are handling this issue,
+and then draw up a plan. Ideally, it is such that we come up with a solution
+where we can freely allocate rendering and event-handling callbacks.
+
+As part of this move I also suggest to port our code to the newest React.js
+version, in particular if we build a custom traversal of the React.js
+components.
+
+
+### Components and lazy rendering
+
+We currently do not support lazy rendering at all. This will not work for
+applications that require a large number of DOM nodes.
+
+- TODO (SM): spell out the plan that I have on how to implement components
+  with typeclasses such that we can statically guarantee the correctness of
+  the lazy rendering.
+
+
+### Resource management in IO requests
+
+Applications must execute IO actions to communicate with the outside world.
+The life-time of such requests must be bound to the life-time of the
+application itself. We must provide support to implement that properly. It
+will probably look about as follows.
+
+```
+-- | State transitions of an application with state @st@ and requests @req@.
+type Transition st req = StateT st (Writer [req])
+
+-- | An IO monad that allows initiating state transitions
+newtype IORequest st a = IORequest
+    { runIORequest
+        :: ResourceManager
+           -- ^ a resource-t like manager for safely allocating
+           -- resources like timeouts and threads
+        -> (Transition st (IORequest st ()) -> IO ())
+           -- ^ A callback that can be used to submit state transitions to the
+           -- application.
+        -> IO a
+    }
+```
+
+We want to have that support, as we want to be able to execute applications on
+the server-side (e.g., for testing, development and page pre-rendering).
+There, we must make sure that we do not leak threads or other resources.
+
+
+### Stage 2 - Completeness
+
+- support for all React.js events and properties
+- path and window title interaction
+- basic performance optimizations: minimize marshaling costs
+- development mode with auto server-restart (TODO: explain that one can
+  already run a blaze-react application from GHCi. Only the auto-restart is
+  missing.)
+
+
+### Version 1.0
+
+- documentation and additional code supporting common  architectural patterns
+  (widgets, caching, data fetching).
+- lucid-based html combinators
+- fast server-side rendering
+
+
+### Version 2.0
+
+- inline styles
 
 
 ## Building
 
-First of all, make sure you have GHCJS installed, as well as nodejs and npm.
+The easiest way to build the libraries for GHCJS is using `nix`. All
+derivations for the libraries are exposed from `default.nix` in the attribute
+`libs`.
 
-Blaze-react depends on `ghcjs-ffiqq`, which is not on hackage, so you'll have
-to [grab it from github][ffiqq]. Then either install it globally, or (better)
-point your local sandbox to the checkout with `cabal sandbox add-source <path
-to checkout>`. Once this is done, you need to do a bit of fairly standard
-set-up, and then you can build the library:
-
-```
-make dev-tools
-cabal install --only-dep
-cabal configure
-make build
-```
-
-[ffiqq]: https://github.com/ghcjs/ghcjs-ffiqq
-
-If you want to build the example app as well (found in the `example-app/` directory)
-then you should configure the project with the `build-example` flag set:
+Note that we need a recent version of the improved-base branch of GHCJS.
+You can enter development shells for the individual packages like
+`blaze-react-spa` with such a recent version exposed using the following
+nix-shell invocation in the root of the repository.
 
 ```
-cabal configure -fbuild-example
-make build
-open todomvc/index.html
+nix-shell '.'  -A 'assembled.ghcjs.blaze-react-spa.env'
 ```
-
-## Known problems
-
-- The `extra-sources` field is missing some files, which means `cabal sdist`
-  won't work.
 
 ## Acknowledgements
 
 * The bindings were heavily inspired by Luite Stegeman's [virtual-dom][]
   bindings.
-* [Tomas Carnekcy][] helped debug some nasty GHCJS FFI issues.
+* [Tomas Carnecky][] helped debug some nasty GHCJS FFI issues.
 
 [virtual-dom]: https://github.com/ghcjs/ghcjs-vdom
 [Tomas Carnekcy]: https://github.com/werehamster
