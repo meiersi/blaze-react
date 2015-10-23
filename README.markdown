@@ -75,9 +75,9 @@ The life-time of such requests must be bound to the life-time of the
 application itself. We must provide support to implement that properly. It
 will probably look about as follows.
 
-```
+```.haskell
 -- | State transitions of an application with state @st@ and requests @req@.
-type Transition st req = StateT st (Writer [req])
+type Transition st req a = StateT st (Writer [req]) a
 
 -- | An IO monad that allows initiating state transitions
 newtype IORequest st a = IORequest
@@ -85,16 +85,42 @@ newtype IORequest st a = IORequest
         :: ResourceManager
            -- ^ a resource-t like manager for safely allocating
            -- resources like timeouts and threads
-        -> (Transition st (IORequest st ()) -> IO ())
+        -> (Transition st (IORequest st ()) () -> IO ())
            -- ^ A callback that can be used to submit state transitions to the
            -- application.
         -> IO a
     }
+
+-- | An application runner that executes
+runAppReactJs
+  :: st                                             -- initial state
+  -> IORequest st ()                                -- initial request
+  -> (st -> Html (EventHandler (IORequest st ())))  -- rendering
+  -> IO ()
+
+-- | Run an application on the server-side to prefetch its data before sending
+-- a pre-initialized state to the client-side.
+--
+-- We can use this in combination with the rendering of a 'Html' value to a
+-- string to provide very fast initial-page-load times for applications that
+-- need to fetch data.
+--
+-- Note that the implementation of this function relies on the ability to
+-- forcefully de-allocate all resources used by 'IORequest's.
+prefetchApp
+  :: st                 -- ^ initial state
+  -> IORequest st ()    -- ^ initial request
+  -> (st -> Bool)
+     -- ^ A predicate that states when the state is complete enough, i.e.,
+     -- when enough data has been prefetched.
+  -> IO st
 ```
 
-We want to have that support, as we want to be able to execute applications on
-the server-side (e.g., for testing, development and page pre-rendering).
-There, we must make sure that we do not leak threads or other resources.
+As hinted at in the example above, we want to have that support, as we want to
+be able to execute applications on the server-side (e.g., for testing,
+development and page pre-rendering). There, we must make sure that we do not
+leak threads or other resources.
+
 
 
 ### Stage 2 - Completeness
