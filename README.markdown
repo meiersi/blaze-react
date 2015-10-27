@@ -67,6 +67,23 @@ applications that require a large number of DOM nodes.
   with typeclasses such that we can statically guarantee the correctness of
   the lazy rendering.
 
+```.haskell
+class WeakEq a where
+    -- | A weak equality satisfying the property that
+    -- @forall x y. weakEq x y ==> x == y@.
+    weakEq :: a -> a -> Bool
+
+class Typeable props => Component props where
+    type Rendered props :: *
+
+    render :: props -> Rendered props
+
+    shouldUpdate :: props -> props -> Bool
+
+    default shouldUpdate :: WeakEq props => props -> props -> Bool
+    shouldUpdate = weakEq
+```
+
 
 ### Resource management in IO requests
 
