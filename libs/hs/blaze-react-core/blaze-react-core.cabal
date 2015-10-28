@@ -40,20 +40,38 @@ library
       Blaze.React.Svg.Attributes
 
 
-  build-depends:
-      aeson
-    , base
-    , bytestring
-    , either
-    , hashable
-    , lens
-    , mtl
-    , profunctors
-    , QuickCheck
-    , text
-    , transformers
-    , time
-    , unordered-containers
-    , vector
-    , void
-
+  if impl(ghcjs)
+    build-depends:
+        ghcjs-base
+      , aeson
+      , base
+      , bytestring
+      , either
+      , hashable
+      , lens
+      , mtl
+      , profunctors
+      , QuickCheck
+      , text
+      , transformers
+      , time
+      , unordered-containers
+      , vector
+      , void
+  else
+    build-depends:
+        aeson
+      , base
+      , bytestring
+      , either
+      , hashable
+      , lens
+      , mtl
+      , profunctors
+      , QuickCheck
+      , text
+      , transformers
+      , time
+      , unordered-containers
+      , vector
+      , void

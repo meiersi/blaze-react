@@ -78,35 +78,26 @@ foreign import javascript unsafe
 -- Rendering
 ------------------------------------------------------------------------------
 
-
--- TODO (SM): find a better representation for the rendering of Strings.
--- Probably a DList T.Text with a following concat.
-
 -- | Render a 'ChoiceString'.
 --
-fromChoiceString :: ChoiceString  -- ^ String to render
-                 -> String        -- ^ String to append
-                 -> String        -- ^ Resulting string
-fromChoiceString (Static s)     = getString s
-fromChoiceString (String s)     = (s ++)
-fromChoiceString (Text s)       = (T.unpack s ++)
--- fromChoiceString (ByteString s) = (SBC.unpack s ++)
--- fromChoiceString (PreEscaped x) =
---     -- FiXME (SM): here we actually need to unescape!
---     case x of
---       String s -> (s ++)
---       Text   s -> (\k -> T.foldr (:) k s)
---       s        -> fromChoiceString s
--- fromChoiceString (External x) = case x of
---     -- Check that the sequence "</" is *not* in the external data.
---     String s     -> if "</" `isInfixOf` s then id else (s ++)
---     Text   s     -> if "</" `T.isInfixOf` s then id else (\k -> T.foldr (:) k s)
---     ByteString s -> if "</" `S.isInfixOf` s then id else (SBC.unpack s ++)
---     s            -> fromChoiceString s
-fromChoiceString (AppendChoiceString x y) =
-    fromChoiceString x . fromChoiceString y
-fromChoiceString EmptyChoiceString = id
+choiceStringToJs :: ChoiceString -> JSString
+choiceStringToJs cs = case cs of
+  Static s -> getJSString s
+  String s -> JSString.pack s
+  Text s -> JSString.textToJSString s
+  JSString s -> s
+  AppendChoiceString x y -> appendChoiceString x y
+  EmptyChoiceString -> ""
 
+type DList a = [a] -> [a]
+
+appendChoiceString :: ChoiceString -> ChoiceString -> JSString
+appendChoiceString x y = JSString.concat ((go x . go y) [])
+  where
+    go :: ChoiceString -> DList JSString
+    go (AppendChoiceString a b) = go a . go b
+    go EmptyChoiceString = id
+    go s = (choiceStringToJs s :)
 
 -- | Render some 'Markup' to a virtual dom.
 --
@@ -165,8 +156,6 @@ render handleAct0 markup = do
             go handleAct setProps children h1
             go handleAct setProps children h2
       where
-        choiceStringToJs cs = JSString.pack (fromChoiceString cs "")
-
         -- setProperty :: JSString -> JSRef a -> MarkupM (EventHandler act') b -> IO ()
         setProperty key value content =
             go handleAct setProps' children content

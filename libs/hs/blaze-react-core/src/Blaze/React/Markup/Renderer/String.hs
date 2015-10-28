@@ -2,7 +2,7 @@
 -- | A renderer that produces a native Haskell 'String', mostly meant for
 -- debugging purposes.
 --
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, CPP #-}
 module Blaze.React.Markup.Renderer.String
     ( -- fromChoiceString
     -- , renderMarkup
@@ -15,6 +15,10 @@ import           Blaze.React.Markup.Internal
 import qualified Data.HashMap.Strict     as HMS
 import           Data.Monoid
 import qualified Data.Text               as T
+
+#ifdef ghcjs_HOST_OS
+import qualified Data.JSString           as JSString
+#endif
 
 
 -- | Escape predefined XML entities in a string
@@ -39,6 +43,9 @@ fromChoiceString :: ChoiceString  -- ^ String to render
 fromChoiceString (Static s)     = getString s
 fromChoiceString (String s)     = escapeMarkupEntities s
 fromChoiceString (Text s)       = escapeMarkupEntities $ T.unpack s
+#ifdef ghcjs_HOST_OS
+fromChoiceString (JSString s)   = escapeMarkupEntities $ JSString.unpack s
+#endif
 fromChoiceString (AppendChoiceString x y) =
     fromChoiceString x . fromChoiceString y
 fromChoiceString EmptyChoiceString = id

@@ -3,7 +3,7 @@
              FlexibleInstances, ExistentialQuantification,
              DeriveDataTypeable, MultiParamTypeClasses, DeriveFunctor,
              DeriveFoldable, DeriveTraversable,
-             FunctionalDependencies #-}
+             FunctionalDependencies, CPP #-}
 -- | Internal types for representing markup-like languages.
 --
 -- While this module is exported, usage of it is not recommended, unless you
@@ -32,6 +32,9 @@ module Blaze.React.Markup.Internal
     , text
     , lazyText
     , string
+#ifdef ghcjs_HOST_OS
+    , jsString
+#endif
 
       -- * Converting values to tags.
     , textTag
@@ -41,6 +44,9 @@ module Blaze.React.Markup.Internal
     , textValue
     , lazyTextValue
     , stringValue
+#ifdef ghcjs_HOST_OS
+    , jsStringValue
+#endif
 
       -- * Setting attributes
     , Attributable
@@ -72,6 +78,12 @@ import qualified Data.Vector                  as V
 
 import           GHC.Exts                     (IsString (..))
 
+#ifdef ghcjs_HOST_OS
+import           Data.JSString                (JSString)
+import qualified Data.JSString                as JSString
+import qualified Data.JSString.Text           as JSString
+#endif
+
 import           Prelude                      hiding (null)
 
 
@@ -81,14 +93,25 @@ data StaticString = StaticString
     { getString         :: String -> String  -- ^ Appending haskell string
     , getUtf8ByteString :: B.ByteString      -- ^ UTF-8 encoded bytestring
     , getText           :: Text              -- ^ Text value
+#ifdef ghcjs_HOST_OS
+    , getJSString       :: JSString
+#endif
     }
 
 -- 'StaticString's should only be converted from string literals, as far as I
 -- can see.
 --
 instance IsString StaticString where
-    fromString s = let t = T.pack s
-                   in StaticString (s ++) (T.encodeUtf8 t) t
+    fromString s =
+      let t = T.pack s in
+      StaticString
+        { getString = (s ++)
+        , getUtf8ByteString = T.encodeUtf8 t
+        , getText = t
+#ifdef ghcjs_HOST_OS
+        , getJSString = JSString.pack s
+#endif
+        }
 
 -- | A string denoting input from different string representations.
 --
@@ -99,6 +122,10 @@ data ChoiceString
     | String String
     -- | A Text value
     | Text Text
+#ifdef ghcjs_HOST_OS
+    -- | A Javascript string
+    | JSString JSString
+#endif
     -- | Concatenation
     | AppendChoiceString ChoiceString ChoiceString
     -- | Empty string
@@ -276,11 +303,27 @@ string :: String    -- ^ String to insert.
 string = Content . String
 {-# INLINE string #-}
 
+#ifdef ghcjs_HOST_OS
+-- | Create an HTML snippet from a 'String'.
+--
+jsString :: JSString  -- ^ JSString to insert.
+         -> Markup ev -- ^ Resulting HTML fragment.
+jsString = Content . JSString
+{-# INLINE jsString #-}
+#endif
+
 -- | Create a 'Tag' from some 'Text'.
 --
 textTag :: Text  -- ^ Text to create a tag from
         -> Tag   -- ^ Resulting tag
-textTag t = Tag $ StaticString (T.unpack t ++) (T.encodeUtf8 t) t
+textTag t = Tag $ StaticString
+  { getString = (T.unpack t ++)
+  , getUtf8ByteString = T.encodeUtf8 t
+  , getText = t
+#ifdef ghcjs_HOST_OS
+  , getJSString = JSString.textToJSString t
+#endif
+  }
 
 -- | Create a 'Tag' from a 'String'.
 --
@@ -307,6 +350,14 @@ lazyTextValue = mconcat . map textValue . LT.toChunks
 stringValue :: String -> AttributeValue
 stringValue = AttributeValue . String
 {-# INLINE stringValue #-}
+
+#ifdef ghcjs_HOST_OS
+-- | Create an attribute value from a 'JSString'.
+--
+jsStringValue :: JSString -> AttributeValue
+jsStringValue = AttributeValue . JSString
+{-# INLINE jsStringValue #-}
+#endif
 
 -- | Used for applying attributes. You should not define your own instances of
 -- this class.
@@ -386,6 +437,9 @@ null markup = case markup of
         Static ss                -> emptyStaticString ss
         String s                 -> List.null s
         Text t                   -> T.null t
+#ifdef ghcjs_HOST_OS
+        JSString s               -> JSString.null s
+#endif
         AppendChoiceString c1 c2 -> emptyChoiceString c1 && emptyChoiceString c2
         EmptyChoiceString        -> True
 
@@ -404,6 +458,9 @@ choiceStringToString =
         Static ss                -> getString ss k
         String s                 -> s ++ k
         Text t                   -> T.unpack t ++ k
+#ifdef ghcjs_HOST_OS
+        JSString s               -> JSString.unpack s
+#endif
         AppendChoiceString c1 c2 -> go (go k c2) c1
         EmptyChoiceString        -> k
 
