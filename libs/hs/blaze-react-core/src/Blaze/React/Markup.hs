@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, TypeSynonymInstances, CPP #-}
 -- | Generic abstractions for markup languages like Html and SVG.
 module Blaze.React.Markup
     (
@@ -37,6 +37,10 @@ import Data.Word (Word32, Word64)
 import Data.Text (Text)
 import qualified Data.Text.Lazy as LT
 
+#ifdef ghcjs_HOST_OS
+import Data.JSString (JSString)
+#endif
+
 
 -- | Class allowing us to use a single function for Markup values
 --
@@ -56,6 +60,12 @@ instance ToMarkup LT.Text where
 instance ToMarkup String where
     toMarkup = string
     {-# INLINE toMarkup #-}
+
+#ifdef ghcjs_HOST_OS
+instance ToMarkup JSString where
+    toMarkup = jsString
+    {-# INLINE toMarkup #-}
+#endif
 
 instance ToMarkup Int where
     toMarkup = string . show
@@ -123,6 +133,12 @@ instance ToValue LT.Text where
 instance ToValue String where
     toValue = stringValue
     {-# INLINE toValue #-}
+
+#ifdef ghcjs_HOST_OS
+instance ToValue JSString where
+    toValue = jsStringValue
+    {-# INLINE toValue #-}
+#endif
 
 instance ToValue Int where
     toValue = stringValue . show
