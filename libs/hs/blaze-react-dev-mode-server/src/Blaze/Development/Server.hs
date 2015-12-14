@@ -100,9 +100,9 @@ data Config = Config
       -- static files that should be served from '/static'.
     , cAdditionalScripts :: ![FilePath]
       -- ^ A list of scripts that should be loaded at the end of the page.
-    , cStateFile :: !FilePath
+    , cStateFile :: !(Maybe FilePath)
       -- ^ Path to the file that should be used to persist the application
-      -- state.
+      -- state, if at all.
     } deriving (Eq, Show)
 
 
@@ -138,7 +138,7 @@ defaultConfig externalStylesheets staticFiles additionalScripts =
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
     , cStaticFiles         = staticFiles
-    , cStateFile           = "blaze-react-dev-mode_state.json"
+    , cStateFile           = Just "blaze-react-dev-mode_state.json"
     , cAdditionalScripts   = additionalScripts
     }
 
@@ -219,29 +219,34 @@ data Handle = Handle
 newHandle
     :: forall st act.
        (Aeson.ToJSON st, Aeson.FromJSON st)
-    => FilePath -> Logger.Handle -> HtmlApp st act -> Managed Handle
-newHandle stateFile loggerH (RenderableApp render app) = do
+    => Maybe FilePath -> Logger.Handle -> HtmlApp st act -> Managed Handle
+newHandle mbStateFile loggerH (RenderableApp render app) = do
     -- allocate state reference
-    stVar <- liftIO $ do
-        -- try to read initial state, and fallback to app initial state otherwise
-        errOrSt <- readFileAsJson stateFile
-        case errOrSt of
-          Left err -> do
-            Logger.logInfo loggerH $ unlines
-                [ "Failed to read state from '" <> stateFile <> "': "
-                , err
-                , "Falling back to initial application state at revision 0."
-                ]
-            newTVarIO (appInitialState app, 0)
-          Right st -> do
-            Logger.logInfo loggerH $
-                "Using state at revision " <> show (snd st) <>
-                " from '" <> stateFile <> "'."
-            newTVarIO st
+    stVar <- liftIO $ case mbStateFile of
+        Nothing        -> newTVarIO (appInitialState app, 0)
+        Just stateFile -> do
+          -- try to read initial state, and fallback to app initial state otherwise
+          errOrSt <- readFileAsJson stateFile
+          case errOrSt of
+            Left err -> do
+              Logger.logInfo loggerH $ unlines
+                  [ "Failed to read state from '" <> stateFile <> "': "
+                  , err
+                  , "Falling back to initial application state at revision 0."
+                  ]
+              newTVarIO (appInitialState app, 0)
+            Right st -> do
+              Logger.logInfo loggerH $
+                  "Using state at revision " <> show (snd st) <>
+                  " from '" <> stateFile <> "'."
+              newTVarIO st
 
     -- start asynchronous state writer thread
     currentRevId <- liftIO $ snd <$> readTVarIO stVar
-    void $ managed $ Async.withAsync $ persistStateOnChange stVar currentRevId
+    case mbStateFile of
+      Nothing        -> return ()
+      Just stateFile -> void $ managed $ Async.withAsync $
+        persistStateOnChange stateFile stVar currentRevId
 
     -- execute the initial request
     liftIO $ runIORequest (appInitialRequest app) (applyActionIO stVar)
@@ -249,15 +254,16 @@ newHandle stateFile loggerH (RenderableApp render app) = do
     -- return event handlers
     return $ Handle (handleGetView stVar) (handleHandleEvent stVar)
   where
-    persistStateOnChange :: TVar (st, ProxyApi.RevisionId) -> ProxyApi.RevisionId -> IO ()
-    persistStateOnChange stVar currentRevId = do
+    persistStateOnChange
+        :: FilePath -> TVar (st, ProxyApi.RevisionId) -> ProxyApi.RevisionId -> IO ()
+    persistStateOnChange stateFile stVar currentRevId = do
         st <- atomically $ do
             st@(_, revId) <- readTVar stVar
             guard (currentRevId /= revId)
             return st
         -- write file and persist state on a change
         writeFileAsJson stateFile st `catch` handleIOError
-        persistStateOnChange stVar (snd st)
+        persistStateOnChange stateFile stVar (snd st)
       where
         handleIOError :: IOError -> IO ()
         handleIOError err = Logger.logInfo loggerH $
