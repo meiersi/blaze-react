@@ -6,4 +6,7 @@ packages:
   - libs/hs/blaze-react-dev-mode-shared
   - libs/hs/servant-blaze-react
 extra-deps: []
-resolver: lts-3.2
+resolver: lts-3.6
+
+system-ghc: false
+install-ghc: true
