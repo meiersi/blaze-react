@@ -18,6 +18,7 @@ import qualified Blaze.Development.ProxyApi         as ProxyApi
 import           Control.Monad.Trans.Either   (bimapEitherT)
 
 import qualified Data.Text                    as T
+import           Data.Monoid                  ((<>))
 
 import           GHCJS.Types           (JSString)
 import qualified GHCJS.Foreign         as Foreign
@@ -38,6 +39,15 @@ foreign import javascript safe
 getServerUrl :: IO String
 getServerUrl = Foreign.fromJSString <$> js_getServerUrl
 
+foreign import javascript safe
+    "$r = BLAZE_REACT_DEV_MODE_SESSION_ID"
+    js_getSessionId :: IO JSString
+
+-- | Fetch the server url that was injected via the SERVER-URL.js script.
+getSessionId :: IO ProxyApi.SessionId
+getSessionId =
+    ProxyApi.SessionId . read . Foreign.fromJSString <$> js_getSessionId
+
 
 ------------------------------------------------------------------------------
 -- Main
@@ -45,20 +55,20 @@ getServerUrl = Foreign.fromJSString <$> js_getServerUrl
 
 main :: IO ()
 main = do
-    -- create logger - obvious comment is obvious (TC)
     loggerH    <- Logger.newStdoutLogger
     serverUrl0 <- getServerUrl
     serverUrl  <- parseBaseUrl serverUrl0
-    -- TODO (SM): extract server-url from environment
+    sid        <- getSessionId
 
     -- define client application
     let postEvent :<|> getView = client ProxyApi.api serverUrl
         serverH = Client.Handle
           { Client.hLogger    = loggerH
-          , Client.hPostEvent = showErrors . postEvent
-          , Client.hGetView   = showErrors . getView
+          , Client.hPostEvent = showErrors . postEvent sid
+          , Client.hGetView   = showErrors . getView sid
           }
-        clientApp = Client.clientAppFor serverH (T.pack serverUrl0)
+        serverName = T.pack $ serverUrl0 <> "/s/" <> show (ProxyApi.unSessionId sid)
+        clientApp = Client.clientAppFor serverH serverName
 
     -- run client application using React.js
     runApp' (raRender clientApp) (runIORequest <$> raApp clientApp)

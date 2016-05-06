@@ -12,7 +12,8 @@
 -- > import qualified Blaze.Development.ProxyApi as ProxyApi
 --
 module Blaze.Development.ProxyApi
-  ( RevisionId(..)
+  ( SessionId(..)
+  , RevisionId(..)
   , Position(..)
   , Event(..)
   , View(..)
@@ -49,6 +50,11 @@ import qualified Text.Blaze.Html5             as H
 ------------------------------------------------------------------------------
 -- API definition
 ------------------------------------------------------------------------------
+
+-- | A session-id identifying a session of an application running on the
+-- server.
+newtype SessionId = SessionId { unSessionId :: Integer }
+    deriving (Eq, Ord, Show, Num, Enum, Aeson.ToJSON, Aeson.FromJSON, FromText, ToText)
 
 -- | A revision of an application state whose rendering is being proxied.
 newtype RevisionId = RevisionId { unRevisionId :: Integer }
@@ -95,7 +101,8 @@ instance Show View where
 ------------------------------------------------------------------------------
 
 -- | Shared definition of the prefix to use for the API.
-type WithApiPrefix a = "api" :> "proxy" :>  a
+type WithApiPrefix a =
+    "api" :> "proxy" :> Capture "sessionId" SessionId :> a
 
 -- | The endpoint that allows to send an event that happened.
 type PostEvent
@@ -162,3 +169,17 @@ instance ToParam (QueryParam "knownRevision" RevisionId) where
                     "The revision currently known to the client. \
                     \The endpoint will block until it can return a different revision."
                     Normal
+
+instance ToParam (QueryParam "sessionId" SessionId) where
+  toParam _ =
+      DocQueryParam "sessionId"                     -- name
+                    ["0", "1"] -- example of values (not necessarily exhaustive)
+                    "The application instance being proxied. This is used to \
+                    \support multiple instances of applications running on the \
+                    \same development server."
+                    Normal
+
+instance ToCapture (Capture "sessionId" SessionId) where
+  toCapture _ = DocCapture "sessionId" "Session identifier (number)"
+
+

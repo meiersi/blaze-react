@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | A HTTP server that serves a blaze-react app to a proxy running in a
 -- browser.
@@ -27,52 +28,51 @@ module Blaze.Development.Server
   ) where
 
 
-import           Blaze.Core
 import qualified Blaze.Development.Internal.Logger as Logger
 import           Blaze.Development.Internal.Types
                  ( RenderableApp(..), HtmlApp, dummyHtmlApp
                  )
-import qualified Blaze.Development.ProxyApi        as ProxyApi
-import qualified Blaze.Development.Server.Assets   as Assets
+import qualified Blaze.Development.ProxyApi               as ProxyApi
+import qualified Blaze.Development.Server.Assets          as Assets
+import qualified Blaze.Development.Server.ResourceManager as ResourceManager
+import qualified Blaze.Development.Server.Session         as Session
 
 import           Control.Arrow                ((&&&), second)
-import           Control.Concurrent           (threadDelay)
 import qualified Control.Concurrent.Async     as Async
-import           Control.Concurrent.STM.TVar
-                 ( TVar, newTVarIO, readTVar, writeTVar, readTVarIO
+import           Control.Concurrent.MVar
+                 ( MVar, newMVar, modifyMVar
                  )
-import           Control.Exception            (finally, evaluate, catch)
-import           Control.Lens                 (preview, _Left)
+import           Control.Exception            (finally, bracket)
+import           Control.Lens
+                 ( preview, makeLenses, ix, at, set, over, view
+                 )
 import           Control.Monad
-import           Control.Monad.Managed        (Managed, runManaged, managed)
-import           Control.Monad.STM            (STM, atomically)
+import           Control.Monad.Managed        (runManaged, managed)
+import           Control.Monad.STM            (atomically)
 import           Control.Monad.State
+import           Control.Monad.Trans.Either   (EitherT, left)
+import qualified Control.Monad.Trans.Resource as Resource
 
 import qualified Data.Aeson                   as Aeson
 import qualified Data.ByteString              as B
-import qualified Data.ByteString.Lazy         as BL
+import qualified Data.ByteString.Char8        as BC8
+import qualified Data.Map.Strict              as MS
 import           Data.Maybe
 import           Data.Monoid
 import qualified Data.Text                    as T
 
 import qualified Network.Wai.Application.Static  as Static
 import           Network.Wai.Handler.Warp        (run)
-import           Numeric                         (showHex)
 
 import           Servant
 import           Servant.HTML.BlazeReact      (HTML)
 
 import           System.Directory
-                 ( renameFile, removeFile, doesFileExist, doesDirectoryExist
+                 ( doesFileExist, doesDirectoryExist
                  , getDirectoryContents
                  )
-import           System.FilePath              ((</>), takeExtension)
-import           System.IO
-                 ( withBinaryFile, IOMode(ReadMode, WriteMode)
-                 )
-import           System.Random                (getStdRandom, randomR)
+import           System.FilePath              ((</>), takeExtension, addExtension)
 
-import qualified Text.Blaze.Event.Internal    as EI
 import qualified Text.Blaze.Html5             as H
 import qualified Text.Blaze.Html5.Attributes  as A
 
@@ -100,25 +100,54 @@ data Config = Config
       -- static files that should be served from '/static'.
     , cAdditionalScripts :: ![FilePath]
       -- ^ A list of scripts that should be loaded at the end of the page.
-    , cStateFile :: !(Maybe FilePath)
-      -- ^ Path to the file that should be used to persist the application
-      -- state, if at all.
+    , cStateDir :: !(Maybe FilePath)
+      -- ^ Path to the directory that should be used to persist the state of
+      -- the individual application sessions, if at all.
     } deriving (Eq, Show)
+
+-- | State management for the concurrent sessions being run.
+data ServerState = ServerState
+    { _ssNextSessionId   :: !ProxyApi.SessionId
+      -- ^ The next-session-id to use.
+    , _ssSessions        :: !(MS.Map ProxyApi.SessionId Session.Handle)
+      -- ^ Handle's for all sessions that are already running.
+    }
+
+-- | Server handle.
+data Handle = Handle
+    { hConfig          :: !Config
+    , hStateVar        :: !(MVar ServerState)
+    , hCreateSession   :: !(ProxyApi.SessionId -> IO Session.Handle)
+      -- ^ How to create a new session of the application that we are serving.
+    , hResourceManager :: !ResourceManager.Handle
+      -- ^ The resource manager that we use to track the resources allocated
+      -- by the individual sessions.
+    }
+
+
+-- optics
+---------
+
+makeLenses ''ServerState
 
 
 ------------------------------------------------------------------------------
 -- Extended API definition
 ------------------------------------------------------------------------------
 
--- | Fetch the dynamically generated 'index.html' page.
-type GetIndexHtml = Get '[HTML] (H.Html ())
+-- | Fetch a dynamically generated HTML page.
+type GetHtmlPage = Get '[HTML] (H.Html ())
 
+-- | The parameter for session-id specific paths.
+type SessionIdParam = Capture "sessionId" ProxyApi.SessionId
+
+-- | The whole API that we are serving.
 type Api
     =    ProxyApi.Api
-    :<|> GetIndexHtml
+    :<|> GetHtmlPage
+    :<|> ("s" :> SessionIdParam :> GetHtmlPage)
+    :<|> ("s" :> SessionIdParam :> "SERVER-INFO.js" :> Get '[PlainText] T.Text)
     :<|> ("api" :> "proxy" :> Get '[PlainText] T.Text)
-    :<|> ("api" :> "kill" :> "server" :> Get '[PlainText] T.Text)
-    :<|> ("static" :> "js" :> "SERVER-URL.js" :> Get '[PlainText] T.Text)
     :<|> ("static" :> Raw)
 
 api :: Proxy Api
@@ -135,13 +164,14 @@ defaultConfig :: [T.Text] -> [(FilePath, B.ByteString)] -> [FilePath] -> Config
 defaultConfig externalStylesheets staticFiles additionalScripts =
     Config
     { cPort                = 8081
+      -- FIXME (SM): we should not duplicate port and URL here. That is going
+      -- to break setting the port number.
     , cExternalServerUrl   = "http://localhost:8081"
     , cExternalStylesheets = externalStylesheets
     , cStaticFiles         = staticFiles
-    , cStateFile           = Just "blaze-react-dev-mode_state.json"
+    , cStateDir            = Just "blaze-react-dev-mode_state"
     , cAdditionalScripts   = additionalScripts
     }
-
 
 -- | Start a development server with the given configuation.
 main :: (Aeson.ToJSON st, Aeson.FromJSON st) => Config -> HtmlApp st act -> IO ()
@@ -158,35 +188,66 @@ main config app = do
 
     -- destroy all allocated resources when exiting here
     runManaged $ do
-        -- create executable app instance
-        h <- newHandle (cStateFile config) loggerH app
-
         -- announce that we serve the app over http
         liftIO $ Logger.logInfo loggerH $ unlines
           [ "Server started at: " <> T.unpack (cExternalServerUrl config)
           , "Press CTRL-C to stop it"
           ]
 
-        stopServerVar   <- liftIO $ newTVarIO False
+        -- create the resource manager, which we use to manage resources bound
+        -- to new application sessions.
+        --
+        -- TODO (SM): Move this into its own module.
+        --
+        resourceManagerState <- managed $
+            bracket Resource.createInternalState Resource.closeInternalState
+
+        let resourceManagerH = ResourceManager.Handle
+              { ResourceManager.allocate = \create destroy ->
+                    flip Resource.runInternalState resourceManagerState $ do
+                        (key, resource) <- Resource.allocate create destroy
+                        return
+                          ( resource
+                          , ResourceManager.ReleaseKey (Resource.release key)
+                          )
+              }
+
+        -- create server state
+        serverStateVar <- liftIO $ newMVar $ ServerState
+            { _ssNextSessionId   = 0
+            , _ssSessions        = mempty
+            }
+
+        -- create server-handle
+        let serverH = Handle
+              { hConfig          = config
+              , hStateVar        = serverStateVar
+              , hResourceManager = resourceManagerH
+              , hCreateSession   = createAppSession loggerH resourceManagerH
+              }
 
         -- run the server in an async coupled to the lifteime of the main
         -- thread
         serverStatusVar <- managed $ Async.withAsync $
-            (run port $ serve api $ serveApi config stopServerVar h)
+            (run port $ serve api $ serveApi serverH)
 
         -- wait until the server terminated or should be stopped
         liftIO $ do
           ( do atomically $ do
-                   stopServer   <- readTVar stopServerVar
                    serverStatus <- Async.pollSTM serverStatusVar
-                   guard (isJust serverStatus || stopServer)
-               -- 5ms delay to ensure that the 'killServer' handler can run to
-               -- completion
-               threadDelay (5 * 1000)
-
-           )`finally` (Logger.logInfo loggerH "Server stopped.")
+                   guard (isJust serverStatus)
+           ) `finally` (Logger.logInfo loggerH "Server stopped.")
   where
-    port    = cPort config
+    port = cPort config
+
+    createAppSession loggerH resourceManagerH sid =
+        Session.newHandle sessionConfig loggerH resourceManagerH app
+      where
+        sessionConfig = Session.Config mbStateFile
+        mbStateFile = do
+            stateDir <- cStateDir config
+            let sessionName = "session-" <> show (ProxyApi.unSessionId sid)
+            return $ stateDir </>  sessionName `addExtension` "json"
 
 
 -- | Start a server with a dummy HTML application. We use this for testing
@@ -200,251 +261,117 @@ testMain =
 
 
 ------------------------------------------------------------------------------
--- Application execution
-------------------------------------------------------------------------------
-
--- | A 'Handle' for a service that runs a single instance of an application,
--- and provides support for proxying its display to a remote browser.
-data Handle = Handle
-    { hGetView :: !(Maybe ProxyApi.RevisionId -> IO ProxyApi.View)
-      -- ^ @hGetView h mbRevId@ returns the rendered state of the application
-      -- provided the given revision is older than the application's state.
-    , hHandleEvent :: !(ProxyApi.Event -> IO ())
-      -- @hHandleEvent@ allows applying an event to a specific revision of the
-      -- application state.
-    }
-
--- | Create a new handle that allows running with a single instance of an
--- HtmlApp.
-newHandle
-    :: forall st act.
-       (Aeson.ToJSON st, Aeson.FromJSON st)
-    => Maybe FilePath -> Logger.Handle -> HtmlApp st act -> Managed Handle
-newHandle mbStateFile loggerH (RenderableApp render app) = do
-    -- allocate state reference
-    stVar <- liftIO $ case mbStateFile of
-        Nothing        -> newTVarIO (appInitialState app, 0)
-        Just stateFile -> do
-          -- try to read initial state, and fallback to app initial state otherwise
-          errOrSt <- readFileAsJson stateFile
-          case errOrSt of
-            Left err -> do
-              Logger.logInfo loggerH $ unlines
-                  [ "Failed to read state from '" <> stateFile <> "': "
-                  , err
-                  , "Falling back to initial application state at revision 0."
-                  ]
-              newTVarIO (appInitialState app, 0)
-            Right st -> do
-              Logger.logInfo loggerH $
-                  "Using state at revision " <> show (snd st) <>
-                  " from '" <> stateFile <> "'."
-              newTVarIO st
-
-    -- start asynchronous state writer thread
-    currentRevId <- liftIO $ snd <$> readTVarIO stVar
-    case mbStateFile of
-      Nothing        -> return ()
-      Just stateFile -> void $ managed $ Async.withAsync $
-        persistStateOnChange stateFile stVar currentRevId
-
-    -- execute the initial request
-    liftIO $ runIORequest (appInitialRequest app) (applyActionIO stVar)
-
-    -- return event handlers
-    return $ Handle (handleGetView stVar) (handleHandleEvent stVar)
-  where
-    persistStateOnChange
-        :: FilePath -> TVar (st, ProxyApi.RevisionId) -> ProxyApi.RevisionId -> IO ()
-    persistStateOnChange stateFile stVar currentRevId = do
-        st <- atomically $ do
-            st@(_, revId) <- readTVar stVar
-            guard (currentRevId /= revId)
-            return st
-        -- write file and persist state on a change
-        writeFileAsJson stateFile st `catch` handleIOError
-        persistStateOnChange stateFile stVar (snd st)
-      where
-        handleIOError :: IOError -> IO ()
-        handleIOError err = Logger.logInfo loggerH $
-            "Error when writing '" <> stateFile <> "': " <> show err
-
-    applyAction :: TVar (st, ProxyApi.RevisionId) -> act -> STM (IORequest act)
-    applyAction stVar act = do
-        (st, revId) <- readTVar stVar
-        let (!st', !req) = appApplyAction app act st
-        writeTVar stVar (st', succ revId)
-        return req
-
-    applyActionIO :: TVar (st, ProxyApi.RevisionId) -> act -> IO ()
-    applyActionIO stVar act = do
-        req <- atomically (applyAction stVar act)
-        runIORequest req (applyActionIO stVar)
-
-    -- function to handle a 'HandleEvent' mirror-request
-    handleHandleEvent stVar (ProxyApi.Event evRevId pos someEv) = do
-        req <- atomically $ do
-            (st, revId) <- readTVar stVar
-            if revId /= evRevId
-              then logInfo' $
-                     "event revision-id " <> show evRevId <>
-                     " does not match state revision-id " <> show revId <> "."
-              else
-                case lookupByPosition pos (render st) of
-                  Nothing -> logInfo' $
-                    "ignore event that we cannot locate at position " <>
-                    show pos <> "."
-                  Just (EI.EventHandler sel evDataToAct) ->
-                    case EI.someEventData someEv sel of
-                      Nothing     -> logInfo' "event selectors do not match"
-                      Just evData -> applyAction stVar (evDataToAct evData)
-
-        -- execute resulting request (including the log-messages)
-        runIORequest req (applyActionIO stVar)
-      where
-        logInfo' msg = return $ performIO_ (Logger.logInfo loggerH msg)
-
-    -- function to handle a 'GetView' mirror-request
-    handleGetView stVar mbClientRevId =
-        -- TODO (SM): replace 20s teimout with a configurable one and do not
-        -- return full data
-        Async.withAsync (threadDelay (20 * 1000000)) $ \timeout ->
-            atomically $ do
-                (st, revId) <- readTVar stVar
-                timedOut <- isJust <$> Async.pollSTM timeout
-                -- only return an update after a timeout or when the revision-id
-                -- has changed
-                guard (timedOut || mbClientRevId /= Just revId)
-                return $ ProxyApi.View revId  (traverseWithPosition adapt (render st))
-      where
-        adapt pos (EI.EventHandler sel _mkAct) = (pos, EI.SomeEventSelector sel)
-
-
--- | Lookup the element at the given position.
---
--- TODO (SM): this code could be shortened using the fact that 'traversed'
--- provides and IndexeTraversal.
-lookupByPosition
-    :: Traversable f => ProxyApi.Position -> f a -> Maybe a
-lookupByPosition i t =
-    preview _Left $ execStateT (traverse lookup' t) 0
-  where
-    lookup' x = do
-        nextId <- get
-        put (succ nextId)
-        when (nextId == i) (lift (Left x))
-
-
--- TODO (SM): this code could be shortened using the fact that 'traversed'
--- from 'lens' provides an IndexedTraversal.
-traverseWithPosition
-    :: Traversable f => (ProxyApi.Position -> a -> b) -> f a -> f b
-traverseWithPosition f t =
-    evalState (traverse annotate t) 0
-  where
-    annotate x = do
-        nextId <- get
-        let !nextId' = succ nextId
-        put nextId'
-        return (f nextId x)
-
-
-------------------------------------------------------------------------------
 -- API serving
 ------------------------------------------------------------------------------
 
-serveApi :: Config -> TVar Bool -> Handle -> Server Api
-serveApi config stopServerVar h =
-         (servePostEventApi :<|> serveViewApi)
-    :<|> return (indexHtml config)
-    :<|> return (T.pack ProxyApi.markdownDocs)
-    :<|> killServer
-    :<|> return (serverUrlScript (cExternalServerUrl config))
-    :<|> serveStaticFiles (Assets.staticFiles <> cStaticFiles config)
+type ServerM = EitherT ServantErr IO
+
+serveProxyApi :: Handle -> Server ProxyApi.Api
+serveProxyApi serverH = do
+    servePostEventApi :<|> serveViewApi
   where
-    servePostEventApi ev      = liftIO $ hHandleEvent h ev
-    serveViewApi mbKnownRevId = liftIO $ hGetView h mbKnownRevId
+    -- ensure that the session exists, create it otherwise
+    servePostEventApi :: Server ProxyApi.PostEvent
+        -- :: Maybe ProxyApi.SessionId -> ProxyApi.Event -> ServerM ProxyApi.PostEvent
+    servePostEventApi sid ev =
+        withSession sid $ \h -> Session.hHandleEvent h ev
 
-    killServer = do
-        liftIO $ atomically $ writeTVar stopServerVar True
-        return "stopping server...\n"
+    serveViewApi :: Server ProxyApi.GetView
+    serveViewApi sid mbKnownRevision =
+        withSession sid $ \h -> Session.hGetView h mbKnownRevision
+
+    withSession :: ProxyApi.SessionId -> (Session.Handle -> IO a) -> ServerM a
+    withSession sid performAction = liftIO $ do
+        -- ensure that a Session.Handle exists for the given session-id
+        sessionH <- modifyMVar (hStateVar serverH) $ \st ->
+            case preview (ssSessions . ix sid) st of
+              Just sessionH  -> return (st, sessionH)
+              Nothing -> do
+                sessionH <- hCreateSession serverH sid
+                return
+                  ( set (ssSessions . at sid) (Just sessionH) st
+                  , sessionH
+                  )
+        -- handle the action
+        performAction sessionH
 
 
-indexHtml :: Config -> H.Html ()
-indexHtml config =
+-- | Serve the whole API of the development server.
+serveApi :: Handle -> Server Api
+serveApi serverH =
+         serveProxyApi serverH
+    :<|> redirectToNewSession serverH
+    :<|> serveSessionIndexHtml serverH
+    :<|> serveServerInfoScript serverH
+    :<|> return (T.pack ProxyApi.markdownDocs)
+    :<|> serveStaticFiles serverH
+  where
+
+redirectToNewSession :: Handle -> ServerM (H.Html ())
+redirectToNewSession serverH = do
+    -- allocate new session-id
+    sid <- liftIO $ modifyMVar (hStateVar serverH) $ \st ->
+        pure (over ssNextSessionId succ st, view ssNextSessionId st)
+    -- redirect to session specific URL
+    let url = BC8.pack $ "s/" <> show (ProxyApi.unSessionId sid)
+    left $ err303 { errHeaders = [("Location", url)] }
+
+
+serveSessionIndexHtml :: Handle -> ProxyApi.SessionId -> ServerM (H.Html ())
+serveSessionIndexHtml serverH sid =
+    return $ indexHtml (hConfig serverH) sid
+
+serveServerInfoScript :: Handle -> ProxyApi.SessionId -> ServerM T.Text
+serveServerInfoScript serverH sid0 =
+    return $ T.unlines
+      [ "BLAZE_REACT_DEV_MODE_SERVER_URL = \"" <> externalApiUrl <> "\""
+      , "BLAZE_REACT_DEV_MODE_SESSION_ID = \"" <> sid <> "\""
+      ]
+  where
+    sid = T.pack $ show $ ProxyApi.unSessionId sid0
+    externalApiUrl = cExternalServerUrl $ hConfig serverH
+
+indexHtml :: Config -> ProxyApi.SessionId -> H.Html ()
+indexHtml config sid =
     -- TODO (SM): add doctype once it is supported by H.Html
     H.html $ mconcat
       [ H.head $ mconcat
          [ foldMap stylesheet (cExternalStylesheets config)
-         , foldMap (stylesheet . ("static" </>)) staticStylesheets
+         , foldMap (stylesheet . ("/static" </>)) staticStylesheets
          , H.link H.! A.rel "shortcut icon" H.! A.href "static/favicon.ico"
-         , foldMap script_ ["js/rts.js", "js/lib.js", "js/out.js", "js/SERVER-URL.js"]
+         , foldMap script_
+             [ "/static/js/rts.js"
+             , "/static/js/lib.js"
+             , "/static/js/out.js"
+             , "/s/" <> H.toValue (ProxyApi.unSessionId sid) <> "/SERVER-INFO.js"
+             ]
          ]
       , H.body mempty
       , foldMap (script_ . H.toValue) (cAdditionalScripts config)
         -- FIXME (SM): we should support for attributes without a value to the
         -- Html type.
-      , script "js/runmain.js" H.! A.defer "defer" $ mempty
+      , script "/static/js/runmain.js" H.! A.defer "defer" $ mempty
       ]
   where
     stylesheet url = H.link H.! A.rel "stylesheet" H.! A.href (H.toValue url)
-    script  url = H.script H.! A.src ("static/" <> url)
+    script  url = H.script H.! A.src url
     script_ url = script url mempty
 
     staticStylesheets =
         filter ((".css" ==) . takeExtension) (fst <$> cStaticFiles config)
 
 
-serveStaticFiles :: [(FilePath, B.ByteString)] -> Server Raw
-serveStaticFiles = Static.staticApp . Static.embeddedSettings
+serveStaticFiles :: Handle -> Server Raw
+serveStaticFiles serverH =
+    Static.staticApp $ Static.embeddedSettings $
+        Assets.staticFiles <> cStaticFiles (hConfig serverH)
 
-serverUrlScript :: T.Text -> T.Text
-serverUrlScript externalApiUrl =
-    "BLAZE_REACT_DEV_MODE_SERVER_URL = \"" <> externalApiUrl <> "\""
 
 
 
 ------------------------------------------------------------------------------
--- File storage
+-- Static Assets
 ------------------------------------------------------------------------------
-
-writeFileAsJson :: Aeson.ToJSON a => FilePath -> a -> IO ()
-writeFileAsJson file = writeFileRaceFree file . Aeson.encode
-
-readFileAsJson :: Aeson.FromJSON a => FilePath -> IO (Either String a)
-readFileAsJson file =
-    -- make sure that file is closed on exit
-    ( withBinaryFile file ReadMode $ \h -> do
-          content <- BL.hGetContents h
-          -- force the lazy file reading here, as it will be closed as soon as
-          -- we return from this do-block
-          evaluate (Aeson.eitherDecode' content)
-     ) `catch` handleIOError
-  where
-    handleIOError :: IOError -> IO (Either String a)
-    handleIOError = return . Left . show
-
-
--- | A probalistically race-free version for writing a state file.
-writeFileRaceFree :: FilePath -> BL.ByteString -> IO ()
-writeFileRaceFree stateFile content = do
-    -- compute random filename
-    suffix <- getRandomHex32BitNumber
-    let tempStateFile = stateFile <> "-" <> suffix
-    -- overwrite in an atomic fashion
-    writeAndMove tempStateFile `finally` tryRemoveFile tempStateFile
-  where
-    writeAndMove tempFile = do
-        withBinaryFile tempFile WriteMode $ \h -> BL.hPut h content
-        renameFile tempFile stateFile
-
-    tryRemoveFile file = do
-        doesExist <- doesFileExist file
-        when doesExist (removeFile file)
-
-    getRandomHex32BitNumber = do
-        i <- getStdRandom (randomR (0x10000000::Int,0xffffffff))
-        return $ showHex i ""
 
 -- | Load the additional static files from a local directory.
 loadStaticFiles :: FilePath -> IO [(FilePath, B.ByteString)]

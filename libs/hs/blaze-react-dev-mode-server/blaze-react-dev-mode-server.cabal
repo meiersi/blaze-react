@@ -23,6 +23,7 @@ library
 
   other-modules:
       Blaze.Development.Server.Assets
+      Blaze.Development.Server.Session
 
   build-depends:
       aeson
@@ -31,6 +32,7 @@ library
     , bytestring
     , blaze-react-core
     , blaze-react-dev-mode-shared
+    , containers
     , directory
     , filepath
     , file-embed
@@ -38,6 +40,7 @@ library
     , managed
     , mtl
     , random
+    , resourcet
     , servant-server
     , servant-blaze-react
     , stm
