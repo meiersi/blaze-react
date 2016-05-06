@@ -16,6 +16,12 @@ module Blaze.Development.Server
     RenderableApp(..)
   , HtmlApp
 
+    -- * JSON encodings
+  , JsonEncoding
+  , noJsonEncoding
+  , fullJsonEncoding
+  , projectionJsonEncoding
+
     -- * Starting a development server
   , Config(..)
   , defaultConfig
@@ -54,6 +60,7 @@ import           Control.Monad.Trans.Either   (EitherT, left)
 import qualified Control.Monad.Trans.Resource as Resource
 
 import qualified Data.Aeson                   as Aeson
+import qualified Data.Aeson.Types             as Aeson
 import qualified Data.ByteString              as B
 import qualified Data.ByteString.Char8        as BC8
 import qualified Data.Map.Strict              as MS
@@ -83,6 +90,9 @@ import qualified Text.Blaze.Html5.Attributes  as A
 
 -- | A URL of an external stylesheet.
 type StylesheetUrl = T.Text
+
+-- | A JSON encoding of a Haskell value.
+type JsonEncoding a = (a -> Aeson.Value, Aeson.Value -> Aeson.Parser a)
 
 data Config = Config
     { cPort :: !Int
@@ -173,9 +183,37 @@ defaultConfig externalStylesheets staticFiles additionalScripts =
     , cAdditionalScripts   = additionalScripts
     }
 
+
+-- | A JSON encoding that always returns the same constant.
+noJsonEncoding :: JsonEncoding st
+noJsonEncoding =
+    (const (Aeson.toJSON ()), const (fail "Nothing was serialized."))
+
+-- | A JSON encoding that encodes the complete state.
+fullJsonEncoding :: (Aeson.ToJSON st, Aeson.FromJSON st) => JsonEncoding st
+fullJsonEncoding = (Aeson.toJSON, Aeson.parseJSON)
+
+-- | A JSON encoding that only encodes a projection of the state.
+--
+-- Use this encoding to ignore caches in the state.
+--
+projectionJsonEncoding
+    :: (Aeson.ToJSON subSt, Aeson.FromJSON subSt)
+    => (st -> subSt)
+    -> (subSt -> st)
+    -> JsonEncoding st
+projectionJsonEncoding forget reconstruct =
+    (Aeson.toJSON . forget, fmap reconstruct . Aeson.parseJSON)
+
+
 -- | Start a development server with the given configuation.
-main :: (Aeson.ToJSON st, Aeson.FromJSON st) => Config -> HtmlApp st act -> IO ()
-main config app = do
+main
+    :: JsonEncoding st
+       -- ^ The JSON encoding to persist (parts of) the application state.
+       -- Use 'noJsonEncoding' if you don't want to persist anything.
+    -> Config
+    -> HtmlApp st act -> IO ()
+main jsonEncoding config app = do
     -- allocate logger
     loggerH <- Logger.newStdoutLogger
 
@@ -241,7 +279,7 @@ main config app = do
     port = cPort config
 
     createAppSession loggerH resourceManagerH sid =
-        Session.newHandle sessionConfig loggerH resourceManagerH app
+        Session.newHandle jsonEncoding sessionConfig loggerH resourceManagerH app
       where
         sessionConfig = Session.Config mbStateFile
         mbStateFile = do
@@ -254,7 +292,7 @@ main config app = do
 -- purposes.
 testMain :: IO ()
 testMain =
-    main (defaultConfig [bootstrapUrl] [] []) dummyHtmlApp
+    main fullJsonEncoding (defaultConfig [bootstrapUrl] [] []) dummyHtmlApp
   where
     bootstrapUrl =
        "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"

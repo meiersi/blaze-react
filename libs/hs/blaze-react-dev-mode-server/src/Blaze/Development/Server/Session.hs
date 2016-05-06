@@ -22,7 +22,6 @@ module Blaze.Development.Server.Session
   , newHandle
   ) where
 
-
 import           Blaze.Core
 import qualified Blaze.Development.Internal.Logger as Logger
 import           Blaze.Development.Internal.Types
@@ -43,6 +42,7 @@ import           Control.Monad.STM            (STM, atomically)
 import           Control.Monad.State
 
 import qualified Data.Aeson                   as Aeson
+import qualified Data.Aeson.Types             as Aeson
 import qualified Data.ByteString.Lazy         as BL
 import           Data.Maybe
 import           Data.Monoid
@@ -92,8 +92,9 @@ data Handle = Handle
 -- HtmlApp.
 newHandle
     :: forall st act.
-       (Aeson.ToJSON st, Aeson.FromJSON st)
-    => Config
+       (st -> Aeson.Value, Aeson.Value -> Aeson.Parser st)
+       -- ^ How to de/serialize the state to a JSON value.
+    -> Config
     -> Logger.Handle
     -> ResourceManager.Handle
        -- ^ Resource manager to which we should bind our resources. We'll use
@@ -102,6 +103,7 @@ newHandle
     -> HtmlApp st act
     -> IO Handle
 newHandle
+    (serializeToJson0, deserializeFromJson0)
     (Config mbStateFile) loggerH resourceManagerH (RenderableApp render app)
   = do
     -- allocate state reference
@@ -111,7 +113,7 @@ newHandle
           -- ensure that the containing directory exists
           ensureContainingDirectoryExists loggerH stateFile
           -- try to read initial state, and fallback to app initial state otherwise
-          errOrSt <- readFileAsJson stateFile
+          errOrSt <- readJsonFile deserializeFromJson stateFile
           case errOrSt of
             Left err -> do
               Logger.logInfo loggerH $ unlines
@@ -142,6 +144,21 @@ newHandle
     -- return event handlers
     return $ Handle (handleGetView stVar) (handleHandleEvent stVar)
   where
+    serializeToJson :: (st, ProxyApi.RevisionId) -> Aeson.Value
+    serializeToJson (st, revId) =
+        Aeson.object
+          [ "revId" Aeson..= revId
+          , "state" Aeson..= serializeToJson0 st
+          ]
+
+    deserializeFromJson :: Aeson.Value -> Aeson.Parser (st, ProxyApi.RevisionId)
+    deserializeFromJson = Aeson.withObject "Revisioned state"$ \obj -> do
+        stVal <- obj Aeson..: "state"
+        st    <- deserializeFromJson0 stVal
+        revId <- obj Aeson..: "revId"
+        return (st, revId)
+
+
     persistStateOnChange
         :: FilePath -> TVar (st, ProxyApi.RevisionId) -> ProxyApi.RevisionId -> IO ()
     persistStateOnChange stateFile stVar currentRevId = do
@@ -150,7 +167,7 @@ newHandle
             guard (currentRevId /= revId)
             return st
         -- write file and persist state on a change
-        writeFileAsJson stateFile st `catch` handleIOError
+        writeJsonFile serializeToJson stateFile st `catch` handleIOError
         persistStateOnChange stateFile stVar (snd st)
       where
         handleIOError :: IOError -> IO ()
@@ -250,21 +267,29 @@ ensureContainingDirectoryExists loggerH file = do
   where
     dir = takeDirectory file
 
-writeFileAsJson :: Aeson.ToJSON a => FilePath -> a -> IO ()
-writeFileAsJson file = writeFileRaceFree file . Aeson.encode
+writeJsonFile :: (a -> Aeson.Value) -> FilePath -> a -> IO ()
+writeJsonFile serializeToJson file =
+    writeFileRaceFree file . Aeson.encode . serializeToJson
 
-readFileAsJson :: Aeson.FromJSON a => FilePath -> IO (Either String a)
-readFileAsJson file =
+readJsonFile
+    :: forall a.
+      (Aeson.Value -> Aeson.Parser a) -> FilePath -> IO (Either String a)
+readJsonFile deserializeFromJson file =
     -- make sure that file is closed on exit
     ( withBinaryFile file ReadMode $ \h -> do
           content <- BL.hGetContents h
           -- force the lazy file reading here, as it will be closed as soon as
           -- we return from this do-block
-          evaluate (Aeson.eitherDecode' content)
+          evaluate (parseByteString content)
      ) `catch` handleIOError
   where
     handleIOError :: IOError -> IO (Either String a)
     handleIOError = return . Left . show
+
+    parseByteString :: BL.ByteString -> Either String a
+    parseByteString inp = do
+        val <- Aeson.eitherDecode' inp
+        Aeson.parseEither deserializeFromJson val
 
 
 -- | A probalistically race-free version for writing a state file.
