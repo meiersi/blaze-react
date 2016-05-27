@@ -52,7 +52,7 @@ main = do
     -- TODO (SM): extract server-url from environment
 
     -- define client application
-    let postEvent :<|> getView = client ProxyApi.api serverUrl
+    let postEvent :<|> getView = client ProxyApi.api (Just serverUrl)
         serverH = Client.Handle
           { Client.hLogger    = loggerH
           , Client.hPostEvent = showErrors . postEvent

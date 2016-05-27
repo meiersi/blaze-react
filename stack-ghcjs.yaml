@@ -1,0 +1,27 @@
+# Only for the GHC-compilable bits
+flags: {}
+packages:
+  - libs/hs/blaze-react-core
+  - libs/hs/blaze-react-spa
+  - libs/hs/blaze-react-dev-mode-shared
+  - libs/hs/servant-blaze-react
+
+  - location:
+      git: https://github.com/meiersi/ghcjs-servant-client
+      commit: 1b7847c018614f3093b1ac52801021561ebd83c3
+    extra-dep: true
+
+extra-deps: []
+resolver: lts-5.13
+
+system-ghc: false
+install-ghc: true
+
+compiler: ghcjs-0.2.0.20160414_ghc-7.10.3
+compiler-check: match-exact
+setup-info:
+  ghcjs:
+    source:
+      ghcjs-0.2.0.20160414_ghc-7.10.3:
+        url: https://s3.amazonaws.com/ghcjs/ghcjs-0.2.0.20160414_ghc-7.10.3.tar.gz
+        sha1: 6d6f307503be9e94e0c96ef1308c7cf224d06be3
