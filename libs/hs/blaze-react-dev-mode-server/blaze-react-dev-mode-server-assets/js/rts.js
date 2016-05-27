@@ -1,1 +1,1 @@
-../../../blaze-react-spa/dist/build/dev-mode-client/dev-mode-client.jsexe/rts.js
+../../../../generated/js/blaze-react-dev-mode-client/rts.js

@@ -46,7 +46,7 @@ foreign import javascript safe
 -- | Fetch the server url that was injected via the SERVER-URL.js script.
 getSessionId :: IO ProxyApi.SessionId
 getSessionId =
-    ProxyApi.SessionId . read . Foreign.fromJSString <$> js_getSessionId
+    ProxyApi.SessionId . read . JSString.unpack <$> js_getSessionId
 
 
 ------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ main = do
     sid        <- getSessionId
 
     -- define client application
-    let postEvent :<|> getView = client ProxyApi.api serverUrl
+    let postEvent :<|> getView = client ProxyApi.api (Just serverUrl)
         serverH = Client.Handle
           { Client.hLogger    = loggerH
           , Client.hPostEvent = showErrors . postEvent sid

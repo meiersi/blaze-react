@@ -1,1 +1,1 @@
-../../../blaze-react-spa/dist/build/dev-mode-client/dev-mode-client.jsexe/lib.js
+../../../../generated/js/blaze-react-dev-mode-client/lib.js

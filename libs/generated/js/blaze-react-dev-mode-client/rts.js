@@ -1334,7 +1334,7 @@ var h$ret7;
 var h$ret8;
 var h$ret9;
 var h$ret10;
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -1380,6 +1380,7 @@ function h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e() { return h$stack[h$sp]; };
    more platforms should be added here in the future
 */
 var h$isNode = false; // runtime is node.js
+var h$isJvm = false; // runtime is JVM
 var h$isJsShell = false; // runtime is SpiderMonkey jsshell
 var h$isJsCore = false; // runtime is JavaScriptCore jsc
 var h$isBrowser = false; // running in browser or everything else
@@ -1398,6 +1399,13 @@ if(typeof process !== 'undefined' && (typeof h$TH !== 'undefined' || (typeof req
     var h$child = child_process;
     var h$process = process;
     var h$processConstants = process['binding']('constants');
+} else if(typeof Java !== 'undefined') {
+    h$isJvm = true;
+    this.console = {
+      log: function(s) {
+        java.lang.System.out.print(s);
+      }
+    };
 } else if(typeof snarf !== 'undefined' && typeof evalInFrame !== 'undefined' && typeof countHeap !== 'undefined') {
     h$isJsShell = true;
     this.console = { log: this.print };
@@ -1413,7 +1421,7 @@ function h$getGlobal(that) {
     if(typeof global !== 'undefined') return global;
     return that;
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -1495,7 +1503,7 @@ goog.isString = function(v) {
 }
 goog.math = {};
 goog.crypt = {};
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -2425,7 +2433,7 @@ goog.crypt = {};
     global.DataView = global.DataView || DataView;
   }());
 }(h$getGlobal(this)));
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -3590,7 +3598,7 @@ return BigInteger;
 // fixme prefix this
 var h$nbv = BigInteger.nbv;
 var h$nbi = BigInteger.nbi;
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -3777,8 +3785,8 @@ var h$nbi = BigInteger.nbi;
     }
     attachTo.setImmediate = setImmediate;
     attachTo.clearImmediate = clearImmediate;
-}(this));
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+}(h$getGlobal(this)));
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -4479,7 +4487,7 @@ goog.math.Long.prototype.shiftRightUnsigned = function(numBits) {
     }
   }
 };
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -4912,7 +4920,7 @@ h$HeapSet.prototype._upHeap = function(i) {
         }
     }
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -5987,7 +5995,7 @@ function h$makeCallbackApply(n, f, extraArgs, fun) {
   } else if (n === 3) {
     c = function(x,y,z) {
       var args = extraArgs.slice(0);
-      var action = (h$c2(h$ap1_e,((h$c3(h$ap2_e,(fun),(MK_JSREF(x)),(MK_JSREF(y))))),(MK_JSREF(z))));
+      var action = (h$c2(h$ap1_e,((h$c3(h$ap2_e,(fun),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x)))),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (y))))))),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (z))))));
       args.unshift(action);
       return f.apply(this, args);
     }
@@ -6037,7 +6045,7 @@ function h$munmap(addr_d, addr_o, size) {
   }
   return 0;
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -6254,17 +6262,33 @@ function h$gc(t) {
     ;
     iter = h$extraRoots.iter();
     while((nt = iter.next()) !== null) h$follow(nt.root);
-    // now we've marked all the regular Haskell data, continue marking weak references
-    var toFinalize = h$markRetained();
-    // now all running threads and threads blocked on something that's excpected
-    // to make them runnable at some point have been marked, including other threads
-    // they reference through their ThreadId
     // clean up threads waiting on unreachable synchronization primitives
     h$resolveDeadlocks();
+    // clean up unreachable weak refs
+    var toFinalize = h$markRetained();
     h$finalizeWeaks(toFinalize);
     h$finalizeCAFs(); // restore all unreachable CAFs to unevaluated state
     var now = Date.now();
     h$lastGc = now;
+}
+function h$markWeaks() {
+  var i, w, marked, mark = h$gcMark;
+  do {
+    marked = false;
+    for (i = 0; i < h$weakPointerList.length; ++i) {
+      w = h$weakPointerList[i];
+      if (((w.keym.m & 3) === mark)) {
+ if (w.val !== null && !((typeof w.val.m === 'number' && (w.val.m & 3) === mark) || (typeof w.val.m === 'object' && ((w.val.m.m & 3) === mark)))) {
+          h$follow(w.val);
+   marked = true;
+ }
+ if (w.finalizer !== null && !((typeof w.finalizer.m === 'number' && (w.finalizer.m & 3) === mark) || (typeof w.finalizer.m === 'object' && ((w.finalizer.m.m & 3) === mark)))) {
+          h$follow(w.finalizer);
+   marked = true;
+ }
+      }
+    }
+  } while(marked);
 }
 function h$markRetained() {
     var iter, marked, w, i, mark = h$gcMark;
@@ -6320,9 +6344,11 @@ function h$markRetained() {
         if(w.val !== null) {
             w.val = null;
         }
-        if(w.finalizer !== null && !((typeof w.finalizer.m === 'number' && (w.finalizer.m & 3) === mark) || (typeof w.finalizer.m === 'object' && ((w.finalizer.m.m & 3) === mark)))) {
-            ;
-            h$follow(w.finalizer);
+        if(w.finalizer !== null) {
+            if(!((typeof w.finalizer.m === 'number' && (w.finalizer.m & 3) === mark) || (typeof w.finalizer.m === 'object' && ((w.finalizer.m.m & 3) === mark)))) {
+                ;
+                h$follow(w.finalizer);
+            }
             toFinalize.push(w);
         }
     }
@@ -6343,7 +6369,7 @@ function h$markThread(t) {
 // big object, not handled by 0..7 cases
 // keep out of h$follow to prevent deopt
 function h$followObjGen(c, work, w) {
-   work.push(c.d1);
+   work[w++] = c.d1;;
    var d = c.d2;
    for(var x in d) {
 //              if(d.hasOwnProperty(x)) {
@@ -6517,33 +6543,33 @@ function h$resolveDeadlocks() {
     ;
     var kill, t, iter, bo, mark = h$gcMark;
     do {
- // deal with unreachable blocked threads: kill an unreachable thread and restart the process
- kill = null;
- iter = h$blocked.iter();
- while((t = iter.next()) !== null) {
-     // we're done if the thread is already reachable
-     if(((typeof t.m === 'number' && (t.m & 3) === mark) || (typeof t.m === 'object' && ((t.m.m & 3) === mark)))) continue;
-     // check what we're blocked on
-     bo = t.blockedOn;
+        h$markWeaks();
+        // deal with unreachable blocked threads: kill an unreachable thread and restart the process
+        kill = null;
+        iter = h$blocked.iter();
+        while((t = iter.next()) !== null) {
+            // we're done if the thread is already reachable
+            if(((typeof t.m === 'number' && (t.m & 3) === mark) || (typeof t.m === 'object' && ((t.m.m & 3) === mark)))) continue;
+            // check what we're blocked on
+            bo = t.blockedOn;
             if(bo instanceof h$MVar) {
-  // blocked on MVar
-  if(bo.m === mark) throw "assertion failed: thread should have been marked";
-  // MVar unreachable
-  kill = h$ghcjszmprimZCGHCJSziPrimziInternalziblockedIndefinitelyOnMVar;
-  break;
-     } else if(t.blockedOn instanceof h$TVarsWaiting) {
-  // blocked in STM transaction
-  kill = h$ghcjszmprimZCGHCJSziPrimziInternalziblockedIndefinitelyOnSTM;
-  break;
-     } else {
-  // blocked on something else, we can't do anything
-     }
+                // blocked on MVar
+                if(bo.m === mark) throw "assertion failed: thread should have been marked";
+                // MVar unreachable
+                kill = h$ghcjszmprimZCGHCJSziPrimziInternalziblockedIndefinitelyOnMVar;
+                break;
+            } else if(t.blockedOn instanceof h$TVarsWaiting) {
+                // blocked in STM transaction
+                kill = h$ghcjszmprimZCGHCJSziPrimziInternalziblockedIndefinitelyOnSTM;
+                break;
+            } else {
+                // blocked on something else, we can't do anything
+            }
         }
- if(kill) {
-     h$killThread(t, kill);
-     h$markThread(t);
-     h$markRetained();
- }
+        if(kill) {
+            h$killThread(t, kill);
+            h$markThread(t);
+        }
     } while(kill);
 }
 // reset unreferenced CAFs to their initial value
@@ -6564,7 +6590,7 @@ function h$finalizeCAFs() {
     }
     ;
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -6911,7 +6937,7 @@ function h$handleErrnoC(err, r_err, r_success, c) {
         c(r_success);
     }
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -6960,7 +6986,7 @@ function h$MD5Final(dst, dst_off, ctx, ctx_off) {
   }
 }
 var h$__hsbase_MD5Final = h$MD5Final;
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -7475,7 +7501,7 @@ function h$ctz8(x) {
 function h$ctz64(x1,x2) {
     return (x2 === 0) ? 32 + h$ctz32(x1) : h$ctz32(x2);
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -7516,7 +7542,7 @@ var h$alphaRanges = "| MW/W| '6*,Qa|*2+;?-1$|!q-&'+$/$)$J| o|#*3|#bo'0r| YY-)| #
 var h$toLowerMapping = "| K Wb|!9 Qb!1bf  9#  !|$F  ## &'  (# &'  8#  !|!_# # #)  !|$^# ! # ! |$U !# '|$S&'  !| f|$M !|$O# ! |$S !|$W  !|$`|$[&)  !|$`|$d ! |$f $#  !|$n# ! |$n'  !#  !|$n#!'|$l ##  !|$p#) &1  !%# ! % !#  !%# ) #'  )# &'  !%# ! # ! |!. !| 6# 4 # ! |!q * #1  !}![r# ! |#X}%=]'  !#  !|$>| Q !| U# % #|&I  !# &) &3 |%0/  !n )l ! | G!'| E!Eb!5bj B3  ,# &- |!]'  !#  !.#' )|!qC| hdb| )  1# &5  <#  !?# ' #'  P# &' p| '|a5 p} hG ! } hG- }#To|l)  l# &5  !} p4  P# &5 303 /07 303 303 /09  $0 @3 30S 303 303 303 '0'| ZD9 +| sD9 '0'|!4; '0'|!L<9 '|!m'|!iD|&Y }#a()  !}!&:}!#V/ | 8| # CAI &|23 WU|Ht | '| '| +  !#  !}!Zc|ue}%:e'  $#  !}![R}!Zo !}![X}![V ! #' &3 '}!]> R# &3  !# &+ &}'])  7# &I  .# &|##  '# &)  ?# &7  ##  !}(b.# % #+  !# }4p*'  !# &)  +#  !}*H0}*HF !}*H>}*H*'  !}*G&}*GV}%OG Wb|;/ tr} :K db}p?  ";
 var h$toUpperMapping = "|!1 Wa| = |A$x Qa!1a !|!`  9!  !|%.  #! $'  (! $'  7! $'  #!  !!|&]|(_'  !! $' $) $- $' |$>)  !!|#Y) |%i'  #! $' $+ $' $)  !! $' $)  !! |!N-  !!$ ! ! !$  !!$ ) ! !| e  )! $'  !!$ ! !)  4! $)  )! $3 $' '}!]? ! !+  %!  !!}![Y !}![S}![W !|$]|$T!'|$R ! |$L ! |$N}4qo)  !|$R}*H? ! |$V ! }*GS !}*H1  !|$Z|$_ ! }!Zd}4q6'  !|$_  !}!Zp|$c' |)N1 }%:g' |)_' |)_)  !}*GW|$m|#&'|$k|#.- |)c9 }4o.|#b |#ez  !! $) $) )|!r| % | _)k!Ea| B5a|!m'| D ! | B|!P)  !| $| 2 !0  ,!  !!| s !| g/ !|!T |$8' $' $| 1 daC| g 2 !5  ;! $'  '!  !!> Q !| + p| &} N7 }1H>) } pP|!v  l! $- |!X-  P! $313 /17 313 313 /19  $1 B3 313 '| [+| t'|!5'|!n'|!M'|!j' 313 313 313 '1 ! 37 }#R4+ F; '1? '1) >= F|'b | 6f C@+ $|2f WT|IE | '| &' $)  !}![q}![k $ !/ $' $7  R! $3  !! $+ $; p} hF ! } hF- }#Tm}'Zj  7! $I  .! $|##  '! $)  ?! $7  !! $'  %! $+ $+  !! $)  *! $}%P= Wa|;? tq} :; da}p>; ";
 var h$catMapping = "d;P)3J)3 !/0 !34 !3.'37*'3)4'3W! !/3 !06 !-6W# !/4 !04f; !83+5 !73 !67 !&1 !4< !76 !74', !6#'3 !6, !&2),FQ!H1!S#H3# <!#$'# (!#$'# 8!#'! ##!)#'! !#!&'!&)!'#+!&'!&)!)#'!&'! ##!&'! !#!'# !!#'!&)! !#!&'!'# !&!)#+& !!$ !#! !$# !!$ )#!'# )!#$'# !!$ !#!&)! >#!1#'!&'!'# !!#+! %#!| S#,Y#G%+6;%?6-%16 !%6*E6|!O' #!# !%6 !!#' *)# !3!+ '6 !!3)! ! !!'!&E!!5!j#$'#)!)# ,!#$-# !!# !4!&'!'#| /!| )# 2!#N-'') <!#'! '#!'# Q!#!p!' */3!r# ! 3<' '7 !5 | #' !.'F''F'' !3'3 Y&- )&'39 /<)4'3J'3'79' !3<!'3d&*7&M'7*+3'&.|!5& !3&1' !<7/''%''N+''&7*)&'7,?3 ! < !&'`&Y'' |! &9',? 7*f&5''%N)3*- O&+'*5'*)'*-'' A3!U&)'' F| K I&| + b'0| 5& !'( !'&)(3'+(.'(,1'7&'''37* !3%A&.'(!3&' '&' O&!1& ! &) +&'  !'&)(+'' '(' '( !'&3 0+ '&!)&''' 7*'&'5/, !75- '' !( /&+ '&' O&!1&!'&!'&!'&'  !' )(''+ ''' )') .1 +& ! &1 7*'')&.9 '' !( 5&!)&!O&!1&!'&!-&'  !'&)(-'!'' !( '(.' ,A '&''' 7* !35A .'(!3&' '&' O&!1&!'&!-&'  !'& !('0+'' '(' '(.3  !'(+ '&!)&''' 7* !7&/,7  !'&!/&) )&!+&) '& ! &!'&) '&) )&) ;&+ '(.'() )(!)(.' ,/ 0? 7*),/7 !57- .)(!3&!)&!Q&!C&) ,)'+(!)'!+'1 ''!'&/ '&''' 7*3 1, !7 .'(!3&!)&!Q&!7&!-&'  !'& !('-( ! ''(!'(''1 '(1  !& '&''' 7*!'&? .'(!3&!)&!v&' ,)(+'!)(!)( !'&3 03 '&''' 7*/,) N/&' '(!G&) S&!5& ! &' 1&) .+ )()' ! '!3(/ 7*' '(F; | )&.'&1'+ J/&*3'F7*'3n '& ! &' '& ! &' ,/ +&!1&!)& # &' '&!+&.'&/'!'',' -& ! %!/'' 7*' +&d ,)7A3 !73)7''/77*7, $7' #/0'(3&!l&+ ?'0-'F''-&9'!l'!37./7!'7-3+7'3n z&'(+'0/'0'''('',7*/3/&'(''+&)',)('&1()&+'=&.'(''/( !'&07*)(.'7p! ! !- $' z& !3%|'E&!+&' 1& ! &!+&' v&!+&' f&!+&' 1& ! &!+&' A&!| ;&!+&' | O&' )'53K,) C&77/ | t&9 <|-j&'3E&PW& !/0) | `&)3)+3&1 =&!+&)'9 G&)''35 G&''; =&!)&!''; | 1&''01'3(.'(9')3*)3 !5&.' 7*/ 7,/ /3<+3)' !< 7*/ j&*| 1&3 v& !'&- | U&7 b&!)'+('')(+ '(./()'+ N) '37*`&' -&9 |  &+ E(1&'(/ 7*8) h7Q&'''(.' '3| 3& !('01' ! ' !(''(3'/(7'' .7*/ 7*/ 13*/3' ?'2| K +'0| '& !'(-' !('-(.'(1&+ 7*13775'57) ''0`&0+''(''0)''&7*|  & !'('')( !'()''(3 +3l&3(3''('') -37*) )&7*`&/%'3| I 333 )'F='01'+&.+&'(.'&!''/ |  #| G%=#*h#n%| 5'/ +' l!#$5# Q!#$5#3!/#' /!' 3#3!3#3!/#' /!' 3# % !3#3!?#' 3#3$3#3$3#3$-#!'#+! !$6&)6)#!'#+!()6+#' '#+!!)63#-!)6' )#!'#+!('6!98-</.'3 !12>'1 !2/B33 !9:-<P53 !12+3'-)3 !4/@93 !43:73P-<!7< !,%' /,)4 !/0*7,)4 !/0!=%) `5G ='+).));'A '7$+7$'7&)!'#)! !#7$'7H-!/7 $!7+! !7#+!&+&&'7'#'!-4$+# !74'7 !#7C,j+ !!#++8/ -4-7'4+7H'7H'7H17Hb7'4'7 !47Hb7|%z437 #/0K7'417 !/0| l7H`7U4t7/4U7- r7U 97M | A,| f7O,|$)7H57H| 5734|!M7H|%Q7 (/0`,|  7-4 !/0b4 &/0C4|%b7|!v4 ,/0| G4 #/0d4 !/0|%f4| )7M4'7/4r7' d7' h7) ;7!37| % | '!!| '# ! !&)!'# $!#+! !#!'#$/#'%)! R#!'#/7 #!#)' !!#- +38'3p# ! #- &' | 9&1  !%3? .Q&5 1&!1&!1&!1&!1&!1&!1&!1&!d''3 #12)3 !12 !31D53<'3 !.3 !12'3 !12 %/0-3*73'.+3 !.3>| C W7!|! 7; |$h7W ;7+ P)3 !7% !&+ &/0'7 %/0 !./'0N5++''(<-%'7)+ !%&F'7!| v&' '''6'% !&.|!#&F)%,- v&) |!+&!'7+,77Y&- l7; C&b7!7,`73,NA,d77,r7A,| G7!|%b7} X;&7 | I7}%/C&| / M&*|9G&) | 775 t&/%'3|%z&*)3C&7*'&K  8!# !&'))F7' !3% /!#'% ! '| U&7+''/33 Q65%'6 '!#$)# @!#*3# #!#'! %#! !#%'6 #!# ! ! !#!)# +!#+!' '!| S ,'%&1&.)&.+&.Q&'(''0+7+ /,'7 !57/ | 1&+33 '(| -&C(.5 '37*/ G'/&)3,+ 7*[&3''3Q&9''(9 F^&) )'0| '&.'(+''(.+(=3 ! %7*+ '3-& !'%5&7*-&!v&/''('''(''5 )&.3& !'(' 7*' +3C&*/&)7 !&( !'(| -& !'&)''&''-&'' !&',S '&*'39&0'''('3,'% !('7 /&' /&' /&5 1&!1&!z#L+%+ '#|!# j&'(.'(.'( !3(.' 7*/ }!e;&; Q&+ | +&+ |MQ=} T7 |(/&' |!C&p 1#; -#-  !&'7&H=&!-& ! &!'&!'&!|!G&C6E |()& !0/C | I&' | 5&t ;& !57' C'13 !/0F/ ?'' F'.'- )/0'3 !/0+3)-)3!+3 !./ #0/@)3 !4.)4 ! 3J'3+ -&!|##&'  !< )3J)3 !/0 !34 !3.'37*'3)4'3W! !/3 !06 !-6W# !/4 !04 !/0 !3/@'37&*| #&'%b&) /&' /&' /&' )&) '5 !46N'5 ! 7+4'77 )<'7' ;&!W&!I&!'&!A&' ?&h |!f&- )3+ | #,) 57| 3++,E7',N) ;7+ N| ' | #7.|!t ^&) | +&A .Y,+ d&+,; E&63&6- p&-'- `& ! 3l&+ 3&F-+x t!t#| f&' 7*| v t&3 | 1&9 F|#5 |&v&5 O&7 3&|#E /&'  !& |  &!'&) ,' Q& ! 33,Q&'71,b&3 5,| j O&/,) FW&- F| I | 9&/ '&| I ,)'!''- +'+&!)&!Y&+ )'+ .3,3 531 ^&',F^&),d 3&N[&''+ -,135 | 5&) 13O&' 3,I&- 3,G&1 +3; 1,| j | [&|+t b,|(U  !('0| 3&A'13+ K,7*A )'0| #&)(+''('''3X+3? U&1 7*/ )'l&-'03'!7*+3; j&.'3,5 ''0| )&)(5''(+&+3+ F' 7*,/ K,9 G&!U&)()''( !'(''/3|!S | '&.)(3'- 7*1 .'(!3&' '&' O&!1&!'&!-&'  !'&'(.+(' '(' )(5 0- -&'(' 1') -'|%x | )&)(/' !('+(''0'''& !3&3 7*|#b | '&)(+'' +(''0''53| 5 | )&)(3''( !'('')3,9 7*p z& !'(.'(/' !('3 7*|*K d!d#7*5,; ,|)z | ;&|<Y |4M&|!= |!M+!-3|b` |7l&}#8j |,^&1 b&!7*+ '3|!/ `&' -'F7 | )&1'-3+7+% !377 7*!1,!M&- I&|3U | S&9 ,| %(C +'=%}$&7 '&|e7 |!E&- =&) 5&1 7&' N''F+<} 4/ |%M77 r7' | A7'()')7/(3<3''71'`7+'| )7h | M7)'N|$/ | x75 G,|#1 W!W#W!1#!G#W!W# !! '!' $' '!' +!!3!+# ! #!1#!9#W!W#'!!+!' 3!!1!!W#'!!+!!-! ! !) 1!!W#W!W#W!W#W!W#W!W#W!W#W![#' U!HU#H/#U!HU#H/#U!HU#H/#U!HU#H/#U!HU#H/# !!#' | -*}  % |$E&' 5,1'|=C +&!Y&!'& ! &'  !& 7&!+& # &/ ,+  $& )&!'& ! &'  && '& ! &' +&!1&!+&!+& ! &!7&!E&- )&!-&!E&| 1 '4|&# |  7+ |!77; A7' A7!A7!n77 =,) b7!| A7+ z7| ` ^7= z7- 571 '7|#r | #7) | f7' | h7- l73 |%`7!| `7- x7!v7!|#Q7' |#+7C =7) +7; |!W7; | t7z ;7+ | 973 77/ t73 `7|I^ }*Q/&v } !5&9 |$x&}$#I |,'&|AO X` |!/<|!p |%A'}PF' ";
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -8153,10 +8179,10 @@ function h$appendToHsStringA(str, appendTo) {
 function h$throwJSException(e) {
   // create a JSException object and  wrap it in a SomeException
   // adding the Exception dictionary
-  var someE = (h$c2(h$baseZCGHCziExceptionziSomeException_con_e,(h$ghcjszmprimZCGHCJSziPrimzizdfExceptionJSException),((h$c2(h$ghcjszmprimZCGHCJSziPrimziJSException_con_e,(e),(h$toHsString(e.toString())))))));
+  var someE = (h$c2(h$baseZCGHCziExceptionziSomeException_con_e,(h$ghcjszmprimZCGHCJSziPrimzizdfExceptionJSException),((h$c2(h$ghcjszmprimZCGHCJSziPrimziJSException_con_e,((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (e)))),(h$toHsString(e.toString())))))));
   return h$throw(someE, true);
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -8705,7 +8731,7 @@ function h$integer_negateInteger(i) {
     ;
     return i.negate();
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -8769,18 +8795,22 @@ var h$glbl;
 function h$getGlbl() { h$glbl = this; }
 h$getGlbl();
 function h$log() {
-  if(h$glbl) {
-    if(h$glbl.console && h$glbl.console.log) {
-      h$glbl.console.log.apply(h$glbl.console,arguments);
+  try {
+    if(h$glbl) {
+      if(h$glbl.console && h$glbl.console.log) {
+        h$glbl.console.log.apply(h$glbl.console,arguments);
+      } else {
+        h$glbl.print.apply(this,arguments);
+      }
     } else {
-      h$glbl.print.apply(this,arguments);
+      if(typeof console !== 'undefined') {
+        console.log.apply(console, arguments);
+      } else if(typeof print !== 'undefined') {
+        print.apply(null, arguments);
+      }
     }
-  } else {
-    if(typeof console !== 'undefined') {
-      console.log.apply(console, arguments);
-    } else if(typeof print !== 'undefined') {
-      print.apply(null, arguments);
-    }
+  } catch(ex) {
+    // ignore console.log exceptions (for example for IE9 when console is closed)
   }
 }
 function h$collectProps(o) {
@@ -8793,6 +8823,9 @@ function h$collectProps(o) {
 var h$programArgs;
 if(h$isNode) {
     h$programArgs = process.argv.slice(1);
+} else if(h$isJvm) {
+    h$programArgs = h$getGlobal(this).arguments.slice(0);
+    h$programArgs.unshift("a.js");
 } else if(h$isJsShell && typeof h$getGlobal(this).scriptArgs !== 'undefined') {
     h$programArgs = h$getGlobal(this).scriptArgs.slice(0);
     h$programArgs.unshift("a.js");
@@ -8956,7 +8989,7 @@ function h$localtime_r(timep_v, timep_o, result_v, result_o) {
   { h$ret1 = (result_o); return (result_v); };
 }
 var h$__hscore_localtime_r = h$localtime_r;
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -9015,7 +9048,7 @@ function h$tagToEnum(tag) {
 function h$dataTag(e) {
   return (e===true)?1:((typeof e !== 'object')?0:(e.f.a-1));
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -9138,7 +9171,7 @@ function h$finalizeWeak(w) {
         { h$ret1 = (1); return (r); };
     }
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -9218,9 +9251,12 @@ function h$Thread() {
     this.blockedOn = null; // object on which thread is blocked
     this.retryInterrupted = null; // how to retry blocking operation when interrupted
     this.transaction = null; // for STM
+    this.noPreemption = false;
     this.isSynchronous = false;
     this.continueAsync = false;
     this.m = 0; // gc mark
+    this.result = null; // result value (used for GHCJS.Foreign.Callback)
+    this.resultIsException = false;
     this._key = this.tid; // for storing in h$Set / h$Map
 }
 function h$rts_getThreadId(t) {
@@ -9263,14 +9299,12 @@ function h$threadStatus(t) {
 function h$waitRead(fd) {
   h$fds[fd].waitRead.push(h$currentThread);
   h$currentThread.interruptible = true;
-  h$blockThread(h$currentThread,fd,[h$waitRead,fd]);
-  return h$reschedule;
+  return h$blockThread(h$currentThread,fd,[h$waitRead,fd]);
 }
 function h$waitWrite(fd) {
   h$fds[fd].waitWrite.push(h$currentThread);
   h$currentThread.interruptible = true;
-  h$blockThread(h$currentThread,fd,[h$waitWrite,fd]);
-  return h$reschedule;
+  return h$blockThread(h$currentThread,fd,[h$waitWrite,fd]);
 }
 // threadDelay support:
 var h$delayed = new h$HeapSet();
@@ -9291,8 +9325,7 @@ function h$delayThread(time) {
   ;
   h$delayed.add(now+ms, h$currentThread);
   h$currentThread.delayed = true;
-  h$blockThread(h$currentThread, h$delayed,[h$resumeDelayThread]);
-  return h$reschedule;
+  return h$blockThread(h$currentThread, h$delayed,[h$resumeDelayThread]);
 }
 function h$resumeDelayThread() {
   h$r1 = false;
@@ -9326,12 +9359,11 @@ function h$killThread(t, ex) {
       return h$stack ? h$stack[h$sp] : null;
     } else {
       t.excep.push([h$currentThread,ex]);
-      h$blockThread(h$currentThread,t,null);
       h$currentThread.interruptible = true;
       h$sp += 2;
       h$stack[h$sp-1] = h$r1;
       h$stack[h$sp] = h$return;
-      return h$reschedule;
+      return h$blockThread(h$currentThread,t,null);
     }
   }
 }
@@ -9512,6 +9544,9 @@ function h$finishThread(t) {
 }
 function h$blockThread(t,o,resume) {
     ;
+    if(t !== h$currentThread) {
+        throw "h$blockThread: blocked thread is not the current thread";
+    }
     if(o === undefined || o === null) {
         throw ("h$blockThread, no block object: " + h$threadString(t));
     }
@@ -9520,6 +9555,7 @@ function h$blockThread(t,o,resume) {
     t.retryInterrupted = resume;
     t.sp = h$sp;
     h$blocked.add(t);
+    return h$reschedule;
 }
 // the main scheduler, called from h$mainLoop
 // returns null if nothing to do, otherwise
@@ -9528,6 +9564,12 @@ var h$lastGc = Date.now();
 var h$gcInterval = 1000; // ms
 function h$scheduler(next) {
     ;
+    // if we have a running synchronous thread, the only thing we can do is continue
+    if(h$currentThread &&
+       h$currentThread.isSynchronous &&
+       h$currentThread.status === (0)) {
+        return next;
+    }
     var now = Date.now();
     h$wakeupDelayed(now);
     // find the next runnable thread in the run queue
@@ -9666,87 +9708,150 @@ var h$mainLoopImmediate = null; // immediate id if main loop has been scheduled 
 var h$mainLoopTimeout = null; // timeout id if main loop has been scheduled with a timeout
 var h$mainLoopFrame = null; // timeout id if main loop has been scheduled with an animation frame
 var h$running = false;
-var h$next = null;
+var h$nextThread = null;
 function h$mainLoop() {
-    if(h$running) return;
-    h$clearScheduleMainLoop();
-    if(h$currentThread) {
- h$scheduleMainLoop();
- return;
+  if(h$running) return;
+  h$clearScheduleMainLoop();
+  if(h$currentThread) {
+    h$scheduleMainLoop();
+    return;
+  }
+  h$running = true;
+  h$runInitStatic();
+  h$currentThread = h$nextThread;
+  if(h$nextThread !== null) {
+    h$stack = h$currentThread.stack;
+    h$sp = h$currentThread.sp;
+  }
+  var c = null;
+  var start = Date.now();
+  do {
+    c = h$scheduler(c);
+    if(c === null) { // no running threads
+      h$nextThread = null;
+      h$running = false;
+      h$currentThread = null;
+      h$scheduleMainLoop();
+      return;
     }
-    h$running = true;
-    h$runInitStatic();
-    h$currentThread = h$next;
-    if(h$next !== null) {
-        h$stack = h$currentThread.stack;
-        h$sp = h$currentThread.sp;
+    // yield to js after h$busyYield (default value GHCJS_BUSY_YIELD)
+    if(!h$currentThread.isSynchronous && Date.now() - start > h$busyYield) {
+      ;
+      if(c !== h$reschedule) h$suspendCurrentThread(c);
+      h$nextThread = h$currentThread;
+      h$currentThread = null;
+      h$running = false;
+      if(h$animationFrameMainLoop) {
+        h$mainLoopFrame = requestAnimationFrame(h$mainLoop);
+      } else {
+        h$mainLoopImmediate = setImmediate(h$mainLoop);
+      }
+      return;
     }
-    var c = null;
-    var count;
-    var start = Date.now();
-    do {
-        c = h$scheduler(c);
-        var scheduled = Date.now();
-        if(c === null) { // no running threads
-            h$next = null;
-            h$running = false;
-     h$currentThread = null;
-            h$scheduleMainLoop();
-            return;
-        }
-        // yield to js after h$busyYield (default value GHCJS_BUSY_YIELD)
-        if(Date.now() - start > h$busyYield) {
-            ;
-            if(c !== h$reschedule) h$suspendCurrentThread(c);
-            h$next = h$currentThread;
-            h$currentThread = null;
-            h$running = false;
-            if(h$animationFrameMainLoop) {
-                h$mainLoopFrame = requestAnimationFrame(h$mainLoop);
-            } else {
-                h$mainLoopImmediate = setImmediate(h$mainLoop);
-            }
-            return;
-        }
-        // preemptively schedule threads after 10*GHCJS_SCHED_CHECK calls
-        // but not before the end of the scheduling quantum
-        try {
-            while(c !== h$reschedule && Date.now() - scheduled < h$schedQuantum) {
-                count = 0;
-                while(c !== h$reschedule && ++count < 1000) {
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                    c = c();
-                }
-            }
-        } catch(e) {
-            // uncaught exception in haskell code, kill thread
-            c = null;
-            if(h$stack && h$stack[0] === h$doneMain_e) {
-                h$stack = null;
-                h$reportMainLoopException(e, true);
-                h$doneMain_e();
-            } else {
-                h$stack = null;
-                h$reportMainLoopException(e, false);
-            }
-            h$finishThread(h$currentThread);
-            h$currentThread.status = (17);
-     h$currentThread = null;
-        }
-    } while(true);
+    c = h$runThreadSliceCatch(c);
+  } while(true);
+}
+function h$runThreadSliceCatch(c) {
+  try {
+    return h$runThreadSlice(c);
+  } catch(e) {
+    // uncaught exception in haskell code, kill thread
+    c = null;
+    if(h$stack && h$stack[0] === h$doneMain_e) {
+      h$stack = null;
+      h$reportMainLoopException(e, true);
+      h$doneMain_e();
+    } else {
+      h$stack = null;
+      h$reportMainLoopException(e, false);
+    }
+    h$finishThread(h$currentThread);
+    h$currentThread.status = (17);
+    h$currentThread = null;
+  }
+  return h$reschedule;
+}
+/*
+  run thread h$currentThread for a single time slice
+
+     - c: the next function to call from the trampoline
+
+  returns:
+    the next function to call in this thread
+
+  preconditions:
+    h$currentThread is the thread to run
+    h$stack         is the stack of this thread
+    h$sp            is the stack pointer
+  
+    any global variables needed to pass arguments have been set
+    the caller has to update the thread state object
+ */
+function h$runThreadSlice(c) {
+  var count, scheduled = Date.now();
+  while(c !== h$reschedule &&
+        (h$currentThread.noPreemption || h$currentThread.isSynchronous ||
+         (Date.now() - scheduled < h$schedQuantum))) {
+    count = 0;
+    while(c !== h$reschedule && ++count < 1000) {
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+      c = c();
+    }
+    if(c === h$reschedule &&
+       (h$currentThread.noPreemption || h$currentThread.isSynchronous) &&
+       h$currentThread.status === (1)) {
+      c = h$handleBlockedSyncThread(c);
+    }
+  }
+  return c;
 }
 function h$reportMainLoopException(e, isMainThread) {
-    var main = isMainThread ? " main" : "";
-    h$log("uncaught exception in Haskell" + main + " thread: " + e.toString());
-    if(e.stack) h$log(e.stack)
+  if(e instanceof h$ThreadAbortedError) return;
+  var main = isMainThread ? " main" : "";
+  h$log("uncaught exception in Haskell" + main + " thread: " + e.toString());
+  if(e.stack) h$log(e.stack);
+}
+function h$handleBlockedSyncThread(c) {
+  ;
+  /*
+    if we have a blocked synchronous/non-preemptible thread,
+    and it's blocked on a black hole, first try to clear
+    it.
+   */
+  var bo = h$currentThread.blockedOn;
+  if(h$currentThread.status === (1) &&
+     (typeof (bo) === 'object' && (bo) && (bo).f && (bo).f.t === (5)) &&
+     h$runBlackholeThreadSync(bo)) {
+    ;
+    c = h$stack[h$sp];
+  }
+  /*
+    if still blocked, then either fall back to async,
+    or throw a WouldBlock exception
+   */
+  if(h$currentThread.isSynchronous && h$currentThread.status === (1)) {
+    if(h$currentThread.continueAsync) {
+      h$currentThread.isSynchronous = false;
+      h$currentThread.continueAsync = false;
+    } else if(h$currentThread.isSynchronous) {
+      ;
+      h$sp += 2;
+      h$currentThread.sp = h$sp;
+      h$stack[h$sp-1] = h$ghcjszmprimZCGHCJSziPrimziInternalziwouldBlock;
+      h$stack[h$sp] = h$raiseAsync_frame;
+      h$forceWakeupThread(h$currentThread);
+      c = h$raiseAsync_frame;
+    } // otherwise a non-preemptible thread, keep it in the same state
+  }
+  return c;
 }
 // run the supplied IO action in a new thread
 // returns immediately, thread is started in background
@@ -9756,76 +9861,118 @@ function h$run(a) {
   h$startMainLoop();
   return t;
 }
-// try to run the supplied IO action synchronously, running the
-// thread to completion, unless it blocks,
-// for example by taking an MVar or threadDelay
-// returns the thing the thread blocked on, null if the thread ran to completion
-// cont :: bool, continue thread asynchronously after h$runSync returns
+/** @constructor */
+function h$WouldBlock() {
+}
+h$WouldBlock.prototype.toString = function() {
+  return "Haskell Operation would block";
+}
+/** @constructor */
+function h$HaskellException(msg) {
+  this._msg = msg;
+}
+h$HaskellException.prototype.toString = function() {
+  return this._msg;
+}
+function h$setCurrentThreadResultWouldBlock() {
+  h$currentThread.result = new h$WouldBlock();
+  h$currentThread.resultIsException = true;
+}
+function h$setCurrentThreadResultJSException(e) {
+  h$currentThread.result = e;
+  h$currentThread.resultIsException = true;
+}
+function h$setCurrentThreadResultHaskellException(msg) {
+  h$currentThread.result = new h$HaskellException(msg);
+  h$currentThread.resultIsException = true;
+}
+function h$setCurrentThreadResultValue(v) {
+  h$currentThread.result = v;
+  h$currentThread.resultIsException = false;
+}
+/*
+   run a Haskell (IO JSVal) action synchronously, returning
+   the result. Uncaught Haskell exceptions are thrown as a
+   h$HaskellException. If the action could not finish due to
+   blocking, a h$WouldBlock exception is thrown instead.
+
+     - a:    the (IO JSVal) action
+     - cont: continue async if blocked
+         (the call to h$runSyncReturn would still throw h$WouldBlock,
+          since there would be no return value)
+
+   returns: the result of the IO action
+ */
+function h$runSyncReturn(a, cont) {
+  var t = new h$Thread();
+  ;
+  var aa = (h$c2(h$ap1_e,(h$ghcjszmprimZCGHCJSziPrimziInternalzisetCurrentThreadResultValue),(a)));
+  h$runSyncAction(t, aa, cont);
+  if(t.status === (16)) {
+    if(t.resultIsException) {
+      throw t.result;
+    } else {
+      return t.result;
+    }
+  } else if(t.status === (1)) {
+    throw new h$WouldBlock();
+  } else {
+    throw new Error("h$runSyncReturn: Unexpected thread status: " + t.status);
+  }
+}
+/*
+   run a Haskell IO action synchronously, ignoring the result
+   or any exception in the Haskell code
+     
+     - a:    the IO action
+     - cont: continue async if blocked
+
+   returns: true if the action ran to completion, false otherwise
+
+   throws: any uncaught Haskell or JS exception except WouldBlock
+ */
 function h$runSync(a, cont) {
+  var t = new h$Thread();
+  ;
+  h$runSyncAction(t, a, cont);
+  if(t.resultIsException) {
+    if(t.result instanceof h$WouldBlock) {
+      return false;
+    } else {
+      throw t.result;
+    }
+  }
+  return t.status === (16);
+}
+function h$runSyncAction(t, a, cont) {
   h$runInitStatic();
   var c = h$return;
-  var t = new h$Thread();
-  t.isSynchronous = true;
-  t.continueAsync = cont;
-  var ct = h$currentThread;
-  var csp = h$sp;
-  var cr1 = h$r1; // do we need to save more than this?
+  t.stack[2] = h$ghcjszmprimZCGHCJSziPrimziInternalzisetCurrentThreadResultException;
   t.stack[4] = h$ap_1_0;
   t.stack[5] = a;
   t.stack[6] = h$return;
   t.sp = 6;
   t.status = (0);
-  var excep = null;
-  var blockedOn = null;
+  t.isSynchronous = true;
+  t.continueAsync = cont;
+  var ct = h$currentThread;
+  var csp = h$sp;
+  var cr1 = h$r1; // do we need to save more than this?
+  var caught = false, excep = null;
   h$currentThread = t;
   h$stack = t.stack;
   h$sp = t.sp;
   try {
-    while(true) {
-      ;
-      while(c !== h$reschedule) {
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-        c = c();
-      }
-      ;
-      if(t.status === (16)) {
-        ;
-        break;
-      } else {
-        ;
-      }
-      var b = t.blockedOn;
-      if((typeof (b) === 'object' && (b) && (b).f && (b).f.t === (5))) {
-        var bhThread = ((b).d1);
-        if(bhThread === ct || bhThread === t) { // hit a blackhole from running thread or ourselves
-          ;
-          c = h$throw(h$baseZCControlziExceptionziBasezinonTermination, false);
-        } else { // blackhole from other thread, steal it if thread is running
-          // switch to that thread
-          if(h$runBlackholeThreadSync(b)) {
-            ;
-            c = h$stack[h$sp];
-          } else {
-            ;
-            blockedOn = b;
-            throw false;
-          }
-        }
-      } else {
-        ;
-        blockedOn = b;
-        throw false;
-      }
+    c = h$runThreadSlice(c);
+    if(c !== h$reschedule) {
+      throw new Error("h$runSyncAction: h$reschedule expected");
     }
-  } catch(e) { excep = e; }
+  } catch(e) {
+    h$finishThread(h$currentThread);
+    h$currentThread.status = (17);
+    caught = true;
+    excep = e;
+  }
   if(ct !== null) {
     h$currentThread = ct;
     h$stack = ct.stack;
@@ -9839,11 +9986,7 @@ function h$runSync(a, cont) {
     h$removeThreadBlock(t);
     h$finishThread(t);
   }
-  if(excep) {
-    throw excep;
-  }
-  return blockedOn;
-  ;
+  if(caught) throw excep;
 }
 // run other threads synchronously until the blackhole is 'freed'
 // returns true for success, false for failure, a thread blocks
@@ -9854,7 +9997,8 @@ function h$runBlackholeThreadSync(bh) {
   var success = false;
   var bhs = [];
   var currentBh = bh;
-  // we don't handle async exceptions here, don't run threads with pending exceptions
+  // we don't handle async exceptions here,
+  // don't run threads with pending exceptions
   if(((bh).d1).excep.length > 0) {
     ;
     return false;
@@ -9873,7 +10017,9 @@ function h$runBlackholeThreadSync(bh) {
         c = c();
         c = c();
       }
-      if(c === h$reschedule) { // perhaps new blackhole, then continue with that thread, otherwise fail
+      if(c === h$reschedule) {
+ // perhaps new blackhole, then continue with that thread,
+ // otherwise fail
         if((typeof (h$currentThread.blockedOn) === 'object' && (h$currentThread.blockedOn) && (h$currentThread.blockedOn).f && (h$currentThread.blockedOn).f.t === (5))) {
           ;
           bhs.push(currentBh);
@@ -9915,7 +10061,8 @@ function h$runBlackholeThreadSync(bh) {
 }
 function h$syncThreadState(tid) {
   return (tid.isSynchronous ? 1 : 0) |
-         ((tid.continueAsync || !tid.isSynchronous) ? 2 : 0);
+    ((tid.continueAsync || !tid.isSynchronous) ? 2 : 0) |
+    ((tid.noPreemption || tid.isSynchronous) ? 4 : 0);
 }
 // run the supplied IO action in a main thread
 // (program exits when this thread finishes)
@@ -9949,17 +10096,32 @@ function h$doneMain() {
   h$finishThread(h$currentThread);
   return h$reschedule;
 }
+/** @constructor */
+function h$ThreadAbortedError(code) {
+  this.code = code;
+}
+h$ThreadAbortedError.prototype.toString = function() {
+  return "Thread aborted, exit code: " + this.code;
+}
 function h$exitProcess(code) {
     if(h$isNode) {
  process.exit(code);
+    } else if(h$isJvm) {
+        java.lang.System.exit(code);
     } else if(h$isJsShell) {
- quit(code);
+        quit(code);
     } else if(h$isJsCore) {
- if(h$base_stdoutLeftover.val !== null) print(h$base_stdoutLeftover.val);
+        if(h$base_stdoutLeftover.val !== null) print(h$base_stdoutLeftover.val);
         if(h$base_stderrLeftover.val !== null) debug(h$base_stderrLeftover.val);
         // jsc does not support returning a nonzero value, print it instead
         if(code !== 0) debug("GHCJS JSC exit status: " + code);
         quit();
+    } else {
+        if(h$currentThread) {
+            h$finishThread(h$currentThread);
+            h$stack = null;
+            throw new h$ThreadAbortedError(code);
+        }
     }
 }
 // MVar support
@@ -10027,8 +10189,7 @@ function h$takeMVar(mv) {
   } else {
     mv.readers.enqueue(h$currentThread);
     h$currentThread.interruptible = true;
-    h$blockThread(h$currentThread,mv,[h$takeMVar,mv]);
-    return h$reschedule;
+    return h$blockThread(h$currentThread,mv,[h$takeMVar,mv]);
   }
 }
 function h$tryTakeMVar(mv) {
@@ -10050,8 +10211,7 @@ function h$readMVar(mv) {
       mv.waiters = [h$currentThread];
     }
     h$currentThread.interruptible = true;
-    h$blockThread(h$currentThread,mv,[h$readMVar,mv]);
-    return h$reschedule;
+    return h$blockThread(h$currentThread,mv,[h$readMVar,mv]);
   } else {
     h$r1 = mv.val;
     return h$stack[h$sp];
@@ -10062,8 +10222,7 @@ function h$putMVar(mv,val) {
   if(mv.val !== null) {
     mv.writers.enqueue([h$currentThread,val]);
     h$currentThread.interruptible = true;
-    h$blockThread(h$currentThread,mv,[h$putMVar,mv,val]);
-    return h$reschedule;
+    return h$blockThread(h$currentThread,mv,[h$putMVar,mv,val]);
   } else {
     h$notifyMVarFull(mv,val);
     return h$stack[h$sp];
@@ -10124,8 +10283,7 @@ function h$blockOnBlackhole(c) {
   } else {
     ((c).d2).push(h$currentThread);
   }
-  h$blockThread(h$currentThread,c,[h$resumeBlockOnBlackhole,c]);
-  return h$reschedule;
+  return h$blockThread(h$currentThread,c,[h$resumeBlockOnBlackhole,c]);
 }
 function h$resumeBlockOnBlackhole(c) {
   h$r1 = c;
@@ -10171,7 +10329,7 @@ function h$makeMVarListener(mv, stopProp, stopImmProp, preventDefault) {
   f.root = mv;
   return f;
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -10373,9 +10531,8 @@ function h$stmSuspendRetry() {
     }
     var waiting = new h$TVarsWaiting(tvs);
     h$currentThread.interruptible = true;
-    h$blockThread(h$currentThread, waiting);
     h$p2(waiting, h$stmResumeRetry_e);
-    return h$reschedule;
+    return h$blockThread(h$currentThread, waiting);
 }
 function h$stmCatchRetry(a,b) {
     h$currentThread.transaction = new h$Transaction(b, h$currentThread.transaction);
@@ -10479,7 +10636,7 @@ function h$stmCommitInvariant(localInv) {
         h$stmAddTVarInvariant(dep, inv);
     }
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -10580,7 +10737,7 @@ function h$hs_spt_lookup_key(key1,key2,key3,key4) {
        s[key1][key2][key3][key4]) return s[key1][key2][key3][key4];
     return null;
 }
-/* Copyright (C) 1991-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19745,7 +19902,7 @@ function h$ap_gen()
           var h$RTS_531 = h$paps[h$RTS_525];
           var h$RTS_532 = [h$r1, (((((h$RTS_521.a >> 8) - h$RTS_525) * 256) + h$RTS_523) - h$RTS_524)];
           for(var h$RTS_533 = 0;(h$RTS_533 < h$RTS_525);(h$RTS_533++)) {
-            h$RTS_532.push(h$stack[((h$sp - h$RTS_533) - 1)]);
+            h$RTS_532.push(h$stack[((h$sp - h$RTS_533) - 2)]);
           };
           h$sp = ((h$sp - h$RTS_525) - 2);
           h$r1 = h$init_closure({ d1: null, d2: null, f: h$RTS_531, m: 0
@@ -19793,7 +19950,7 @@ function h$ap_gen()
           var h$RTS_543 = h$paps[h$RTS_537];
           var h$RTS_544 = [h$r1, (((((h$r1.d2.d1 >> 8) - h$RTS_537) * 256) + h$RTS_535) - h$RTS_536)];
           for(var h$RTS_545 = 0;(h$RTS_545 < h$RTS_537);(h$RTS_545++)) {
-            h$RTS_544.push(h$stack[((h$sp - h$RTS_545) - 1)]);
+            h$RTS_544.push(h$stack[((h$sp - h$RTS_545) - 2)]);
           };
           h$sp = ((h$sp - h$RTS_537) - 2);
           h$r1 = h$init_closure({ d1: null, d2: null, f: h$RTS_543, m: 0
