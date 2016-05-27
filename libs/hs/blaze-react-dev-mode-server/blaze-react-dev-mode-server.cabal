@@ -19,12 +19,15 @@ library
   hs-source-dirs:      src
 
   exposed-modules:
-      Blaze.Development.Server
+      Blaze.React.Development.Server
 
   other-modules:
-      Blaze.Development.Server.Assets
-      Blaze.Development.Server.ResourceManager
-      Blaze.Development.Server.Session
+      Blaze.React.Development.Server.Assets
+      Blaze.React.Development.Server.ResourceManager
+      Blaze.React.Development.Server.Session
+
+      Blaze.React.Development.Server.Assets
+
 
   build-depends:
       aeson

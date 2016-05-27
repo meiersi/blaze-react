@@ -6,26 +6,26 @@ module Main
   ( main
   ) where
 
-import           Blaze.Core
-import           Blaze.ReactJS.Run
-import qualified Blaze.Development.Client           as Client
-import qualified Blaze.Development.Internal.Logger  as Logger
-import           Blaze.Development.Internal.Types
+import           Blaze.React.Backend.ReactJS.Run
+import           Blaze.React.Core
+import qualified Blaze.React.Development.Client           as Client
+import qualified Blaze.React.Development.Internal.Logger  as Logger
+import           Blaze.React.Development.Internal.Types
                  ( RenderableApp(raRender, raApp)
                  )
-import qualified Blaze.Development.ProxyApi         as ProxyApi
+import qualified Blaze.React.Development.ProxyApi         as ProxyApi
 
 import           Control.Monad.Trans.Either   (bimapEitherT)
 
 import qualified Data.Text                    as T
 import           Data.Monoid                  ((<>))
 
-import           GHCJS.Types           (JSString)
-import qualified GHCJS.Foreign         as Foreign
-
+import           Data.JSString         (JSString)
+import qualified Data.JSString         as JSString
 
 import           Servant.API
 import           Servant.Client
+
 
 ------------------------------------------------------------------------------
 -- FFI
@@ -37,7 +37,7 @@ foreign import javascript safe
 
 -- | Fetch the server url that was injected via the SERVER-URL.js script.
 getServerUrl :: IO String
-getServerUrl = Foreign.fromJSString <$> js_getServerUrl
+getServerUrl = JSString.unpack <$> js_getServerUrl
 
 foreign import javascript safe
     "$r = BLAZE_REACT_DEV_MODE_SESSION_ID"

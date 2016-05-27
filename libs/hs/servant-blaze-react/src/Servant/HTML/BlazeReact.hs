@@ -29,8 +29,8 @@ import qualified Network.HTTP.Media            as M
 
 import           Servant.API                   (Accept (..), MimeRender (..))
 
-import qualified Text.Blaze.Html5              as H
-import qualified Text.Blaze.Renderer.String
+import qualified Blaze.React.Html5              as H
+import qualified Blaze.React.Markup.Renderer.String as Renderer.String
 
 data HTML deriving Typeable
 
@@ -45,5 +45,5 @@ instance
         BL.fromStrict . TE.encodeUtf8 . T.pack
       -- TODO (SM): move doctype support into Html datatype itself.
       . ("<!DOCTYPE html>" <>)
-      . Text.Blaze.Renderer.String.renderHtml
+      . Renderer.String.renderHtml
 
