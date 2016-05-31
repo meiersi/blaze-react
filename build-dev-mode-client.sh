@@ -12,4 +12,4 @@ stack build $USE_GHCJS
 # Copy over the javascript
 rm -f $TARGET_DIR/*
 cp $(stack path $USE_GHCJS --local-install-root)/bin/dev-mode-client.jsexe/*.js $TARGET_DIR
-
+rm $TARGET_DIR/all.js

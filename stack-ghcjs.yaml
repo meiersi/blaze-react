@@ -8,7 +8,7 @@ packages:
 
   - location:
       git: https://github.com/meiersi/ghcjs-servant-client
-      commit: 1b7847c018614f3093b1ac52801021561ebd83c3
+      commit: 08142c98c5793676ef417ac199b4d74a2ddec4b3
     extra-dep: true
 
 extra-deps: []
