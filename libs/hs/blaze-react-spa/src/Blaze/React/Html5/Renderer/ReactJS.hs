@@ -321,24 +321,24 @@ registerEventHandler (EventHandler sel mkAct) props = case sel of
 
     -- OnFocus mkAct            -> register False OnFocusE       $ \_eventRef ->
     --   return $ Right $ HandleEvent mkAct
-    -- OnBlur mkAct             -> register False OnBlurE        $ \_eventRef ->
-    --   return $ Right $ HandleEvent mkAct
+    OnBlur                   -> register False OnBlurE        $ \_eventRef ->
+      return $ Right $ HandleEvent (mkAct ())
 
     OnValueChange            -> register True  OnChangeE      $ \eventRef ->
       runEitherT $ do
         value <- lookupProp "value" =<< lookupProp "target" eventRef
         return . HandleEvent . mkAct . JSString.textFromJSString . Marshal.pFromJSVal $ value
-    -- OnCheckedChange mkAct    -> register False OnChangeE      $ \eventRef ->
-    --   runEitherT $ do
-    --     valueRef <- lookupProp "checked" =<< lookupProp "target" eventRef
-    --     return $ HandleEvent $ mkAct $ Foreign.fromJSBool valueRef
+    OnCheckedChange          -> register False OnChangeE      $ \eventRef ->
+      runEitherT $ do
+        valueRef <- lookupProp "checked" =<< lookupProp "target" eventRef
+        return $ HandleEvent $ mkAct $ Foreign.fromJSBool valueRef
     -- OnSubmit mkAct           -> register True  OnSubmitE      $ \_eventRef ->
     --   return $ Right $ HandleEvent mkAct
 
     OnClick btns             -> register False OnClickE       $ \eventRef ->
       handleMouseEvent eventRef btns mkAct
-    -- OnDoubleClick btns mkAct -> register False OnDoubleClickE $ \eventRef ->
-    --   handleMouseEvent eventRef btns mkAct
+    OnDoubleClick btns       -> register False OnDoubleClickE $ \eventRef ->
+      handleMouseEvent eventRef btns mkAct
     -- OnMouseDown btns mkAct   -> register False OnMouseDownE   $ \eventRef ->
     --   handleMouseEvent eventRef btns mkAct
     -- OnMouseUp btns mkAct     -> register False OnMouseUpE     $ \eventRef ->

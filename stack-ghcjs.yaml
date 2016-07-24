@@ -4,7 +4,9 @@ packages:
   - libs/hs/blaze-react-core
   - libs/hs/blaze-react-spa
   - libs/hs/blaze-react-dev-mode-shared
+  - libs/hs/blaze-react-examples
   - libs/hs/servant-blaze-react
+  - apps/hs/blaze-react-todomvc
 
   - location:
       git: https://github.com/meiersi/ghcjs-servant-client

@@ -95,7 +95,7 @@ data EventSelector evData where
     -- OnKeyPress :: ![Charcode] -> EventSelector Keycode
 
     -- OnFocus    :: EventSelector ()
-    -- OnBlur     :: EventSelector ()
+    OnBlur     :: EventSelector ()
 
     -- -- NOTE (asayers): In ReactJS, I believe OnInput has the same semantics as
     -- -- OnChange, so I won't bother adding it here.
@@ -104,11 +104,11 @@ data EventSelector evData where
     -- -- Therefore I'm removing OnSelectedChange in favour of using OnValueChange
     -- -- on the <select> element.
     OnValueChange   :: EventSelector T.Text
-    -- OnCheckedChange :: EventSelector Bool
+    OnCheckedChange :: EventSelector Bool
     -- OnSubmit        :: EventSelector ()
 
     OnClick       :: ![MouseButton] -> EventSelector MousePosition
-    -- OnDoubleClick :: ![MouseButton] -> EventSelector MousePosition
+    OnDoubleClick :: ![MouseButton] -> EventSelector MousePosition
     -- OnMouseDown   :: ![MouseButton] -> EventSelector MousePosition
     -- OnMouseUp     :: ![MouseButton] -> EventSelector MousePosition
     -- OnMouseMove   ::                   EventSelector MousePosition
@@ -179,16 +179,22 @@ instance FromJSON MousePosition
 
 eventDataToJson :: EventSelector evData -> evData -> Aeson.Value
 eventDataToJson sel = case sel of
-    OnKeyDown _   -> toJSON
-    OnValueChange -> toJSON
-    OnClick _     -> toJSON
+    OnKeyDown _     -> toJSON
+    OnValueChange   -> toJSON
+    OnClick _       -> toJSON
+    OnDoubleClick _ -> toJSON
+    OnBlur          -> toJSON
+    OnCheckedChange -> toJSON
 
 eventDataParseJson
     :: EventSelector evData -> Aeson.Value -> Aeson.Parser evData
 eventDataParseJson sel = case sel of
-    OnKeyDown _   -> parseJSON
-    OnValueChange -> parseJSON
-    OnClick _     -> parseJSON
+    OnKeyDown _     -> parseJSON
+    OnValueChange   -> parseJSON
+    OnClick _       -> parseJSON
+    OnDoubleClick _ -> parseJSON
+    OnBlur          -> parseJSON
+    OnCheckedChange -> parseJSON
 
 instance ToJSON (Event evData) where
     toJSON (Event sel evData) = toJSON (toJSON sel, eventDataToJson sel evData)
@@ -212,9 +218,12 @@ instance FromJSON SomeEvent where
 
 instance ToJSON (EventSelector evData) where
     toJSON sel = case sel of
-        OnKeyDown keys  -> tagged 0 [toJSON keys]
-        OnValueChange   -> tagged 5 []
-        OnClick buttons -> tagged 8 [toJSON buttons]
+        OnKeyDown keys        -> tagged 0 [toJSON keys]
+        OnValueChange         -> tagged 5 []
+        OnClick buttons       -> tagged 8 [toJSON buttons]
+        OnDoubleClick buttons -> tagged 9 [toJSON buttons]
+        OnBlur                -> tagged 10 []
+        OnCheckedChange       -> tagged 11 []
       where
         tagged :: Int -> [Aeson.Value] -> Aeson.Value
         tagged tag args = toJSON (toJSON tag : args)
@@ -243,10 +252,13 @@ instance FromJSON SomeEventSelector where
             lift1 constr = check 2 (fmap constr <$> pos 1)
 
         case (tag :: Int) of
-          0 -> lift1 (SomeEventSelector . OnKeyDown)
-          5 -> lift0 (SomeEventSelector OnValueChange)
-          8 -> lift1 (SomeEventSelector . OnClick)
-          _ -> fail $ "Unexpected tag " <> show tag
+          0  -> lift1 (SomeEventSelector . OnKeyDown)
+          5  -> lift0 (SomeEventSelector OnValueChange)
+          8  -> lift1 (SomeEventSelector . OnClick)
+          9  -> lift1 (SomeEventSelector . OnDoubleClick)
+          10 -> lift0 (SomeEventSelector OnBlur)
+          11 -> lift0 (SomeEventSelector OnCheckedChange)
+          _  -> fail $ "Unexpected tag " <> show tag
 
 
 instance ToJSON MouseButton where
@@ -270,11 +282,14 @@ instance FromJSON MouseButton where
 
 someEventData :: SomeEvent -> EventSelector evData -> Maybe evData
 someEventData (SomeEvent (Event sel evData)) sel' =
-    case (sel, sel') of
-      (OnKeyDown x,   OnKeyDown x')  -> ifEqual x x' evData
-      (OnValueChange, OnValueChange) -> Just evData
-      (OnClick x,     OnClick x')    -> ifEqual x x' evData
-      _                              -> Nothing
+    case (sel          , sel') of
+      (OnKeyDown x     , OnKeyDown x')     -> ifEqual x x' evData
+      (OnValueChange   , OnValueChange)    -> Just evData
+      (OnClick x       , OnClick x')       -> ifEqual x x' evData
+      (OnDoubleClick x , OnDoubleClick x') -> ifEqual x x' evData
+      (OnBlur          , OnBlur)           -> Just evData
+      (OnCheckedChange , OnCheckedChange ) -> Just evData
+      _                                    -> Nothing
   where
     ifEqual :: Eq a => a -> a -> b -> Maybe b
     ifEqual a a' b = guard (a == a') >> return b

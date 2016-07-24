@@ -13,22 +13,22 @@ module Blaze.React.Html5.Event
     , mapActions
 
       -- ** Keyboard events
-    , onKeyDown
+    , onKeyDown      , onKeyDown'
     -- , onKeyUp
     -- , onKeyPress
 
     --   -- ** Focus events
     -- , onFocus
-    -- , onBlur
+    , onBlur
 
     --   -- ** Form events
     , onValueChange
-    -- , onCheckedChange
+    , onCheckedChange
     -- , onSubmit
 
     --   -- ** Mouse events
     , onClick           , onClick'
-    -- , onDoubleClick     , onDoubleClick'
+    , onDoubleClick     , onDoubleClick'
     -- , onMouseDown       , onMouseDown'
     -- , onMouseUp         , onMouseUp'
     -- , onMouseMove
@@ -65,6 +65,10 @@ mapActions = fmap . fmap
 onKeyDown :: [Keycode] -> (Keycode -> act) -> Attribute (EventHandler act)
 onKeyDown = onEvent . OnKeyDown
 
+-- | A variant of 'onKeyDown' that does not return the pressed keycode.
+onKeyDown' :: [Keycode] -> act -> Attribute (EventHandler act)
+onKeyDown' keys act = onKeyDown keys (const act)
+
 {-
 -- | The user has released a phyiscal key while the target element was focused.
 -- The callback will only be called if this key matches the one of the
@@ -96,11 +100,13 @@ onFocus = onFocusM . return
 -- | A version of 'onFocus' which allows I/O to be performed in the callback.
 onFocusM :: IO act -> Attribute act
 onFocusM = onEvent . OnFocus
+-}
 
 -- | The focus has left the target element.
-onBlur :: act -> Attribute act
-onBlur = onBlurM . return
+onBlur :: act -> Attribute (EventHandler act)
+onBlur = onEvent OnCheckedChange . const
 
+{-
 -- | A version of 'onBlur' which allows I/O to be performed in the callback.
 onBlurM :: IO act -> Attribute act
 onBlurM = onEvent . OnBlur
@@ -115,12 +121,14 @@ onBlurM = onEvent . OnBlur
 onValueChange :: (T.Text -> act) -> Attribute (EventHandler act)
 onValueChange = onEvent OnValueChange
 
-{-
+
 -- | The 'checked' property of the target element has changed. This handler is
 -- supported for <input> elements of type 'checkbox' or 'radio'.
-onCheckedChange :: (Bool -> act) -> Attribute act
-onCheckedChange mkAct = onCheckedChangeM $ return . mkAct
+onCheckedChange :: (Bool -> act) -> Attribute (EventHandler act)
+onCheckedChange = onEvent OnCheckedChange
+-- onCheckedChange mkAct = onCheckedChangeM $ return . mkAct
 
+{-
 -- | A version of 'onCheckedChange' which allows I/O to be performed in the
 -- callback.
 onCheckedChangeM :: (Bool -> IO act) -> Attribute act
@@ -157,20 +165,23 @@ onClick btns mkAct = onEvent (OnClick btns) mkAct
 -- | A version of 'onClick' which allows I/O to be performed in the callback.
 onClickM :: [MouseButton] -> (MousePosition -> IO act) -> Attribute act
 onClickM btns = onEvent . OnClick btns
+-}
 
 -- | A simplified version of 'onDoubleClick' which watches for the 'LeftButton'
 -- only and ignores the cursor position.
-onDoubleClick' :: act -> Attribute act
+onDoubleClick' :: act -> Attribute (EventHandler act)
 onDoubleClick' = onDoubleClick [LeftButton] . const
+
 
 -- | The user has pressed and released a mouse button twice in quick succession
 -- while the cursor was positioned over the target element. The callback will
 -- only be called if this mouse button matches one of the specified buttons.
 -- The mouse position at the time the event was fired is passed as a parameter
 -- to the callback.
-onDoubleClick :: [MouseButton] -> (MousePosition -> act) -> Attribute act
-onDoubleClick btns mkAct = onDoubleClickM btns $ return . mkAct
+onDoubleClick :: [MouseButton] -> (MousePosition -> act) -> Attribute (EventHandler act)
+onDoubleClick = onEvent . OnDoubleClick
 
+{-
 -- | A version of 'onDoubleClick' which allows I/O to be performed in the
 -- callback.
 onDoubleClickM :: [MouseButton] -> (MousePosition -> IO act) -> Attribute act

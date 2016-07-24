@@ -7,7 +7,7 @@ TARGET_DIR="libs/generated/js/blaze-react-dev-mode-client"
 SOURCE_DIR_SUFFIX="bin/"
 
 # Build the client
-stack build $USE_GHCJS
+stack build $USE_GHCJS --pedantic
 
 # Copy over the javascript
 rm -f $TARGET_DIR/*

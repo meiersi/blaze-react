@@ -1,61 +1,104 @@
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 // translated from bytestring cbits/fpstring.c
+
 function h$fps_reverse(a_v, a_o, b_v, b_o, n) {
     if(n > 0) {
         var au8 = a_v.u8, bu8 = b_v.u8;
@@ -64,6 +107,7 @@ function h$fps_reverse(a_v, a_o, b_v, b_o, n) {
         }
     }
 }
+
 function h$fps_intersperse(a_v,a_o,b_v,b_o,n,c) {
     if(n > 0) {
         var au8 = a_v.u8, bu8 = b_v.u8, dst_o = a_o;
@@ -75,6 +119,7 @@ function h$fps_intersperse(a_v,a_o,b_v,b_o,n,c) {
         au8[dst_o] = bu8[b_o+n-1];
     }
 }
+
 function h$fps_maximum(a_v,a_o,n) {
     if(n > 0) {
         var au8 = a_v.u8, max = au8[a_o];
@@ -86,6 +131,7 @@ function h$fps_maximum(a_v,a_o,n) {
     }
     return 0;
 }
+
 function h$fps_minimum(a_v,a_o,n) {
     if(n > 0) {
         var au8 = a_v.u8, min = a_v.u8[a_o];
@@ -97,6 +143,7 @@ function h$fps_minimum(a_v,a_o,n) {
     }
     return 255;
 }
+
 function h$fps_count(a_v,a_o,n,c) {
     if(n > 0) {
         var au8 = a_v.u8, count = 0;
@@ -107,14 +154,18 @@ function h$fps_count(a_v,a_o,n,c) {
     }
     return 0;
 }
+
 function h$fps_memcpy_offsets(dst_d, dst_o, dst_off
                               , src_d, src_o, src_off, n) {
     return memcpy(dst_d, dst_o + dst_off, src_d, src_o + src_off, n);
 }
+
 // translated from bytestring cbits/itoa.c
+
 var h$_hs_bytestring_digits = [48,49,50,51,52,53,54,55,56,57,97,98,99,100,101,102]; // 0123456789abcdef
 var h$_hs_bytestring_l10 = goog.math.Long.fromBits(10, 0);
 var h$_hs_bytestring_b10 = h$bigFromInt(10);
+
 // signed integers
 function h$_hs_bytestring_int_dec(x, buf_d, buf_o) {
     var c, ptr = buf_o, next_free, x_tmp;
@@ -132,12 +183,14 @@ function h$_hs_bytestring_int_dec(x, buf_d, buf_o) {
             x = -x;
         }
     }
+
     // encode positive number as little-endian decimal
     do {
         x_tmp = x;
         x = (x / 10) | 0;
         bu8[ptr++] = h$_hs_bytestring_digits[x_tmp - x * 10];
     } while (x);
+
     next_free = ptr--;
     while(buf_o < ptr) {
         c = bu8[ptr];
@@ -146,12 +199,14 @@ function h$_hs_bytestring_int_dec(x, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
+
 // signed long long ints (64 bit integers)
 function h$_hs_bytestring_long_long_int_dec(x_a, x_b, buf_d, buf_o) {
     var l10 = h$_hs_bytestring_l10;
     var x = goog.math.Long.fromBits(x_b, x_a);
     var c, ptr = buf_o, next_free;
     var bu8 = buf_d.u8;
+
     // we cannot negate directly as  0 - (minBound :: Int) = minBound
     if(x.isNegative()) {
         bu8[ptr++] = 45; // '-';
@@ -165,12 +220,14 @@ function h$_hs_bytestring_long_long_int_dec(x_a, x_b, buf_d, buf_o) {
             x = x.negate();
         }
     }
+
     // encode positive number as little-endian decimal
     do {
         x_tmp = x;
         x = x.div(l10);
         bu8[ptr++] = h$_hs_bytestring_digits[x_tmp.subtract(x.multiply(l10))];
     } while (!x.isZero());
+
     // reverse written digits
     next_free = ptr--;
     while(buf_o < ptr) {
@@ -180,12 +237,15 @@ function h$_hs_bytestring_long_long_int_dec(x_a, x_b, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
+
 // unsigned integers
 function h$_hs_bytestring_uint_dec(x, buf_d, buf_o) {
     var c, ptr = buf_o, next_free;
     var bu8 = buf_d.u8;
     var x_tmp;
+
     if(x < 0) x += 4294967296;
+
     do {
         x_tmp = x;
         x = (x / 10) | 0;
@@ -199,17 +259,20 @@ function h$_hs_bytestring_uint_dec(x, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
+
 function h$_hs_bytestring_long_long_uint_dec(x_a, x_b, buf_d, buf_o) {
     var b10 = h$_hs_bytestring_b10;
     var c, ptr = buf_o, next_free;
     var bu8 = buf_d.u8;
     var x = h$bigFromWord64(x_a, x_b), x_tmp;
+
     // encode positive number as little-endian decimal
     do {
         x_tmp = x;
         x = x.divide(b10);
         bu8[ptr++] = h$_hs_bytestring_digits[x_tmp.subtract(x.multiply(b10))];
     } while(x.signum() !== 0);
+
     // reverse written digits;
     next_free = ptr--;
     while(buf_o < ptr) {
@@ -219,25 +282,31 @@ function h$_hs_bytestring_long_long_uint_dec(x_a, x_b, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
+
 // Padded, decimal, positive integers for the decimal output of bignums
 ///////////////////////////////////////////////////////////////////////
+
 // Padded (9 digits), decimal, positive int:
 // We will use it with numbers that fit in 31 bits; i.e., numbers smaller than
 // 10^9, as "31 * log 2 / log 10 = 9.33"
+
 function h$_hs_bytestring_int_dec_padded9(x, buf_d, buf_o) {
     var max_width_int32_dec = 9;
     var ptr = buf_o + max_width_int32_dec;
     var bu8 = buf_d.u8;
     var x_tmp;
+
     // encode positive number as little-endian decimal
     do {
         x_tmp = x;
         x = (x / 10) | 0;
         bu8[--ptr] = h$_hs_bytestring_digits[x_tmp - x * 10];
     } while(x);
+
     // pad beginning
     while (buf_o < ptr) { bu8[--ptr] = 48; }
 }
+
 // Padded (19 digits), decimal, positive long long int:
 // We will use it with numbers that fit in 63 bits; i.e., numbers smaller than
 // 10^18, as "63 * log 2 / log 10 = 18.96"
@@ -247,18 +316,22 @@ function h$_hs_bytestring_long_long_int_dec_padded18(x_a, x_b, buf_d, buf_o) {
     var ptr = buf_o + max_width_int64_dec;
     var bu8 = buf_d.u8;
     var x = goog.math.Long.fromBits(x_b, x_a);
+
     // encode positive number as little-endian decimal
     do {
         x_tmp = x;
         x = x.div(l10);
         bu8[--ptr] = h$_hs_bytestring_digits[x_tmp.subtract(x.multiply(l10))];
     } while (!x.isZero());
+
     // pad beginning
     while (buf_o < ptr) { bu8[--ptr] = 48; }
 }
+
 ///////////////////////
 // Hexadecimal encoding
 ///////////////////////
+
 // unsigned ints (32 bit words)
 function h$_hs_bytestring_uint_hex(x, buf_d, buf_o) {
     var c, ptr = buf_o, next_free;
@@ -268,6 +341,7 @@ function h$_hs_bytestring_uint_hex(x, buf_d, buf_o) {
         bu8[ptr++] = h$_hs_bytestring_digits[x & 0xf];
         x >>>= 4;
     } while(x);
+
     // invert written digits
     next_free = ptr--;
     while(buf_o < ptr) {
@@ -277,6 +351,7 @@ function h$_hs_bytestring_uint_hex(x, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
+
 // unsigned long ints (64 bit words)
 function h$_hs_bytestring_long_long_uint_hex(x_a, x_b, buf_d, buf_o) {
     // write hex representation in reverse order
@@ -294,6 +369,7 @@ function h$_hs_bytestring_long_long_uint_hex(x_a, x_b, buf_d, buf_o) {
             x_a >>>= 4;
         }
     }
+
     // invert written digits
     next_free = ptr--;
     while(buf_o < ptr) {
@@ -303,41 +379,10 @@ function h$_hs_bytestring_long_long_uint_hex(x_a, x_b, buf_d, buf_o) {
     }
     { h$ret1 = (next_free); return (buf_d); };
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$hsprimitive_memcpy(dst_d, dst_o, doff, src_d, src_o, soff, len) {
   return h$primitive_memmove(dst_d, dst_o, doff, src_d, src_o, len);
 }
+
 function h$hsprimitive_memmove(dst_d, dst_o, doff, src_d, src_o, soff, len) {
   if(len === 0) return;
   var du8 = dst_d.u8, su8 = src_d.u8;
@@ -352,6 +397,7 @@ function h$hsprimitive_memsetba_Word (p_d, off, n, x) { if(n > 0) { if(p_d.i3.fi
 function h$hsprimitive_memsetba_Float (p_d, off, n, x) { if(n > 0) { if(p_d.f3.fill) p_d.f3.fill(x, off, off + n); else for(var i=off; i<off+n; i++) p_d.f3[i] = x; } }
 function h$hsprimitive_memsetba_Double (p_d, off, n, x) { if(n > 0) { if(p_d.f6.fill) p_d.f6.fill(x, off, off + n); else for(var i=off; i<off+n; i++) p_d.f6[i] = x; } }
 function h$hsprimitive_memsetba_Char (p_d, off, n, x) { if(n > 0) { if(p_d.i3.fill) p_d.i3.fill(x, off, off + n); else for(var i=off; i<off+n; i++) p_d.i3[i] = x; } }
+
 function h$hsprimitive_memset_Word8 (p_d, p_o, off, n, x) { var start = (p_o >> 0) + off; if(n > 0) { if(p_d.u8.fill) p_d.u8.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.u8[i] = x; } }
 function h$hsprimitive_memset_Word16 (p_d, p_o, off, n, x) { var start = (p_o >> 1) + off; if(n > 0) { if(p_d.u1.fill) p_d.u1.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.u1[i] = x; } }
 function h$hsprimitive_memset_Word32 (p_d, p_o, off, n, x) { var start = (p_o >> 2) + off; if(n > 0) { if(p_d.i3.fill) p_d.i3.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.i3[i] = x; } }
@@ -359,9 +405,11 @@ function h$hsprimitive_memset_Word (p_d, p_o, off, n, x) { var start = (p_o >> 2
 function h$hsprimitive_memset_Float (p_d, p_o, off, n, x) { var start = (p_o >> 2) + off; if(n > 0) { if(p_d.f3.fill) p_d.f3.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.f3[i] = x; } }
 function h$hsprimitive_memset_Double (p_d, p_o, off, n, x) { var start = (p_o >> 3) + off; if(n > 0) { if(p_d.f6.fill) p_d.f6.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.f6[i] = x; } }
 function h$hsprimitive_memset_Char (p_d, p_o, off, n, x) { var start = (p_o >> 2) + off; if(n > 0) { if(p_d.i3.fill) p_d.i3.fill(x, start, start + n); else for(var i=start; i<start+n; i++) p_d.i3[i] = x; } }
+
 function h$hsprimitive_memsetba_Word64(p_d, off, n, x_1, x_2) {
   h$hsprimitive_memset_Word64(p_d, 0, off, n, x_1, x_2);
 }
+
 function h$hsprimitive_memset_Word64(p_d, p_o, off, n, x_1, x_2) {
   var start = (p_o >> 3) + off;
   if(n > 0) {
@@ -373,6 +421,7 @@ function h$hsprimitive_memset_Word64(p_d, p_o, off, n, x_1, x_2) {
     }
   }
 }
+
 function h$hsprimitive_memset_Ptr(p_d, p_o, off, n, x_1, x_2) {
   if(n > 0) {
     if(!p_d.arr) p_d.arr = [];
@@ -382,38 +431,6 @@ function h$hsprimitive_memset_Ptr(p_d, p_o, off, n, x_1, x_2) {
     }
   }
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 // Copyright 2011 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -427,13 +444,18 @@ function h$hsprimitive_memset_Ptr(p_d, p_o, off, n, x_1, x_2) {
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 /**
  * @fileoverview Abstract cryptographic hash interface.
  *
  * See goog.crypt.Sha1 and goog.crypt.Md5 for sample implementations.
  *
  */
+
 goog.provide('goog.crypt.Hash');
+
+
+
 /**
  * Create a cryptographic hash instance.
  *
@@ -447,10 +469,14 @@ goog.crypt.Hash = function() {
    */
   this.blockSize = -1;
 };
+
+
 /**
  * Resets the internal accumulator.
  */
 goog.crypt.Hash.prototype.reset = goog.abstractMethod;
+
+
 /**
  * Adds a byte array (array with values in [0-255] range) or a string (might
  * only contain 8-bit, i.e., Latin1 characters) to the internal accumulator.
@@ -467,43 +493,13 @@ goog.crypt.Hash.prototype.reset = goog.abstractMethod;
  * @param {number=} opt_length Number of bytes to use.
  */
 goog.crypt.Hash.prototype.update = goog.abstractMethod;
+
+
 /**
  * @return {!Array<number>} The finalized hash computed
  *     from the internal accumulator.
  */
 goog.crypt.Hash.prototype.digest = goog.abstractMethod;
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 // Copyright 2011 The Closure Library Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -517,6 +513,7 @@ goog.crypt.Hash.prototype.digest = goog.abstractMethod;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 /**
  * @fileoverview MD5 cryptographic hash.
  * Implementation of http://tools.ietf.org/html/rfc1321 with common
@@ -536,8 +533,13 @@ goog.crypt.Hash.prototype.digest = goog.abstractMethod;
  *   IE8 (in a VM)           ~13 Mbit/s
  *
  */
+
 goog.provide('goog.crypt.Md5');
+
 goog.require('goog.crypt.Hash');
+
+
+
 /**
  * MD5 cryptographic hash constructor.
  * @constructor
@@ -547,34 +549,42 @@ goog.require('goog.crypt.Hash');
  */
 goog.crypt.Md5 = function() {
   goog.crypt.Md5.base(this, 'constructor');
+
   this.blockSize = 512 / 8;
+
   /**
    * Holds the current values of accumulated A-D variables (MD buffer).
    * @type {!Array<number>}
    * @private
    */
   this.chain_ = new Array(4);
+
   /**
    * A buffer holding the data until the whole block can be processed.
    * @type {!Array<number>}
    * @private
    */
   this.block_ = new Array(this.blockSize);
+
   /**
    * The length of yet-unprocessed data as collected in the block.
    * @type {number}
    * @private
    */
   this.blockLength_ = 0;
+
   /**
    * The total length of the message so far.
    * @type {number}
    * @private
    */
   this.totalLength_ = 0;
+
   this.reset();
 };
 goog.inherits(goog.crypt.Md5, goog.crypt.Hash);
+
+
 /**
  * Integer rotation constants used by the abbreviated implementation.
  * They are hardcoded in the unrolled implementation, so it is left
@@ -589,6 +599,7 @@ goog.crypt.Md5.S_ = [
   6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 ];
  */
+
 /**
  * Sine function constants used by the abbreviated implementation.
  * They are hardcoded in the unrolled implementation, so it is left
@@ -615,15 +626,20 @@ goog.crypt.Md5.T_ = [
   0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 ];
  */
+
+
 /** @override */
 goog.crypt.Md5.prototype.reset = function() {
   this.chain_[0] = 0x67452301;
   this.chain_[1] = 0xefcdab89;
   this.chain_[2] = 0x98badcfe;
   this.chain_[3] = 0x10325476;
+
   this.blockLength_ = 0;
   this.totalLength_ = 0;
 };
+
+
 /**
  * Internal compress helper function. It takes a block of data (64 bytes)
  * and updates the accumulator.
@@ -635,8 +651,10 @@ goog.crypt.Md5.prototype.compress_ = function(buf, opt_offset) {
   if (!opt_offset) {
     opt_offset = 0;
   }
+
   // We allocate the array every time, but it's cheap in practice.
   var X = new Array(16);
+
   // Get 16 little endian words. It is not worth unrolling this for Chrome 11.
   if (goog.isString(buf)) {
     for (var i = 0; i < 16; ++i) {
@@ -653,11 +671,13 @@ goog.crypt.Md5.prototype.compress_ = function(buf, opt_offset) {
              (buf[opt_offset++] << 24);
     }
   }
+
   var A = this.chain_[0];
   var B = this.chain_[1];
   var C = this.chain_[2];
   var D = this.chain_[3];
   var sum = 0;
+
   /*
    * This is an abbreviated implementation, it is left here commented out for
    * reference purposes. See below for an unrolled version in use.
@@ -688,6 +708,7 @@ goog.crypt.Md5.prototype.compress_ = function(buf, opt_offset) {
     A = tmp;
   }
    */
+
   /*
    * This is an unrolled MD5 implementation, which gives ~30% speedup compared
    * to the abbreviated implementation above, as measured on Chrome 11. It is
@@ -822,22 +843,27 @@ goog.crypt.Md5.prototype.compress_ = function(buf, opt_offset) {
   C = D + (((sum << 15) & 0xffffffff) | (sum >>> 17));
   sum = (B + (D ^ (C | (~A))) + X[9] + 0xeb86d391) & 0xffffffff;
   B = C + (((sum << 21) & 0xffffffff) | (sum >>> 11));
+
   this.chain_[0] = (this.chain_[0] + A) & 0xffffffff;
   this.chain_[1] = (this.chain_[1] + B) & 0xffffffff;
   this.chain_[2] = (this.chain_[2] + C) & 0xffffffff;
   this.chain_[3] = (this.chain_[3] + D) & 0xffffffff;
 };
+
+
 /** @override */
 goog.crypt.Md5.prototype.update = function(bytes, opt_length) {
   if (!goog.isDef(opt_length)) {
     opt_length = bytes.length;
   }
   var lengthMinusBlock = opt_length - this.blockSize;
+
   // Copy some object properties to local variables in order to save on access
   // time from inside the loop (~10% speedup was observed on Chrome 11).
   var block = this.block_;
   var blockLength = this.blockLength_;
   var i = 0;
+
   // The outer while loop should execute at most twice.
   while (i < opt_length) {
     // When we have no data in the block to top up, we can directly process the
@@ -850,6 +876,7 @@ goog.crypt.Md5.prototype.update = function(bytes, opt_length) {
         i += this.blockSize;
       }
     }
+
     if (goog.isString(bytes)) {
       while (i < opt_length) {
         block[blockLength++] = bytes.charCodeAt(i++);
@@ -872,9 +899,12 @@ goog.crypt.Md5.prototype.update = function(bytes, opt_length) {
       }
     }
   }
+
   this.blockLength_ = blockLength;
   this.totalLength_ += opt_length;
 };
+
+
 /** @override */
 goog.crypt.Md5.prototype.digest = function() {
   // This must accommodate at least 1 padding byte (0x80), 8 bytes of
@@ -882,6 +912,7 @@ goog.crypt.Md5.prototype.digest = function() {
   var pad = new Array((this.blockLength_ < 56 ?
                        this.blockSize :
                        this.blockSize * 2) - this.blockLength_);
+
   // Add padding: 0x80 0x00*
   pad[0] = 0x80;
   for (var i = 1; i < pad.length - 8; ++i) {
@@ -894,6 +925,7 @@ goog.crypt.Md5.prototype.digest = function() {
     totalBits /= 0x100; // Don't use bit-shifting here!
   }
   this.update(pad);
+
   var digest = new Array(16);
   var n = 0;
   for (var i = 0; i < 4; ++i) {
@@ -903,286 +935,727 @@ goog.crypt.Md5.prototype.digest = function() {
   }
   return digest;
 };
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
 /* include/HsBaseConfig.h.  Generated from HsBaseConfig.h.in by configure.  */
 /* include/HsBaseConfig.h.in.  Generated from configure.ac by autoheader.  */
+
 /* The value of E2BIG. */
+
+
 /* The value of EACCES. */
+
+
 /* The value of EADDRINUSE. */
+
+
 /* The value of EADDRNOTAVAIL. */
+
+
 /* The value of EADV. */
+
+
 /* The value of EAFNOSUPPORT. */
+
+
 /* The value of EAGAIN. */
+
+
 /* The value of EALREADY. */
+
+
 /* The value of EBADF. */
+
+
 /* The value of EBADMSG. */
+
+
 /* The value of EBADRPC. */
+
+
 /* The value of EBUSY. */
+
+
 /* The value of ECHILD. */
+
+
 /* The value of ECOMM. */
+
+
 /* The value of ECONNABORTED. */
+
+
 /* The value of ECONNREFUSED. */
+
+
 /* The value of ECONNRESET. */
+
+
 /* The value of EDEADLK. */
+
+
 /* The value of EDESTADDRREQ. */
+
+
 /* The value of EDIRTY. */
+
+
 /* The value of EDOM. */
+
+
 /* The value of EDQUOT. */
+
+
 /* The value of EEXIST. */
+
+
 /* The value of EFAULT. */
+
+
 /* The value of EFBIG. */
+
+
 /* The value of EFTYPE. */
+
+
 /* The value of EHOSTDOWN. */
+
+
 /* The value of EHOSTUNREACH. */
+
+
 /* The value of EIDRM. */
+
+
 /* The value of EILSEQ. */
+
+
 /* The value of EINPROGRESS. */
+
+
 /* The value of EINTR. */
+
+
 /* The value of EINVAL. */
+
+
 /* The value of EIO. */
+
+
 /* The value of EISCONN. */
+
+
 /* The value of EISDIR. */
+
+
 /* The value of ELOOP. */
+
+
 /* The value of EMFILE. */
+
+
 /* The value of EMLINK. */
+
+
 /* The value of EMSGSIZE. */
+
+
 /* The value of EMULTIHOP. */
+
+
 /* The value of ENAMETOOLONG. */
+
+
 /* The value of ENETDOWN. */
+
+
 /* The value of ENETRESET. */
+
+
 /* The value of ENETUNREACH. */
+
+
 /* The value of ENFILE. */
+
+
 /* The value of ENOBUFS. */
+
+
 /* The value of ENOCIGAR. */
+
+
 /* The value of ENODATA. */
+
+
 /* The value of ENODEV. */
+
+
 /* The value of ENOENT. */
+
+
 /* The value of ENOEXEC. */
+
+
 /* The value of ENOLCK. */
+
+
 /* The value of ENOLINK. */
+
+
 /* The value of ENOMEM. */
+
+
 /* The value of ENOMSG. */
+
+
 /* The value of ENONET. */
+
+
 /* The value of ENOPROTOOPT. */
+
+
 /* The value of ENOSPC. */
+
+
 /* The value of ENOSR. */
+
+
 /* The value of ENOSTR. */
+
+
 /* The value of ENOSYS. */
+
+
 /* The value of ENOTBLK. */
+
+
 /* The value of ENOTCONN. */
+
+
 /* The value of ENOTDIR. */
+
+
 /* The value of ENOTEMPTY. */
+
+
 /* The value of ENOTSOCK. */
+
+
 /* The value of ENOTSUP. */
+
+
 /* The value of ENOTTY. */
+
+
 /* The value of ENXIO. */
+
+
 /* The value of EOPNOTSUPP. */
+
+
 /* The value of EPERM. */
+
+
 /* The value of EPFNOSUPPORT. */
+
+
 /* The value of EPIPE. */
+
+
 /* The value of EPROCLIM. */
+
+
 /* The value of EPROCUNAVAIL. */
+
+
 /* The value of EPROGMISMATCH. */
+
+
 /* The value of EPROGUNAVAIL. */
+
+
 /* The value of EPROTO. */
+
+
 /* The value of EPROTONOSUPPORT. */
+
+
 /* The value of EPROTOTYPE. */
+
+
 /* The value of ERANGE. */
+
+
 /* The value of EREMCHG. */
+
+
 /* The value of EREMOTE. */
+
+
 /* The value of EROFS. */
+
+
 /* The value of ERPCMISMATCH. */
+
+
 /* The value of ERREMOTE. */
+
+
 /* The value of ESHUTDOWN. */
+
+
 /* The value of ESOCKTNOSUPPORT. */
+
+
 /* The value of ESPIPE. */
+
+
 /* The value of ESRCH. */
+
+
 /* The value of ESRMNT. */
+
+
 /* The value of ESTALE. */
+
+
 /* The value of ETIME. */
+
+
 /* The value of ETIMEDOUT. */
+
+
 /* The value of ETOOMANYREFS. */
+
+
 /* The value of ETXTBSY. */
+
+
 /* The value of EUSERS. */
+
+
 /* The value of EWOULDBLOCK. */
+
+
 /* The value of EXDEV. */
+
+
 /* The value of O_BINARY. */
+
+
 /* The value of SIGINT. */
+
+
 /* Define to 1 if you have the `clock_gettime' function. */
 /* #undef HAVE_CLOCK_GETTIME */
+
 /* Define to 1 if you have the <ctype.h> header file. */
+
+
 /* Define if you have epoll support. */
 /* #undef HAVE_EPOLL */
+
 /* Define to 1 if you have the `epoll_ctl' function. */
 /* #undef HAVE_EPOLL_CTL */
+
 /* Define to 1 if you have the <errno.h> header file. */
+
+
 /* Define to 1 if you have the `eventfd' function. */
 /* #undef HAVE_EVENTFD */
+
 /* Define to 1 if you have the <fcntl.h> header file. */
+
+
 /* Define to 1 if you have the `ftruncate' function. */
+
+
 /* Define to 1 if you have the `getclock' function. */
 /* #undef HAVE_GETCLOCK */
+
 /* Define to 1 if you have the `getrusage' function. */
+
+
 /* Define to 1 if you have the <inttypes.h> header file. */
+
+
 /* Define to 1 if you have the `iswspace' function. */
+
+
 /* Define to 1 if you have the `kevent' function. */
+
+
 /* Define to 1 if you have the `kevent64' function. */
+
+
 /* Define if you have kqueue support. */
+
+
 /* Define to 1 if you have the <langinfo.h> header file. */
+
+
 /* Define to 1 if you have libcharset. */
+
+
 /* Define to 1 if you have the `rt' library (-lrt). */
 /* #undef HAVE_LIBRT */
+
 /* Define to 1 if you have the <limits.h> header file. */
+
+
 /* Define to 1 if the system has the type `long long'. */
+
+
 /* Define to 1 if you have the `lstat' function. */
+
+
 /* Define to 1 if you have the <memory.h> header file. */
+
+
 /* Define if you have poll support. */
+
+
 /* Define to 1 if you have the <poll.h> header file. */
+
+
 /* Define to 1 if you have the <signal.h> header file. */
+
+
 /* Define to 1 if you have the <stdint.h> header file. */
+
+
 /* Define to 1 if you have the <stdlib.h> header file. */
+
+
 /* Define to 1 if you have the <strings.h> header file. */
+
+
 /* Define to 1 if you have the <string.h> header file. */
+
+
 /* Define to 1 if you have the <sys/epoll.h> header file. */
 /* #undef HAVE_SYS_EPOLL_H */
+
 /* Define to 1 if you have the <sys/eventfd.h> header file. */
 /* #undef HAVE_SYS_EVENTFD_H */
+
 /* Define to 1 if you have the <sys/event.h> header file. */
+
+
 /* Define to 1 if you have the <sys/resource.h> header file. */
+
+
 /* Define to 1 if you have the <sys/select.h> header file. */
+
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
+
+
 /* Define to 1 if you have the <sys/syscall.h> header file. */
+
+
 /* Define to 1 if you have the <sys/timeb.h> header file. */
+
+
 /* Define to 1 if you have the <sys/timers.h> header file. */
 /* #undef HAVE_SYS_TIMERS_H */
+
 /* Define to 1 if you have the <sys/times.h> header file. */
+
+
 /* Define to 1 if you have the <sys/time.h> header file. */
+
+
 /* Define to 1 if you have the <sys/types.h> header file. */
+
+
 /* Define to 1 if you have the <sys/utsname.h> header file. */
+
+
 /* Define to 1 if you have the <sys/wait.h> header file. */
+
+
 /* Define to 1 if you have the <termios.h> header file. */
+
+
 /* Define to 1 if you have the `times' function. */
+
+
 /* Define to 1 if you have the <time.h> header file. */
+
+
 /* Define to 1 if you have the <unistd.h> header file. */
+
+
 /* Define to 1 if you have the <utime.h> header file. */
+
+
 /* Define to 1 if you have the <wctype.h> header file. */
+
+
 /* Define to 1 if you have the <windows.h> header file. */
 /* #undef HAVE_WINDOWS_H */
+
 /* Define to 1 if you have the <winsock.h> header file. */
 /* #undef HAVE_WINSOCK_H */
+
 /* Define to 1 if you have the `_chsize' function. */
 /* #undef HAVE__CHSIZE */
+
 /* Define to Haskell type for cc_t */
+
+
 /* Define to Haskell type for char */
+
+
 /* Define to Haskell type for clock_t */
+
+
 /* Define to Haskell type for dev_t */
+
+
 /* Define to Haskell type for double */
+
+
 /* Define to Haskell type for float */
+
+
 /* Define to Haskell type for gid_t */
+
+
 /* Define to Haskell type for ino_t */
+
+
 /* Define to Haskell type for int */
+
+
 /* Define to Haskell type for intmax_t */
+
+
 /* Define to Haskell type for intptr_t */
+
+
 /* Define to Haskell type for long */
+
+
 /* Define to Haskell type for long long */
+
+
 /* Define to Haskell type for mode_t */
+
+
 /* Define to Haskell type for nlink_t */
+
+
 /* Define to Haskell type for off_t */
+
+
 /* Define to Haskell type for pid_t */
+
+
 /* Define to Haskell type for ptrdiff_t */
+
+
 /* Define to Haskell type for rlim_t */
+
+
 /* Define to Haskell type for short */
+
+
 /* Define to Haskell type for signed char */
+
+
 /* Define to Haskell type for sig_atomic_t */
+
+
 /* Define to Haskell type for size_t */
+
+
 /* Define to Haskell type for speed_t */
+
+
 /* Define to Haskell type for ssize_t */
+
+
 /* Define to Haskell type for suseconds_t */
+
+
 /* Define to Haskell type for tcflag_t */
+
+
 /* Define to Haskell type for time_t */
+
+
 /* Define to Haskell type for uid_t */
+
+
 /* Define to Haskell type for uintmax_t */
+
+
 /* Define to Haskell type for uintptr_t */
+
+
 /* Define to Haskell type for unsigned char */
+
+
 /* Define to Haskell type for unsigned int */
+
+
 /* Define to Haskell type for unsigned long */
+
+
 /* Define to Haskell type for unsigned long long */
+
+
 /* Define to Haskell type for unsigned short */
+
+
 /* Define to Haskell type for useconds_t */
+
+
 /* Define to Haskell type for wchar_t */
+
+
 /* Define to the address where bug reports for this package should be sent. */
+
+
 /* Define to the full name of this package. */
+
+
 /* Define to the full name and version of this package. */
+
+
 /* Define to the one symbol short name of this package. */
+
+
 /* Define to the home page for this package. */
+
+
 /* Define to the version of this package. */
+
+
 /* The size of `kev.filter', as computed by sizeof. */
+
+
 /* The size of `kev.flags', as computed by sizeof. */
+
+
 /* The size of `struct MD5Context', as computed by sizeof. */
+
+
 /* Define to 1 if you have the ANSI C header files. */
+
+
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
+
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
+
+
+
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 // #define GHCJS_TRACE_IO 1
 function h$base_access(file, file_off, mode, c) {
-    ;
+                           ;
+
     if(h$isNode) {
         h$fs.stat(fd, function(err, fs) {
             if(err) {
@@ -1192,19 +1665,24 @@ function h$base_access(file, file_off, mode, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
+
 function h$base_chmod(file, file_off, mode, c) {
-    ;
+                          ;
+
     if(h$isNode) {
         h$fs.chmod(h$decodeUtf8z(file, file_off), mode, function(err) {
             h$handleErrnoC(err, -1, 0, c);
         });
     } else
+
         h$unsupported(-1, c);
 }
+
 function h$base_close(fd, c) {
-    ;
+                          ;
     var fdo = h$base_fds[fd];
     if(fdo && fdo.close) {
         fdo.close(fd, fdo, c);
@@ -1213,14 +1691,18 @@ function h$base_close(fd, c) {
         c(-1);
     }
 }
+
 function h$base_dup(fd, something, c) {
     throw "h$base_dup";
 }
+
 function h$base_dup2(fd, c) {
     throw "h$base_dup2";
 }
+
 function h$base_fstat(fd, stat, stat_off, c) {
-    ;
+                         ;
+
     if(h$isNode) {
         h$fs.fstat(fd, function(err, fs) {
             if(err) {
@@ -1231,20 +1713,26 @@ function h$base_fstat(fd, stat, stat_off, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
+
 function h$base_isatty(fd) {
-    ;
+                                 ;
+
     if(h$isNode) {
         if(fd === 0) return process.stdin.isTTY?1:0;
         if(fd === 1) return process.stdout.isTTY?1:0;
         if(fd === 2) return process.stderr.isTTY?1:0;
     }
+
     if(fd === 1 || fd === 2) return 1;
     return 0;
 }
+
 function h$base_lseek(fd, pos_1, pos_2, whence, c) {
-    ;
+                          ;
+
     if(h$isNode) {
         var p = goog.math.Long.fromBits(pos_2, pos_1), p1;
         var o = h$base_fds[fd];
@@ -1280,12 +1768,17 @@ function h$base_lseek(fd, pos_1, pos_2, whence, c) {
             }
         }
     } else {
+
         h$unsupported();
         c(-1, -1);
+
     }
+
 }
+
 function h$base_lstat(file, file_off, stat, stat_off, c) {
-    ;
+                          ;
+
     if(h$isNode) {
         h$fs.lstat(h$decodeUtf8z(file, file_off), function(err, fs) {
             if(err) {
@@ -1296,9 +1789,11 @@ function h$base_lstat(file, file_off, stat, stat_off, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_open(file, file_off, how, mode, c) {
+
     if(h$isNode) {
         var flags, off;
         var fp = h$decodeUtf8z(file, file_off);
@@ -1338,10 +1833,11 @@ function h$base_open(file, file_off, how, mode, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_read(fd, buf, buf_off, n, c) {
-    ;
+                                ;
     var fdo = h$base_fds[fd];
     if(fdo && fdo.read) {
         fdo.read(fd, fdo, buf, buf_off, n, c);
@@ -1351,7 +1847,8 @@ function h$base_read(fd, buf, buf_off, n, c) {
     }
 }
 function h$base_stat(file, file_off, stat, stat_off, c) {
-    ;
+                         ;
+
     if(h$isNode) {
         h$fs.stat(h$decodeUtf8z(file, file_off), function(err, fs) {
             if(err) {
@@ -1362,15 +1859,19 @@ function h$base_stat(file, file_off, stat, stat_off, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_umask(mode) {
-    ;
+                                   ;
+
     if(h$isNode) return process.umask(mode);
+
     return 0;
 }
+
 function h$base_write(fd, buf, buf_off, n, c) {
-    ;
+                                 ;
     var fdo = h$base_fds[fd];
     if(fdo && fdo.write) {
         fdo.write(fd, fdo, buf, buf_off, n, c);
@@ -1379,36 +1880,45 @@ function h$base_write(fd, buf, buf_off, n, c) {
         c(-1);
     }
 }
+
 function h$base_ftruncate(fd, pos_1, pos_2, c) {
-    ;
+                              ;
+
     if(h$isNode) {
         h$fs.ftruncate(fd, goog.math.Long.fromBits(pos_2, pos_1).toNumber(), function(err) {
             h$handleErrnoC(err, -1, 0, c);
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_unlink(file, file_off, c) {
-    ;
+                           ;
+
     if(h$isNode) {
         h$fs.unlink(h$decodeUtf8z(file, file_off), function(err) {
             h$handleErrnoC(err, -1, 0, c);
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_getpid() {
-    ;
+                           ;
+
     if(h$isNode) return process.pid;
+
     return 0;
 }
 function h$base_link(file1, file1_off, file2, file2_off, c) {
-    ;
+                         ;
+
     if(h$isNode) {
         h$fs.link(h$decodeUtf8z(file1, file1_off), h$decodeUtf8z(file2, file2_off), function(err) {
             h$handleErrnoC(err, -1, 0, c);
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_mkfifo(file, file_off, mode, c) {
@@ -1433,7 +1943,8 @@ function h$base_tcsetattr(attr, val, termios, termios_off) {
     return 0;
 }
 function h$base_utime(file, file_off, timbuf, timbuf_off, c) {
-    ;
+                          ;
+
     if(h$isNode) {
         h$fs.fstat(h$decodeUtf8z(file, file_off), function(err, fs) {
             if(err) {
@@ -1452,6 +1963,7 @@ function h$base_utime(file, file_off, timbuf, timbuf_off, c) {
             }
         });
     } else
+
         h$unsupported(-1, c);
 }
 function h$base_waitpid(pid, stat, stat_off, options, c) {
@@ -1468,6 +1980,7 @@ function h$base_waitpid(pid, stat, stat_off, options, c) {
 /** @const */ var h$base_o_noctty = 0x20000;
 /** @const */ var h$base_o_nonblock = 0x00004;
 /** @const */ var h$base_o_binary = 0x00000;
+
 function h$base_c_s_isreg(mode) {
     return 1;
 }
@@ -1483,6 +1996,8 @@ function h$base_c_s_isdir(mode) {
 function h$base_c_s_isfifo(mode) {
     return 0;
 }
+
+
 function h$base_fillStat(fs, b, off) {
     if(off%4) throw "h$base_fillStat: not aligned";
     var o = off>>2;
@@ -1499,23 +2014,31 @@ function h$base_fillStat(fs, b, off) {
     b.i3[o+8] = fs.uid;
     b.i3[o+9] = fs.gid;
 }
+
+
 // [mode,size1,size2,mtime1,mtime2,dev,ino1,ino2,uid,gid] all 32 bit
 /** @const */ var h$base_sizeof_stat = 40;
+
 function h$base_st_mtime(stat, stat_off) {
     { h$ret1 = (stat.i3[(stat_off>>2)+4]); return (stat.i3[(stat_off>>2)+3]); };
 }
+
 function h$base_st_size(stat, stat_off) {
     { h$ret1 = (stat.i3[(stat_off>>2)+2]); return (stat.i3[(stat_off>>2)+1]); };
 }
+
 function h$base_st_mode(stat, stat_off) {
     return stat.i3[stat_off>>2];
 }
+
 function h$base_st_dev(stat, stat_off) {
     return stat.i3[(stat_off>>2)+5];
 }
+
 function h$base_st_ino(stat, stat_off) {
     { h$ret1 = (stat.i3[(stat_off>>2)+7]); return (stat.i3[(stat_off>>2)+6]); };
 }
+
 /** @const */ var h$base_echo = 1;
 /** @const */ var h$base_tcsanow = 2;
 /** @const */ var h$base_icanon = 4;
@@ -1530,41 +2053,54 @@ function h$base_st_ino(stat, stat_off) {
 /** @const */ var h$base_fd_cloexec = 0;
 /** @const */ var h$base_sizeof_termios = 4;
 /** @const */ var h$base_sizeof_sigset_t = 4;
+
 function h$base_lflag(termios, termios_off) {
     return 0;
 }
+
 function h$base_poke_lflag(termios, termios_off, flag) {
     return 0;
 }
+
 function h$base_ptr_c_cc(termios, termios_off) {
     { h$ret1 = (0); return (h$newByteArray(8)); };
 }
+
 /** @const */ var h$base_default_buffer_size = 32768;
+
 function h$base_c_s_issock(mode) {
     return 0; // fixme
 }
+
 /** @const */ var h$base_SEEK_SET = 0;
 /** @const */ var h$base_SEEK_CUR = 1;
 /** @const */ var h$base_SEEK_END = 2;
+
 function h$base_set_saved_termios(a, b, c) {
     { h$ret1 = (0); return (null); };
 }
+
 function h$base_get_saved_termios(r) {
     { h$ret1 = (0); return (null); };
 }
+
 // fixme
 function h$lockFile(fd, dev, ino, for_writing) {
-    ;
+                              ;
     return 0;
 }
 function h$unlockFile(fd) {
-    ;
+                                ;
     return 0;
 }
+
+
+
 // engine-dependent setup
 var h$base_readStdin , h$base_writeStderr, h$base_writeStdout;
 var h$base_closeStdin = null, h$base_closeStderr = null, h$base_closeStdout = null;
 var h$base_readFile, h$base_writeFile, h$base_closeFile;
+
 var h$base_stdin_waiting = new h$Queue();
 var h$base_stdin_chunk = { buf: null
                            , pos: 0
@@ -1591,6 +2127,7 @@ var h$base_process_stdin = function() {
     while(h$base_stdin_eof && q.length()) q.dequeue().c(0);
     c.processing = false;
 }
+
 if(h$isNode) {
     h$base_closeFile = function(fd, fdo, c) {
         h$fs.close(fd, function(err) {
@@ -1598,9 +2135,10 @@ if(h$isNode) {
             h$handleErrnoC(err, -1, 0, c);
         });
     }
+
     h$base_readFile = function(fd, fdo, buf, buf_offset, n, c) {
         var pos = typeof fdo.pos === 'number' ? fdo.pos : null;
-        ;
+                                                                                 ;
         h$fs.read(fd, new Buffer(n), 0, n, pos, function(err, bytesRead, nbuf) {
             if(err) {
                 h$setErrno(err);
@@ -1612,24 +2150,27 @@ if(h$isNode) {
             }
         });
     }
+
     h$base_readStdin = function(fd, fdo, buf, buf_offset, n, c) {
-        ;
+                              ;
         h$base_stdin_waiting.enqueue({buf: buf, off: buf_offset, n: n, c: c});
         h$base_process_stdin();
     }
+
     h$base_closeStdin = function(fd, fdo, c) {
-        ;
+                               ;
         // process.stdin.close(); fixme
         c(0);
     }
+
     h$base_writeFile = function(fd, fdo, buf, buf_offset, n, c) {
         var pos = typeof fdo.pos === 'number' ? fdo.pos : null;
-        ;
+                                                                                  ;
         var nbuf = new Buffer(n);
         for(var i=0;i<n;i++) nbuf[i] = buf.u8[i+buf_offset];
         if(typeof fdo.pos === 'number') fdo.pos += n;
         h$fs.write(fd, nbuf, 0, n, pos, function(err, bytesWritten) {
-            ;
+                                           ;
             if(err) {
                 h$setErrno(err);
                 if(typeof fdo.pos === 'number') fdo.pos -= n;
@@ -1642,26 +2183,32 @@ if(h$isNode) {
             }
         });
     }
+
     h$base_writeStdout = function(fd, fdo, buf, buf_offset, n, c) {
-        ;
+                                ;
         h$base_writeFile(1, fdo, buf, buf_offset, n, c);
     }
+
     h$base_closeStdout = function(fd, fdo, c) {
-        ;
+                                ;
  // not actually closed, fixme?
         c(0);
     }
+
     h$base_writeStderr = function(fd, fdo, buf, buf_offset, n, c) {
-        ;
+                                ;
         h$base_writeFile(2, fdo, buf, buf_offset, n, c);
     }
+
     h$base_closeStderr = function(fd, fdo, c) {
-        ;
+                                ;
  // not actually closed, fixme?
         c(0);
     }
+
     process.stdin.on('readable', h$base_process_stdin);
     process.stdin.on('end', function() { h$base_stdin_eof = true; h$base_process_stdin(); });
+
 } else if (h$isJsShell) {
     h$base_readStdin = function(fd, fdo, buf, buf_offset, n, c) {
         c(0);
@@ -1703,6 +2250,7 @@ if(h$isNode) {
  h$base_writeWithLeftover(buf, n, buf_offset, c, h$base_stderrLeftover);
     }
 } else { // browser / fallback
+
     h$base_readStdin = function(fd, fdo, buf, buf_offset, n, c) {
         c(0);
     }
@@ -1714,83 +2262,140 @@ if(h$isNode) {
         console.log(h$decodeUtf8(buf, n, buf_offset));
         c(n);
     }
+
 }
+
+
 var h$base_stdin_fd = { read: h$base_readStdin, close: h$base_closeStdin };
 var h$base_stdout_fd = { write: h$base_writeStdout, close: h$base_closeStdout };
 var h$base_stderr_fd = { write: h$base_writeStderr, close: h$base_closeStderr };
+
 var h$base_fdN = -1; // negative file descriptors are 'virtual'
 var h$base_fds = [h$base_stdin_fd, h$base_stdout_fd, h$base_stderr_fd];
+
 function h$shutdownHaskellAndExit(code, fast) {
+
+
+
+
+
+
     h$exitProcess(code);
 }
+
 // RAND_MAX = 32767
 function h$rand() {
   return (32768 * Math.random()) & 32767;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 // JS Objects stuff
+
 function h$isFloat (n) {
   return n===+n && n!==(n|0);
 }
+
 function h$isInteger (n) {
   return n===+n && n===(n|0);
 }
+
 /*
         -- 0 - null, 1 - integer,
         -- 2 - float, 3 - bool,
@@ -1825,6 +2430,7 @@ function h$typeOf(o) {
         }
     }
 }
+
 function h$listProps(o) {
     if (!(o instanceof Object)) {
         return [];
@@ -1835,6 +2441,7 @@ function h$listProps(o) {
     }
     return l;
 }
+
 function h$flattenObj(o) {
     var l = [], i = 0;
     for (var prop in o) {
@@ -1842,6 +2449,7 @@ function h$flattenObj(o) {
     }
     return l;
 }
+
 /*
 
   build an object from key/value pairs:
@@ -1860,6 +2468,7 @@ function h$buildObject() {
     }
     return r;
 }
+
 // same as above, but from a list: [k1,v1,k2,v2,...]
 function h$buildObjectFromList(xs) {
     var r = {}, k, v, t;
@@ -1877,6 +2486,7 @@ function h$buildObjectFromList(xs) {
     }
     return r;
 }
+
 // same as above, but from a list of tuples [(k1,v1),(k2,v2),...]
 function h$buildObjectFromTupList(xs) {
     var r = {};
@@ -1887,38 +2497,6 @@ function h$buildObjectFromTupList(xs) {
     }
     return r;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 /* FNV-1 hash
  *
  * The FNV-1 hash description: http://isthe.com/chongo/tech/comp/fnv/
@@ -1927,6 +2505,7 @@ function h$buildObjectFromTupList(xs) {
 function h$hashable_fnv_hash_offset(str_a, o, len, hash) {
   return h$hashable_fnv_hash(str_a, o, len, hash);
 }
+
 function h$hashable_fnv_hash(str_d, str_o, len, hash) {
   if(len > 0) {
     var d = str_d.u8;
@@ -1936,6 +2515,8 @@ function h$hashable_fnv_hash(str_d, str_o, len, hash) {
   }
   return hash;
 }
+
+
 // int hashable_getRandomBytes(unsigned char *dest, int nbytes)
 function h$hashable_getRandomBytes(dest_d, dest_o, len) {
   if(len > 0) {
@@ -1946,70 +2527,118 @@ function h$hashable_getRandomBytes(dest_d, dest_o, len) {
   }
   return len;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 function h$_hs_text_memcpy(dst_v,dst_o2,src_v,src_o2,n) {
   return h$memcpy(dst_v,2*dst_o2,src_v,2*src_o2,2*n);
 }
+
 function h$_hs_text_memcmp(a_v,a_o2,b_v,b_o2,n) {
   return h$memcmp(a_v,2*a_o2,b_v,2*b_o2,2*n);
 }
+
 // decoder below adapted from cbits/cbits.c in the text package
+
+
+
+
 var h$_text_utf8d =
    [
   /*
@@ -2024,6 +2653,7 @@ var h$_text_utf8d =
    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7, 7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
    8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
   10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
+
   /*
    * The second part is a transition table that maps a combination of
    * a state of the automaton and a character class to a state.
@@ -2033,6 +2663,7 @@ var h$_text_utf8d =
   12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
   12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
   12,36,12,12,12,12,12,12,12,12,12,12];
+
 /*
  * A best-effort decoder. Runs until it hits either end of input or
  * the start of an invalid byte sequence.
@@ -2040,6 +2671,7 @@ var h$_text_utf8d =
  * At exit, updates *destoff with the next offset to write to, and
  * returns the next source offset to read from.
  */
+
 function h$_hs_text_decode_utf8_internal ( dest_v
                                          , destoff_v, destoff_o
                                          , src_v, src_o
@@ -2055,6 +2687,7 @@ function h$_hs_text_decode_utf8_internal ( dest_v
   var codepoint = s.codepoint;
   var ddv = dest_v.dv;
   var sdv = src_v.dv;
+
   function decode(b) {
     var type = h$_text_utf8d[b];
     codepoint = (state !== 0) ?
@@ -2063,6 +2696,7 @@ function h$_hs_text_decode_utf8_internal ( dest_v
     state = h$_text_utf8d[256 + state + type];
     return state;
   }
+
   while (srco < src_end_o) {
     if(decode(sdv.getUint8(srco++)) !== 0) {
       if(state !== 12) {
@@ -2081,11 +2715,13 @@ function h$_hs_text_decode_utf8_internal ( dest_v
     }
     s.last = srco;
   }
+
   s.state = state;
   s.codepoint = codepoint;
   destoff_v.dv.setUint32(destoff_o,dsto>>1,true);
   { h$ret1 = (srco); return (src_v); };
 }
+
 function h$_hs_text_decode_utf8_state( dest_v
                                      , destoff_v, destoff_o
                                      , src_v, src_o
@@ -2099,12 +2735,20 @@ function h$_hs_text_decode_utf8_state( dest_v
           };
   var ret, ret1;
   { (ret) = (h$_hs_text_decode_utf8_internal ( dest_v , destoff_v, destoff_o , src_v.arr[src_o][0], src_v.arr[src_o][1] , srcend_v, srcend_o , s )); (ret1) = h$ret1; };
+
+
+
+
+
+
+
   src_v.arr[src_o][1] = s.last;
   state0_v.dv.setUint32(state0_o, s.state, true);
   codepoint0_v.dv.setUint32(codepoint0_o, s.codepoint, true);
   if(s.state === 12) ret1--;
   { h$ret1 = (ret1); return (ret); };
 }
+
 function h$_hs_text_decode_utf8( dest_v
                                , destoff_v, destoff_o
                                , src_v, src_o
@@ -2117,9 +2761,18 @@ function h$_hs_text_decode_utf8( dest_v
           };
   var ret, ret1;
   { (ret) = (h$_hs_text_decode_utf8_internal ( dest_v , destoff_v, destoff_o , src_v, src_o , srcend_v, srcend_o , s )); (ret1) = h$ret1; };
+
+
+
+
+
+
+
   if (s.state !== 0) ret1--;
   { h$ret1 = (ret1); return (ret); };
 }
+
+
 /*
  * The ISO 8859-1 (aka latin-1) code points correspond exactly to the first 256 unicode
  * code-points, therefore we can trivially convert from a latin-1 encoded bytestring to
@@ -2131,10 +2784,12 @@ function h$_hs_text_decode_latin1(dest_d, src_d, src_o, srcend_d, srcend_o) {
   var su8 = src_d.u8;
   var su3 = src_d.u3;
   var du1 = dest_d.u1;
+
   // consume unaligned prefix
   while(p != srcend_o && p & 3) {
     du1[d++] = su8[p++];
   }
+
   // iterate over 32-bit aligned loads
   if(su3) {
     while (p < srcend_o - 3) {
@@ -2146,10 +2801,12 @@ function h$_hs_text_decode_latin1(dest_d, src_d, src_o, srcend_d, srcend_o) {
       p += 4;
     }
   }
+
   // handle unaligned suffix
   while (p != srcend_o)
     du1[d++] = su8[p++];
 }
+
 function h$_hs_text_encode_utf8(destp_v, destp_o, src_v, srcoff, srclen) {
   var dest_v = destp_v.arr[destp_o][0];
   var dest_o = destp_v.arr[destp_o][1];
@@ -2192,38 +2849,6 @@ function h$_hs_text_encode_utf8(destp_v, destp_o, src_v, srcoff, srclen) {
   }
   destp_v.arr[destp_o][1] = dest;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$get_current_timezone_seconds(t, pdst_v, pdst_o, pname_v, pname_o) {
     var d = new Date(t);
     var now = new Date();
@@ -2238,66 +2863,109 @@ function h$get_current_timezone_seconds(t, pdst_v, pdst_o, pname_v, pname_o) {
     pname_v.arr[pname_o] = [h$encodeUtf8("UTC" + offstr), 0];
     return (-60*tzo)|0;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 function h$createWebSocket(url, protocols) {
   return new WebSocket(url, protocols);
 }
+
 /*
    this must be called before the websocket has connected,
    typically synchronously after creating the socket
@@ -2341,6 +3009,7 @@ function h$openWebSocket(ws, mcb, ccb, c) {
     c(err);
   };
 }
+
 function h$closeWebSocket(status, reason, ws) {
   ws.onerror = null;
   if(ws.onmessage) {
@@ -2349,63 +3018,105 @@ function h$closeWebSocket(status, reason, ws) {
   }
   ws.close(status, reason);
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 /*
    convert an array to a Haskell list, wrapping each element in a
    JSVal constructor
@@ -2415,6 +3126,7 @@ function h$fromArray(a) {
     for(var i=a.length-1;i>=0;i--) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (a[i])))), (r)));
     return a;
 }
+
 /*
    convert an array to a Haskell list. No additional wrapping of the
    elements is performed. Only use this when the elements are directly
@@ -2426,6 +3138,7 @@ function h$fromArrayNoWrap(a) {
     for(var i=a.length-1;i>=0;i--) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, (a[i]), (r)));
     return a;
 }
+
 /*
    convert a list of JSVal to an array. the list must have been fully forced,
    not just the spine.
@@ -2438,41 +3151,10 @@ function h$listToArray(xs) {
     }
     return a;
 }
+
 function h$listToArrayWrap(xs) {
     return (h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (h$listToArray(xs))));
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$animationFrameCancel(h) {
     if(h.handle) window.cancelAnimationFrame(h.handle);
     if(h.callback) {
@@ -2480,6 +3162,7 @@ function h$animationFrameCancel(h) {
         h.callback = null;
     }
 }
+
 function h$animationFrameRequest(h) {
     h.handle = window.requestAnimationFrame(function(ts) {
         var cb = h.callback;
@@ -2490,38 +3173,6 @@ function h$animationFrameRequest(h) {
         }
     });
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$exportValue(fp1a,fp1b,fp2a,fp2b,o) {
   var e = { fp1a: fp1a
           , fp1b: fp1b
@@ -2534,6 +3185,7 @@ function h$exportValue(fp1a,fp1b,fp2a,fp2b,o) {
   h$retain(e);
   return e;
 }
+
 function h$derefExport(fp1a,fp1b,fp2a,fp2b,e) {
   if(!e || typeof e !== 'object') return null;
   if(e.released) return null;
@@ -2541,68 +3193,111 @@ function h$derefExport(fp1a,fp1b,fp2a,fp2b,e) {
      fp2a !== e.fp2a || fp2b !== e.fp2b) return null;
   return e.root;
 }
+
 function h$releaseExport(e) {
   h$release(e);
   e.released = true;
   e.root = null;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 /*
  * Support code for the Data.JSString module. This code presents a JSString
  * as a sequence of code points and hides the underlying encoding ugliness of
@@ -2610,27 +3305,30 @@ function h$releaseExport(e) {
  *
  * Use Data.JSString.Raw for direct access to the JSThis makes the operations more expen
  */
+
 /*
  * Some workarounds here for JS engines that do not support proper
  * code point access
  */
 var h$jsstringEmpty = (h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, ('')));
+
 var h$jsstringHead, h$jsstringTail, h$jsstringCons,
     h$jsstringSingleton, h$jsstringSnoc, h$jsstringUncons,
     h$jsstringIndex, h$jsstringUncheckedIndex,
     h$jsstringTake, h$jsstringDrop, h$jsstringTakeEnd, h$jsstringDropEnd;
+
 if(String.prototype.codePointAt) {
     h$jsstringSingleton = function(ch) {
-        ;
+                                                        ;
  return String.fromCodePoint(ch);
     }
     h$jsstringHead = function(str) {
-        ;
+                                                    ;
  var cp = ch.codePointAt(0);
  return (cp === undefined) ? -1 : (cp|0);
     }
     h$jsstringTail = function(str) {
-        ;
+                                                    ;
  var l = str.length;
  if(l===0) return null;
  var ch = str.codePointAt(0);
@@ -2639,15 +3337,15 @@ if(String.prototype.codePointAt) {
  return str.substr(((ch)>=0x10000)?2:1);
     }
     h$jsstringCons = function(ch, str) {
-        ;
+                                                                      ;
  return String.fromCodePoint(ch)+str;
     }
     h$jsstringSnoc = function(str, ch) {
-        ;
+                                                                 ;
  return str+String.fromCodePoint(ch);
     }
     h$jsstringUncons = function(str) {
-        ;
+                                                             ;
  var l = str.length;
  if(l===0) return null;
  var ch = str.codePointAt(0);
@@ -2658,23 +3356,23 @@ if(String.prototype.codePointAt) {
     }
     // index is the first part of the character
     h$jsstringIndex = function(i, str) {
-        ;
+                                                                      ;
  var ch = str.codePointAt(i);
  if(ch === undefined) return -1;
  return ch;
     }
     h$jsstringUncheckedIndex = function(i, str) {
-        ;
+                                                                                      ;
  return str.codePointAt(i);
     }
 } else {
     h$jsstringSingleton = function(ch) {
-        ;
+                                                           ;
  return (((ch)>=0x10000)) ? String.fromCharCode(((((ch)-0x10000)>>>10)+0xDC00), (((ch)&0x3FF)+0xD800))
                                : String.fromCharCode(ch);
     }
     h$jsstringHead = function(str) {
-        ;
+                                                       ;
  var l = str.length;
  if(l===0) return -1;
  var ch = str.charCodeAt(0);
@@ -2685,7 +3383,7 @@ if(String.prototype.codePointAt) {
  }
     }
     h$jsstringTail = function(str) {
-        ;
+                                                       ;
  var l = str.length;
  if(l===0) return null;
  var ch = str.charCodeAt(0);
@@ -2694,18 +3392,18 @@ if(String.prototype.codePointAt) {
  } else return str.substr(1);
     }
     h$jsstringCons = function(ch, str) {
-        ;
+                                                                         ;
  return ((((ch)>=0x10000)) ? String.fromCharCode(((((ch)-0x10000)>>>10)+0xDC00), (((ch)&0x3FF)+0xD800))
                                 : String.fromCharCode(ch))
                                 + str;
     }
     h$jsstringSnoc = function(str, ch) {
-        ;
+                                                                    ;
  return str + ((((ch)>=0x10000)) ? String.fromCharCode(((((ch)-0x10000)>>>10)+0xDC00), (((ch)&0x3FF)+0xD800))
                                       : String.fromCharCode(ch));
     }
     h$jsstringUncons = function(str) {
-        ;
+                                                                ;
  var l = str.length;
  if(l===0) return -1;
  var ch = str.charCodeAt(0);
@@ -2727,11 +3425,12 @@ if(String.prototype.codePointAt) {
  return (((ch|1023)===0xDBFF)) ? ((((ch)-0xD800)<<10)+(str.charCodeAt(i+1))-9216) : ch;
     }
     h$jsstringUncheckedIndex = function(i, str) {
-        ;
+                                                                                         ;
  var ch = str.charCodeAt(i);
  return (((ch|1023)===0xDBFF)) ? ((((ch)-0xD800)<<10)+(str.charCodeAt(i+1))-9216) : ch;
     }
 }
+
 function h$jsstringPack(xs) {
     var r = '', i = 0, a = [], c;
     while(((xs).f === h$ghczmprimZCGHCziTypesziZC_con_e)) {
@@ -2745,9 +3444,10 @@ function h$jsstringPack(xs) {
  xs = ((xs).d2);
     }
     if(i > 0) r += String.fromCharCode.apply(null, a);
-    ;
+                                       ;
     return r;
 }
+
 function h$jsstringPackReverse(xs) {
     var a = [], i = 0, c;
     while(((xs).f === h$ghczmprimZCGHCziTypesziZC_con_e)) {
@@ -2757,17 +3457,20 @@ function h$jsstringPackReverse(xs) {
     }
     if(i===0) return '';
     var r = h$jsstringConvertArray(a.reverse());
-    ;
+                                              ;
     return r;
 }
+
 function h$jsstringPackArray(arr) {
-    ;
+                                        ;
     return h$jsstringConvertArray(arr);
 }
+
 function h$jsstringPackArrayReverse(arr) {
-    ;
+                                                ;
     return h$jsstringConvertArray(arr.reverse());
 }
+
 function h$jsstringConvertArray(arr) {
     if(arr.length < 60000) {
  return String.fromCharCode.apply(null, arr);
@@ -2779,8 +3482,9 @@ function h$jsstringConvertArray(arr) {
  return r;
     }
 }
+
 function h$jsstringInit(str) {
-    ;
+                                         ;
     var l = str.length;
     if(l===0) return null;
     var ch = str.charCodeAt(l-1);
@@ -2788,28 +3492,33 @@ function h$jsstringInit(str) {
     var r = str.substr(0, l-o);
     return r;
 }
+
 function h$jsstringLast(str) {
-    ;
+                                         ;
     var l = str.length;
     if(l===0) return -1;
     var ch = str.charCodeAt(l-1);
     if(((ch|1023)===0xDFFF)) {
  return (l>1) ? ((((str.charCodeAt(l-2))-0xD800)<<10)+(ch)-9216) : -1;
+
     } else return ch;
 }
+
 // index is the last part of the character
 function h$jsstringIndexR(i, str) {
-    ;
+                                                     ;
     if(i < 0 || i > str.length) return -1;
     var ch = str.charCodeAt(i);
     return (((ch|1023)===0xDFFF)) ? ((((str.charCodeAt(i-1))-0xD800)<<10)+(ch)-9216) : ch;
 }
+
 function h$jsstringNextIndex(i, str) {
-    ;
+                                                        ;
     return i + (((str.charCodeAt(i)|1023)===0xDBFF)?2:1);
 }
+
 function h$jsstringTake(n, str) {
-    ;
+                                                   ;
     if(n <= 0) return '';
     var i = 0, l = str.length, ch;
     if(n >= l) return str;
@@ -2820,8 +3529,9 @@ function h$jsstringTake(n, str) {
     }
     return str.substr(0,i);
 }
+
 function h$jsstringDrop(n, str) {
-    ;
+                                                   ;
     if(n <= 0) return str;
     var i = 0, l = str.length, ch;
     if(n >= l) return '';
@@ -2832,8 +3542,9 @@ function h$jsstringDrop(n, str) {
     }
     return str.substr(i);
 }
+
 function h$jsstringSplitAt(n, str) {
-  ;
+                                                    ;
   if(n <= 0) {
     { h$ret1 = (str); return (""); };
   } else if(n >= str.length) {
@@ -2849,8 +3560,9 @@ function h$jsstringSplitAt(n, str) {
   }
   { h$ret1 = (str.substr(i)); return (str.substr(0,i)); };
 }
+
 function h$jsstringTakeEnd(n, str) {
-    ;
+                                                      ;
     if(n <= 0) return '';
     var l = str.length, i = l-1, ch;
     if(n >= l) return str;
@@ -2860,8 +3572,9 @@ function h$jsstringTakeEnd(n, str) {
     }
     return (i<0) ? str : str.substr(i+1);
 }
+
 function h$jsstringDropEnd(n, str) {
-    ;
+                                                      ;
     if(n <= 0) return str;
     var l = str.length, i = l-1, ch;
     if(n >= l) return '';
@@ -2871,8 +3584,9 @@ function h$jsstringDropEnd(n, str) {
     }
     return (i<0) ? '' : str.substr(0,i+1);
 }
+
 function h$jsstringIntercalate(x, ys) {
-    ;
+                                              ;
     var a = [], i = 0;
     while(((ys).f === h$ghczmprimZCGHCziTypesziZC_con_e)) {
  if(i) a[i++] = x;
@@ -2881,8 +3595,9 @@ function h$jsstringIntercalate(x, ys) {
     }
     return a.join('');
 }
+
 function h$jsstringIntersperse(ch, ys) {
-    ;
+                                                          ;
     var i = 0, l = ys.length, j = 0, a = [], ych;
     if(((ch)>=0x10000)) {
  var ch1 = ((((ch)-0x10000)>>>10)+0xDC00), ch2 = (((ch)&0x3FF)+0xD800);
@@ -2905,8 +3620,9 @@ function h$jsstringIntersperse(ch, ys) {
     }
     return h$jsstringConvertArray(a);
 }
+
 function h$jsstringConcat(xs) {
-    ;
+                            ;
     var a = [], i = 0;
     while(((xs).f === h$ghczmprimZCGHCziTypesziZC_con_e)) {
  a[i++] = ((((xs).d1)).d1);
@@ -2914,52 +3630,58 @@ function h$jsstringConcat(xs) {
     }
     return a.join('');
 }
+
 var h$jsstringStripPrefix, h$jsstringStripSuffix,
     h$jsstringIsPrefixOf, h$jsstringIsSuffixOf,
     h$jsstringIsInfixOf;
 if(String.prototype.startsWith) {
     h$jsstringStripPrefix = function(p, x) {
- ;
+                                                                    ;
  if(x.startsWith(p)) {
      return (h$c1(h$baseZCGHCziBaseziJust_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(p.length)))))));
  } else {
      return h$baseZCGHCziBaseziNothing;
  }
     }
+
     h$jsstringIsPrefixOf = function(p, x) {
- ;
+                                                                   ;
  return x.startsWith(p);
     }
+
 } else {
     h$jsstringStripPrefix = function(p, x) {
- ;
+                                                                       ;
  if(x.indexOf(p) === 0) { // this has worse complexity than it should
      return (h$c1(h$baseZCGHCziBaseziJust_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(p.length)))))));
  } else {
    return h$baseZCGHCziBaseziNothing;
  }
     }
+
     h$jsstringIsPrefixOf = function(p, x) {
- ;
+                                                                      ;
  return x.indexOf(p) === 0; // this has worse complexity than it should
     }
 }
+
 if(String.prototype.endsWith) {
     h$jsstringStripSuffix = function(s, x) {
- ;
+                                                                  ;
  if(x.endsWith(s)) {
      return (h$c1(h$baseZCGHCziBaseziJust_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(0,x.length-s.length)))))));
  } else {
    return h$baseZCGHCziBaseziNothing;
  }
     }
+
     h$jsstringIsSuffixOf = function(s, x) {
- ;
+                                                                 ;
  return x.endsWith(s);
     }
 } else {
     h$jsstringStripSuffix = function(s, x) {
- ;
+                                                                     ;
  var i = x.lastIndexOf(s); // this has worse complexity than it should
  var l = x.length - s.length;
  if(i !== -1 && i === l) {
@@ -2968,25 +3690,28 @@ if(String.prototype.endsWith) {
    return h$baseZCGHCziBaseziNothing;
  }
     }
+
       h$jsstringIsSuffixOf = function(s, x) {
- ;
+                                                                    ;
         var i = x.lastIndexOf(s); // this has worse complexity than it should
  return i !== -1 && i === x.length - s.length;
     }
 }
+
 if(String.prototype.includes) {
     h$jsstringIsInfixOf = function(i, x) {
-        ;
+                                                                       ;
  return x.includes(i);
     }
 } else {
     h$jsstringIsInfixOf = function(i, x) {
-        ;
+                                                                          ;
  return x.indexOf(i) !== -1; // this has worse complexity than it should
     }
 }
+
 function h$jsstringCommonPrefixes(x, y) {
-    ;
+                                                             ;
     var lx = x.length, ly = y.length, i = 0, cx;
     var l = lx <= ly ? lx : ly;
     if(lx === 0 || ly === 0 || x.charCodeAt(0) !== y.charCodeAt(0)) {
@@ -3001,9 +3726,13 @@ function h$jsstringCommonPrefixes(x, y) {
     }
   if(i===0) return h$baseZCGHCziBaseziNothing;
     return (h$c1(h$baseZCGHCziBaseziJust_con_e, ((h$c3(h$ghczmprimZCGHCziTupleziZLz2cUz2cUZR_con_e,((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, ((i===lx)?x:((i===ly)?y:x.substr(0,i)))))),((i===lx) ? h$jsstringEmpty : (h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(i))))),((i===ly) ? h$jsstringEmpty : (h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (y.substr(i))))))))));
+
+
+
 }
+
 function h$jsstringBreakOn(b, x) {
-    ;
+                                                      ;
     var i = x.indexOf(b);
     if(i===-1) {
         { h$ret1 = (""); return (x); };
@@ -3013,17 +3742,20 @@ function h$jsstringBreakOn(b, x) {
     }
     { h$ret1 = (x.substr(i)); return (x.substr(0,i)); };
 }
+
 function h$jsstringBreakOnEnd(b, x) {
-    ;
+                                                         ;
     var i = x.lastIndexOf(b);
   if(i===-1) {
     { h$ret1 = (x); return (""); };
+
     }
   i += b.length;
     { h$ret1 = (x.substr(i)); return (x.substr(0,i)); };
 }
+
 function h$jsstringBreakOnAll1(n, b, x) {
-    ;
+                                                                    ;
     var i = x.indexOf(b, n);
     if(i===0) {
        { h$ret1 = (""); h$ret2 = (x); return (b.length); };
@@ -3033,8 +3765,9 @@ function h$jsstringBreakOnAll1(n, b, x) {
     }
     { h$ret1 = (x.substr(0,i)); h$ret2 = (x.substr(i)); return (i+b.length); };
 }
+
 function h$jsstringBreakOnAll(pat, src) {
-    ;
+                                ;
     var a = [], i = 0, n = 0, r = h$ghczmprimZCGHCziTypesziZMZN, pl = pat.length;
     while(true) {
  var x = src.indexOf(pat, n);
@@ -3045,8 +3778,9 @@ function h$jsstringBreakOnAll(pat, src) {
     while(--i >= 0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, (a[i]), (r)));
     return r;
 }
+
 function h$jsstringSplitOn1(n, p, x) {
-    ;
+                                                                 ;
     var i = x.indexOf(p, n);
     if(i === -1) {
         { h$ret1 = (null); return (-1); };
@@ -3054,18 +3788,20 @@ function h$jsstringSplitOn1(n, p, x) {
     var r1 = (i==n) ? "" : x.substr(n, i-n);
     { h$ret1 = (r1); return (i + p.length); };
 }
+
 function h$jsstringSplitOn(p, x) {
-    ;
+                                                      ;
     var a = x.split(p);
     var r = h$ghczmprimZCGHCziTypesziZMZN, i = a.length;
     while(--i>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (a[i])))), (r)));
     return r;
 }
+
 // returns -1 for end of input, start of next token otherwise
 // word in h$ret1
 // this function assumes that there are no whitespace characters >= 0x10000
 function h$jsstringWords1(n, x) {
-    ;
+                                                   ;
     var m = n, s = n, l = x.length;
     if(m >= l) return -1;
     // skip leading spaces
@@ -3088,8 +3824,9 @@ function h$jsstringWords1(n, x) {
     }
     { h$ret1 = (null); return (-1); };
 }
+
 function h$jsstringWords(x) {
-    ;
+                                        ;
     var a = null, i = 0, n, s = -1, m = 0, w, l = x.length, r = h$ghczmprimZCGHCziTypesziZMZN;
     outer:
     while(m < l) {
@@ -3119,10 +3856,11 @@ function h$jsstringWords(x) {
     while(--i>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, (a[i]), (r)));
     return r;
 }
+
 // returns -1 for end of input, start of next token otherwise
 // line in h$ret1
 function h$jsstringLines1(n, x) {
-    ;
+                                                   ;
     var m = n, l = x.length;
     if(n >= l) return -1;
     while(m < l) {
@@ -3136,8 +3874,9 @@ function h$jsstringLines1(n, x) {
     // end of string
     { h$ret1 = (x.substr(n)); return (m); };
 }
+
 function h$jsstringLines(x) {
-    ;
+                                        ;
     var a = null, m = 0, i = 0, l = x.length, s = 0, r = h$ghczmprimZCGHCziTypesziZMZN, w;
     if(l === 0) return h$ghczmprimZCGHCziTypesziZMZN;
     outer:
@@ -3156,8 +3895,9 @@ function h$jsstringLines(x) {
     while(--i>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, (a[i]), (r)));
     return r;
 }
+
 function h$jsstringGroup(x) {
-    ;
+                                        ;
     var xl = x.length;
     if(xl === 0) return h$ghczmprimZCGHCziTypesziZMZN;
     var i = xl-1, si, ch, s=xl, r=h$ghczmprimZCGHCziTypesziZMZN;
@@ -3177,8 +3917,9 @@ function h$jsstringGroup(x) {
     }
     return (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(0,s+1))))), (r)));
 }
+
 function h$jsstringChunksOf1(n, s, x) {
-    ;
+                                                                ;
     var m = s, c = 0, l = x.length, ch;
     if(n <= 0 || l === 0 || s >= l) return -1
     while(++m < l && ++c < n) {
@@ -3188,8 +3929,9 @@ function h$jsstringChunksOf1(n, s, x) {
     var r1 = (m >= l && s === c) ? x : x.substr(s,m-s);
     { h$ret1 = (r1); return (m); };
 }
+
 function h$jsstringChunksOf(n, x) {
-    ;
+                                                     ;
     var l = x.length;
     if(l===0 || n <= 0) return h$ghczmprimZCGHCziTypesziZMZN;
     if(l <= n) return (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x)))), (h$ghczmprimZCGHCziTypesziZMZN)));
@@ -3206,8 +3948,9 @@ function h$jsstringChunksOf(n, x) {
     while(--i>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (a[i])))), (r)));
     return r;
 }
+
 function h$jsstringCount(pat, src) {
-    ;
+                                                        ;
     var i = 0, n = 0, pl = pat.length, sl = src.length;
     while(i<sl) {
  i = src.indexOf(pat, i);
@@ -3217,8 +3960,9 @@ function h$jsstringCount(pat, src) {
     }
     return n;
 }
+
 function h$jsstringReplicate(n, str) {
-    ;
+                                                        ;
     if(n === 0 || str == '') return '';
     if(n === 1) return str;
     var r = '';
@@ -3229,16 +3973,17 @@ function h$jsstringReplicate(n, str) {
     } while(n > 1);
     return r+str;
 }
+
 // this does not deal with combining diacritics, Data.Text does not either
 var h$jsstringReverse;
 if(Array.from) {
     h$jsstringReverse = function(str) {
- ;
+                                                      ;
  return Array.from(str).reverse().join('');
     }
 } else {
     h$jsstringReverse = function(str) {
- ;
+                                                         ;
  var l = str.length, a = [], o = 0, i = 0, c, c1, s = '';
  while(i < l) {
      c = str.charCodeAt(i);
@@ -3256,8 +4001,9 @@ if(Array.from) {
  return (i===0) ? s : String.fromCharCode.apply(null,a.reverse()) + s;
     }
 }
+
 function h$jsstringUnpack(str) {
-    ;
+                                           ;
     var r = h$ghczmprimZCGHCziTypesziZMZN, i = str.length-1, c;
     while(i >= 0) {
  c = str.charCodeAt(i--);
@@ -3266,8 +4012,9 @@ function h$jsstringUnpack(str) {
     }
     return r;
 }
+
 function h$jsstringDecI64(hi,lo) {
-    ;
+                                              ;
     var lo0 = (lo < 0) ? lo+4294967296:lo;
     if(hi < 0) {
  if(hi === -1) return ''+(lo0-4294967296);
@@ -3285,8 +4032,9 @@ function h$jsstringDecI64(hi,lo) {
  return '' + x2 + h$jsstringDecIPadded6(x1);
     }
 }
+
 function h$jsstringDecW64(hi,lo) {
-    ;
+                                              ;
     var lo0 = (lo < 0) ? lo+4294967296 : lo;
     if(hi === 0) return ''+lo0;
     var hi0 = (hi < 0) ? hi+4294967296 : hi;
@@ -3295,19 +4043,22 @@ function h$jsstringDecW64(hi,lo) {
     var x2 = hi0*4294+Math.floor((x0+lo0-x1)/1000000);
     return '' + x2 + h$jsstringDecIPadded6(x1);
 }
+
 function h$jsstringHexI64(hi,lo) {
     var lo0 = lo<0 ? lo+4294967296 : lo;
     if(hi === 0) return lo0.toString(16);
     return ((hi<0)?hi+4294967296:hi).toString(16) + h$jsstringHexIPadded8(lo0);
 }
+
 function h$jsstringHexW64(hi,lo) {
     var lo0 = lo<0 ? lo+4294967296 : lo;
     if(hi === 0) return lo0.toString(16);
     return ((hi<0)?hi+4294967296:hi).toString(16) + h$jsstringHexIPadded8(lo0);
 }
+
 // n in [0, 1000000000)
 function h$jsstringDecIPadded9(n) {
-    ;
+                                       ;
     if(n === 0) return '000000000';
     var pad = (n>=100000000)?'':
               (n>=10000000)?'0':
@@ -3320,9 +4071,10 @@ function h$jsstringDecIPadded9(n) {
                      '00000000';
     return pad+n;
 }
+
 // n in [0, 1000000)
 function h$jsstringDecIPadded6(n) {
-    ;
+                                       ;
     if(n === 0) return '000000';
     var pad = (n>=100000)?'':
               (n>=10000)?'0':
@@ -3332,9 +4084,10 @@ function h$jsstringDecIPadded6(n) {
                      '00000';
     return pad+n;
 }
+
 // n in [0, 2147483648)
 function h$jsstringHexIPadded8(n) {
-    ;
+                                       ;
    if(n === 0) return '00000000';
    var pad = (n>=0x10000000)?'':
              (n>=0x1000000)?'0':
@@ -3346,6 +4099,7 @@ function h$jsstringHexIPadded8(n) {
                       '0000000';
     return pad+n.toString(16);
 }
+
 function h$jsstringZeroes(n) {
     var r;
     switch(n&7) {
@@ -3361,6 +4115,7 @@ function h$jsstringZeroes(n) {
     for(var i=n>>3;i>0;i--) r = r + '00000000';
     return r;
 }
+
 function h$jsstringDoubleToFixed(decs, d) {
     if(decs >= 0) {
  if(Math.abs(d) < 1e21) {
@@ -3388,6 +4143,7 @@ function h$jsstringDoubleToFixed(decs, d) {
  return m + '0.' + h$jsstringZeroes(-e-1) + r;
     }
 }
+
 function h$jsstringDoubleToExponent(decs, d) {
     var r;
     if(decs ===-1) {
@@ -3401,6 +4157,7 @@ function h$jsstringDoubleToExponent(decs, d) {
     if(decs > 20) r = r.replace('e', h$jsstringZeroes(decs-20)+'e');
     return r;
 }
+
 function h$jsstringDoubleGeneric(decs, d) {
     var r;
     if(decs === -1) {
@@ -3417,14 +4174,17 @@ function h$jsstringDoubleGeneric(decs, d) {
     }
     return r;
 }
+
 function h$jsstringAppend(x, y) {
-    ;
+                                                     ;
     return x+y;
 }
+
 function h$jsstringCompare(x, y) {
-    ;
+                                                      ;
     return (x<y)?-1:((x>y)?1:0);
 }
+
 function h$jsstringUnlines(xs) {
     var r = '';
     while(((xs).f === h$ghczmprimZCGHCziTypesziZC_con_e)) {
@@ -3433,6 +4193,7 @@ function h$jsstringUnlines(xs) {
     }
     return r;
 }
+
 function h$jsstringUnwords(xs) {
     if(((xs).f === h$ghczmprimZCGHCziTypesziZMZN_con_e)) return '';
     var r = ((((xs).d1)).d1);
@@ -3443,8 +4204,9 @@ function h$jsstringUnwords(xs) {
     }
     return r;
 }
+
 function h$jsstringReplace(pat, rep, src) {
-    ;
+                                                                        ;
     var r = src.replace(pat, rep, 'g');
     // the 'g' flag is not supported everywhere, check and fall back if necessary
     if(r.indexOf(pat) !== -1) {
@@ -3452,27 +4214,33 @@ function h$jsstringReplace(pat, rep, src) {
     }
     return r;
 }
+
 function h$jsstringReplicateChar(n, ch) {
-    ;
+                                                    ;
     return h$jsstringReplicate(n, h$jsstringSingleton(ch));
 }
+
 function h$jsstringIsInteger(str) {
     return /^-?\d+$/.test(str);
 }
+
 function h$jsstringIsNatural(str) {
     return /^\d+$/.test(str);
 }
+
 function h$jsstringReadInt(str) {
     if(!/^-?\d+/.test(str)) return null;
     var x = parseInt(str, 10);
     var x0 = x|0;
     return (x===x0) ? x0 : null;
 }
+
 function h$jsstringLenientReadInt(str) {
     var x = parseInt(str, 10);
     var x0 = x|0;
     return (x===x0) ? x0 : null;
 }
+
 function h$jsstringReadWord(str) {
   if(!/^\d+/.test(str)) return null;
   var x = parseInt(str, 10);
@@ -3480,14 +4248,17 @@ function h$jsstringReadWord(str) {
   if(x0<0) return (x===x0+2147483648) ? x0 : null;
   else return (x===x0) ? x0 : null;
 }
+
 function h$jsstringReadDouble(str) {
     return parseFloat(str, 10);
 }
+
 function h$jsstringLenientReadDouble(str) {
     return parseFloat(str, 10);
 }
+
 function h$jsstringReadInteger(str) {
-  ;
+                                       ;
   if(!/^(-)?\d+$/.test(str)) {
     return null;
   } else if(str.length <= 9) {
@@ -3496,6 +4267,7 @@ function h$jsstringReadInteger(str) {
     return (h$c2(h$integerzmgmpZCGHCziIntegerziTypeziJzh_con_e, 0, (new BigInteger(str, 10))));;
   }
 }
+
 function h$jsstringReadInt64(str) {
   if(!/^(-)?\d+$/.test(str)) {
       { h$ret1 = (0); h$ret2 = (0); return (0); };
@@ -3506,13 +4278,16 @@ function h$jsstringReadInt64(str) {
     return h$jsstringReadValue64(str, 0, false);
   }
 }
+
 function h$jsstringReadWord64(str) {
   if(!/^\d+$/.test(str)) {
     { h$ret1 = (0); h$ret2 = (0); return (0); };
   }
   return h$jsstringReadValue64(str, 0, false);
 }
+
 var h$jsstringLongs = null;
+
 function h$jsstringReadValue64(str, start, negate) {
   var l = str.length, i = start;
   while(i < l) {
@@ -3542,6 +4317,7 @@ function h$jsstringReadValue64(str, start, negate) {
   }
   { h$ret1 = (r.getHighBits()); h$ret2 = (r.getLowBits()); return (1); };
 }
+
 function h$jsstringExecRE(i, str, re) {
     re.lastIndex = i;
     var m = re.exec(str);
@@ -3557,9 +4333,11 @@ function h$jsstringExecRE(i, str, re) {
     while(--j>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (a[j])))), (r)));
     { h$ret1 = (m[0]); h$ret2 = (r); return (m.index); };
 }
+
 function h$jsstringReplaceRE(pat, replacement, str) {
     return str.replace(pat, replacement);
 }
+
 function h$jsstringSplitRE(limit, re, str) {
     re.lastIndex = i;
     var s = (limit < 0) ? str.split(re) : str.split(re, limit);
@@ -3567,67 +4345,110 @@ function h$jsstringSplitRE(limit, re, str) {
     while(--i>=0) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (a[i])))), (r)));
     return r;
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 /*
  * Functions that directly access JavaScript strings, ignoring character
  * widths and surrogate pairs.
  */
+
 function h$jsstringRawChunksOf(k, x) {
     var l = x.length;
     if(l === 0) return h$ghczmprimZCGHCziTypesziZMZN;
@@ -3636,43 +4457,12 @@ function h$jsstringRawChunksOf(k, x) {
     for(var i=ls-k;i>=0;i-=k) r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(i,i+k))))), (r)));
     return r;
 }
+
 function h$jsstringRawSplitAt(k, x) {
     if(k === 0) return (h$c2(h$ghczmprimZCGHCziTupleziZLz2cUZR_con_e,(h$jsstringEmpty),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x))))));
     if(k >= x.length) return (h$c2(h$ghczmprimZCGHCziTupleziZLz2cUZR_con_e,((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x)))),(h$jsstringEmpty)));
     return (h$c2(h$ghczmprimZCGHCziTupleziZLz2cUZR_con_e,((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(0,k))))),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (x.substr(k)))))));
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$foreignListProps(o) {
     var r = HS_NIL;
     if(typeof o === 'undefined' || o === null) return null;
@@ -3681,64 +4471,108 @@ function h$foreignListProps(o) {
 
     } */
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 // conversion between JavaScript string and Data.Text
+
+
+
+
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
+
 /*
   convert a Data.Text buffer with offset/length to a JavaScript string
  */
@@ -3759,6 +4593,7 @@ function h$textToString(arr, off, len) {
     }
     return s + String.fromCharCode.apply(this, a);
 }
+
 /*
    convert a JavaScript string to a Data.Text buffer, second return
    value is length
@@ -3770,6 +4605,7 @@ function h$textFromString(s) {
     for(var i=l-1;i>=0;i--) u1[i] = s.charCodeAt(i);
     { h$ret1 = (l); return (b); };
 }
+
 function h$lazyTextToString(txt) {
     var s = '';
     while(((txt).f.a === 2)) {
@@ -3779,103 +4615,155 @@ function h$lazyTextToString(txt) {
     }
     return s;
 }
+
 function h$safeTextFromString(x) {
     if(typeof x !== 'string') {
  { h$ret1 = (0); return (null); };
     }
     return h$textFromString(x);
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
+
+
+
 // values defined in Gen2.ClosureInfo
+
+
+
+
+
+
+
 // thread status
+
 /*
  * low-level heap object manipulation macros
  */
 // GHCJS.Prim.JSVal
+
+
+
+
+
+
+
 // GHCJS.Prim.JSException
+
+
+
+
+
 // Exception dictionary for JSException
+
+
 // SomeException
+
+
+
+
+
+
 // GHC.Ptr.Ptr
+
+
+
+
+
+
 // GHC.Integer.GMP.Internals
 // Data.Maybe.Maybe
+
+
+
+
 // #define HS_NOTHING h$nothing
+
+
+
+
+
+
 // Data.List
 // Data.Text
+
+
+
+
 // Data.Text.Lazy
+
+
+
+
+
 // black holes
 // can we skip the indirection for black holes?
+
+
+
+
+
+
 // resumable thunks
+
+
 // general deconstruction
+
+
+
 // retrieve  a numeric value that's possibly stored as an indirection
+
+
+
 // generic lazy values
 // generic data constructors and selectors
 // unboxed tuple returns
 // #define RETURN_UBX_TUP1(x) return x;
+
 function h$allProps(o) {
     var a = [], i = 0;
     for(var p in o) a[i++] = p;
     return a;
 }
+
 function h$listProps(o) {
     var r = h$ghczmprimZCGHCziTypesziZMZN;
     for(var p in o) { r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (p)))), (r))); }
     return r;
 }
+
 function h$listAssocs(o) {
     var r = h$ghczmprimZCGHCziTypesziZMZN;
     for(var p in o) { r = (h$c2(h$ghczmprimZCGHCziTypesziZC_con_e, ((h$c2(h$ghczmprimZCGHCziTupleziZLz2cUZR_con_e,((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (p)))),((h$c1(h$ghcjszmprimZCGHCJSziPrimziJSVal_con_e, (o[p]))))))), (r))); }
     return r;
 }
+
 function h$isNumber(o) {
     return typeof(o) === 'number';
 }
+
 // returns true for null, but not for functions and host objects
 function h$isObject(o) {
     return typeof(o) === 'object';
 }
+
 function h$isString(o) {
     return typeof(o) === 'string';
 }
+
 function h$isSymbol(o) {
     return typeof(o) === 'symbol';
 }
+
 function h$isBoolean(o) {
     return typeof(o) === 'boolean';
 }
+
 function h$isFunction(o) {
     return typeof(o) === 'function';
 }
+
 function h$jsTypeOf(o) {
     var t = typeof(o);
     if(t === 'undefined') return 0;
@@ -3887,6 +4775,7 @@ function h$jsTypeOf(o) {
     if(t === 'function') return 6;
     return 7; // other, host object etc
 }
+
 /*
         -- 0 - null, 1 - integer,
         -- 2 - float, 3 - bool,
@@ -3920,39 +4809,8 @@ function h$jsonTypeOf(o) {
             return 6;
         }
     }
+
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 function h$sendXHR(xhr, d, cont) {
     xhr.addEventListener('error', function () {
  cont(2);
@@ -3969,40 +4827,10 @@ function h$sendXHR(xhr, d, cont) {
  xhr.send();
     }
 }
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 // TODO (SM): use a newly built library instead of this copy of the build
 // output from the libs/js/blaze-react-reactjs-bindings/ project.
+
+
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
@@ -4014,7 +4842,9 @@ function h$sendXHR(xhr, d, cont) {
  *
  * @providesModule invariant
  */
+
 "use strict";
+
 /**
  * Use invariant() to assert state which your program assumes to be true.
  *
@@ -4025,6 +4855,7 @@ function h$sendXHR(xhr, d, cont) {
  * The invariant message will be stripped in production, but the invariant
  * will remain to ensure logic does not differ in production.
  */
+
 var invariant = function(condition, format, a, b, c, d, e, f) {
   // TODO (SM): make this work as intended.
   //
@@ -4033,6 +4864,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
       throw new Error('invariant requires an error message argument');
     }
   // }
+
   if (!condition) {
     var error;
     if (format === undefined) {
@@ -4048,11 +4880,14 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
         format.replace(/%s/g, function() { return args[argIndex++]; })
       );
     }
+
     error.framesToPop = 1; // we don't care about invariant's own frame
     throw error;
   }
 };
+
 module.exports = invariant;
+
 },{}],2:[function(require,module,exports){
 /*
   Bindings to ReactJS.
@@ -4063,8 +4898,11 @@ module.exports = invariant;
      $ grunt
 
  */
+
+
 var React = require('react');
 var invariant = require('./invariant');
+
 /**
  * Construct a new React.DOM node.
  *
@@ -4081,6 +4919,7 @@ function mkDomNode(tag, props, children) {
     children.unshift(props);
     return mkTag.apply(this, children);
 }
+
 var GhcjsApp = React.createClass({
         displayName: "GhcjsApp",
         render: function() {
@@ -4095,25 +4934,31 @@ var GhcjsApp = React.createClass({
                          return smuggler.node;
                      }
     });
+
 var GhcjsAppFactory = React.createFactory(GhcjsApp);
+
 function mountApp(domNode, renderCb) {
     return { onRender: renderCb,
              domNode : domNode
            };
 }
+
 function syncRedrawApp(app) {
     React.render(GhcjsAppFactory({onRender: app.onRender}), app.domNode);
 }
+
 function attachRouteWatcher(routeChangeCb) {
     window.onhashchange = function() {
         routeChangeCb(location.hash);
     };
 }
+
 function setRoute(route) {
     // TODO (asayers): Setting location.hash is kinda slow, so ideally we'd
     // wait for a ReactJS animation frame before updating it.
     location.hash = route;
 }
+
 module.exports =
     { mkDomNode: mkDomNode
     , mountApp: mountApp
@@ -4121,24 +4966,31 @@ module.exports =
     , attachRouteWatcher: attachRouteWatcher
     , setRoute: setRoute
     };
+
 // the global variable we're using in the bindings
 h$reactjs = module.exports;
+
 // TODO (meiersi): consider registering individual callbacks with ReactJS
 // event handlers. Moreover, we'll need to use extensible retention once we
 // want to memoize render-calls by introducing custom components.
 // h$registerExtensibleRetention(scanTree);
+
 },{"./invariant":1,"react":149}],3:[function(require,module,exports){
 // shim for using process in browser
+
 var process = module.exports = {};
+
 process.nextTick = (function () {
     var canSetImmediate = typeof window !== 'undefined'
     && window.setImmediate;
     var canPost = typeof window !== 'undefined'
     && window.postMessage && window.addEventListener
     ;
+
     if (canSetImmediate) {
         return function (f) { return window.setImmediate(f) };
     }
+
     if (canPost) {
         var queue = [];
         window.addEventListener('message', function (ev) {
@@ -4151,20 +5003,25 @@ process.nextTick = (function () {
                 }
             }
         }, true);
+
         return function nextTick(fn) {
             queue.push(fn);
             window.postMessage('process-tick', '*');
         };
     }
+
     return function nextTick(fn) {
         setTimeout(fn, 0);
     };
 })();
+
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+
 function noop() {}
+
 process.on = noop;
 process.addListener = noop;
 process.once = noop;
@@ -4172,14 +5029,17 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
 }
+
 // TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+
 },{}],4:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -4192,8 +5052,11 @@ process.chdir = function (dir) {
  * @providesModule AutoFocusMixin
  * @typechecks static-only
  */
+
 "use strict";
+
 var focusNode = require("./focusNode");
+
 var AutoFocusMixin = {
   componentDidMount: function() {
     if (this.props.autoFocus) {
@@ -4201,7 +5064,9 @@ var AutoFocusMixin = {
     }
   }
 };
+
 module.exports = AutoFocusMixin;
+
 },{"./focusNode":114}],5:[function(require,module,exports){
 /**
  * Copyright 2013 Facebook, Inc.
@@ -4214,17 +5079,22 @@ module.exports = AutoFocusMixin;
  * @providesModule BeforeInputEventPlugin
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPropagators = require("./EventPropagators");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
 var SyntheticInputEvent = require("./SyntheticInputEvent");
+
 var keyOf = require("./keyOf");
+
 var canUseTextInputEvent = (
   ExecutionEnvironment.canUseDOM &&
   'TextEvent' in window &&
   !('documentMode' in document || isPresto())
 );
+
 /**
  * Opera <= 12 includes TextEvent in window, but does not fire
  * text input events. Rely on keypress instead.
@@ -4237,9 +5107,12 @@ function isPresto() {
     parseInt(opera.version(), 10) <= 12
   );
 }
+
 var SPACEBAR_CODE = 32;
 var SPACEBAR_CHAR = String.fromCharCode(SPACEBAR_CODE);
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 // Events and their corresponding property names.
 var eventTypes = {
   beforeInput: {
@@ -4255,10 +5128,13 @@ var eventTypes = {
     ]
   }
 };
+
 // Track characters inserted via keypress and composition events.
 var fallbackChars = null;
+
 // Track whether we've ever handled a keypress on the space key.
 var hasSpaceKeypress = false;
+
 /**
  * Return whether a native keypress event is assumed to be a command.
  * This is required because Firefox fires `keypress` events for key commands
@@ -4271,6 +5147,7 @@ function isKeypressCommand(nativeEvent) {
     !(nativeEvent.ctrlKey && nativeEvent.altKey)
   );
 }
+
 /**
  * Create an `onBeforeInput` event to match
  * http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105/#events-inputevents.
@@ -4286,7 +5163,9 @@ function isKeypressCommand(nativeEvent) {
  * into the target node.
  */
 var BeforeInputEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -4300,7 +5179,9 @@ var BeforeInputEventPlugin = {
       topLevelTarget,
       topLevelTargetID,
       nativeEvent) {
+
     var chars;
+
     if (canUseTextInputEvent) {
       switch (topLevelType) {
         case topLevelTypes.topKeyPress:
@@ -4322,20 +5203,25 @@ var BeforeInputEventPlugin = {
           if (which !== SPACEBAR_CODE) {
             return;
           }
+
           hasSpaceKeypress = true;
           chars = SPACEBAR_CHAR;
           break;
+
         case topLevelTypes.topTextInput:
           // Record the characters to be added to the DOM.
           chars = nativeEvent.data;
+
           // If it's a spacebar character, assume that we have already handled
           // it at the keypress level and bail immediately. Android Chrome
           // doesn't give us keycodes, so we need to blacklist it.
           if (chars === SPACEBAR_CHAR && hasSpaceKeypress) {
             return;
           }
+
           // Otherwise, carry on.
           break;
+
         default:
           // For other native event types, do nothing.
           return;
@@ -4372,30 +5258,37 @@ var BeforeInputEventPlugin = {
           fallbackChars = nativeEvent.data;
           break;
       }
+
       // If no changes have occurred to the fallback string, no relevant
       // event has fired and we're done.
       if (fallbackChars === null) {
         return;
       }
+
       chars = fallbackChars;
     }
+
     // If no characters are being inserted, no BeforeInput event should
     // be fired.
     if (!chars) {
       return;
     }
+
     var event = SyntheticInputEvent.getPooled(
       eventTypes.beforeInput,
       topLevelTargetID,
       nativeEvent
     );
+
     event.data = chars;
     fallbackChars = null;
     EventPropagators.accumulateTwoPhaseDispatches(event);
     return event;
   }
 };
+
 module.exports = BeforeInputEventPlugin;
+
 },{"./EventConstants":18,"./EventPropagators":23,"./ExecutionEnvironment":24,"./SyntheticInputEvent":92,"./keyOf":136}],6:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -4407,7 +5300,9 @@ module.exports = BeforeInputEventPlugin;
  *
  * @providesModule CSSProperty
  */
+
 "use strict";
+
 /**
  * CSS properties which accept numbers but are not in units of "px".
  */
@@ -4425,10 +5320,12 @@ var isUnitlessNumber = {
   widows: true,
   zIndex: true,
   zoom: true,
+
   // SVG-related properties
   fillOpacity: true,
   strokeOpacity: true
 };
+
 /**
  * @param {string} prefix vendor-specific prefix, eg: Webkit
  * @param {string} key style name, eg: transitionDuration
@@ -4438,11 +5335,13 @@ var isUnitlessNumber = {
 function prefixKey(prefix, key) {
   return prefix + key.charAt(0).toUpperCase() + key.substring(1);
 }
+
 /**
  * Support style names that may come passed in prefixed by adding permutations
  * of vendor prefixes.
  */
 var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
+
 // Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
 // infinite loop, because it iterates over the newly added props too.
 Object.keys(isUnitlessNumber).forEach(function(prop) {
@@ -4450,6 +5349,7 @@ Object.keys(isUnitlessNumber).forEach(function(prop) {
     isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
   });
 });
+
 /**
  * Most style properties can be unset by doing .style[prop] = '' but IE8
  * doesn't like doing that with shorthand properties so for the properties that
@@ -4500,11 +5400,14 @@ var shorthandPropertyExpansions = {
     fontFamily: true
   }
 };
+
 var CSSProperty = {
   isUnitlessNumber: isUnitlessNumber,
   shorthandPropertyExpansions: shorthandPropertyExpansions
 };
+
 module.exports = CSSProperty;
+
 },{}],7:[function(require,module,exports){
 (function (process){
 /**
@@ -4518,17 +5421,22 @@ module.exports = CSSProperty;
  * @providesModule CSSPropertyOperations
  * @typechecks static-only
  */
+
 "use strict";
+
 var CSSProperty = require("./CSSProperty");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var camelizeStyleName = require("./camelizeStyleName");
 var dangerousStyleValue = require("./dangerousStyleValue");
 var hyphenateStyleName = require("./hyphenateStyleName");
 var memoizeStringOnly = require("./memoizeStringOnly");
 var warning = require("./warning");
+
 var processStyleName = memoizeStringOnly(function(styleName) {
   return hyphenateStyleName(styleName);
 });
+
 var styleFloatAccessor = 'cssFloat';
 if (ExecutionEnvironment.canUseDOM) {
   // IE8 only supports accessing cssFloat (standard) as styleFloat
@@ -4536,12 +5444,15 @@ if (ExecutionEnvironment.canUseDOM) {
     styleFloatAccessor = 'styleFloat';
   }
 }
+
 if ("production" !== process.env.NODE_ENV) {
   var warnedStyleNames = {};
+
   var warnHyphenatedStyleName = function(name) {
     if (warnedStyleNames.hasOwnProperty(name) && warnedStyleNames[name]) {
       return;
     }
+
     warnedStyleNames[name] = true;
     ("production" !== process.env.NODE_ENV ? warning(
       false,
@@ -4550,10 +5461,12 @@ if ("production" !== process.env.NODE_ENV) {
     ) : null);
   };
 }
+
 /**
  * Operations for dealing with CSS properties.
  */
 var CSSPropertyOperations = {
+
   /**
    * Serializes a mapping of style properties for use as inline styles:
    *
@@ -4585,6 +5498,7 @@ var CSSPropertyOperations = {
     }
     return serialized || null;
   },
+
   /**
    * Sets the value for multiple styles on a node.  If a value is specified as
    * '' (empty string), the corresponding style property will be unset.
@@ -4623,8 +5537,11 @@ var CSSPropertyOperations = {
       }
     }
   }
+
 };
+
 module.exports = CSSPropertyOperations;
+
 }).call(this,require("JkpR2F"))
 },{"./CSSProperty":6,"./ExecutionEnvironment":24,"./camelizeStyleName":103,"./dangerousStyleValue":108,"./hyphenateStyleName":127,"./memoizeStringOnly":138,"./warning":148,"JkpR2F":3}],8:[function(require,module,exports){
 (function (process){
@@ -4638,10 +5555,14 @@ module.exports = CSSPropertyOperations;
  *
  * @providesModule CallbackQueue
  */
+
 "use strict";
+
 var PooledClass = require("./PooledClass");
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
+
 /**
  * A specialized pseudo-event module to help keep track of components waiting to
  * be notified when their DOM representations are available for use.
@@ -4657,7 +5578,9 @@ function CallbackQueue() {
   this._callbacks = null;
   this._contexts = null;
 }
+
 assign(CallbackQueue.prototype, {
+
   /**
    * Enqueues a callback to be invoked when `notifyAll` is invoked.
    *
@@ -4671,6 +5594,7 @@ assign(CallbackQueue.prototype, {
     this._callbacks.push(callback);
     this._contexts.push(context);
   },
+
   /**
    * Invokes all enqueued callbacks and clears the queue. This is invoked after
    * the DOM representation of a component has been created or updated.
@@ -4694,6 +5618,7 @@ assign(CallbackQueue.prototype, {
       contexts.length = 0;
     }
   },
+
   /**
    * Resets the internal queue.
    *
@@ -4703,15 +5628,20 @@ assign(CallbackQueue.prototype, {
     this._callbacks = null;
     this._contexts = null;
   },
+
   /**
    * `PooledClass` looks for this.
    */
   destructor: function() {
     this.reset();
   }
+
 });
+
 PooledClass.addPoolingTo(CallbackQueue);
+
 module.exports = CallbackQueue;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./PooledClass":30,"./invariant":129,"JkpR2F":3}],9:[function(require,module,exports){
 /**
@@ -4724,17 +5654,22 @@ module.exports = CallbackQueue;
  *
  * @providesModule ChangeEventPlugin
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPluginHub = require("./EventPluginHub");
 var EventPropagators = require("./EventPropagators");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
 var ReactUpdates = require("./ReactUpdates");
 var SyntheticEvent = require("./SyntheticEvent");
+
 var isEventSupported = require("./isEventSupported");
 var isTextInputElement = require("./isTextInputElement");
 var keyOf = require("./keyOf");
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 var eventTypes = {
   change: {
     phasedRegistrationNames: {
@@ -4753,6 +5688,7 @@ var eventTypes = {
     ]
   }
 };
+
 /**
  * For IE shims
  */
@@ -4760,6 +5696,7 @@ var activeElement = null;
 var activeElementID = null;
 var activeElementValue = null;
 var activeElementValueProp = null;
+
 /**
  * SECTION: handle `change` event
  */
@@ -4769,6 +5706,7 @@ function shouldUseChangeEvent(elem) {
     (elem.nodeName === 'INPUT' && elem.type === 'file')
   );
 }
+
 var doesChangeEventBubble = false;
 if (ExecutionEnvironment.canUseDOM) {
   // See `handleChange` comment below
@@ -4776,6 +5714,7 @@ if (ExecutionEnvironment.canUseDOM) {
     !('documentMode' in document) || document.documentMode > 8
   );
 }
+
 function manualDispatchChangeEvent(nativeEvent) {
   var event = SyntheticEvent.getPooled(
     eventTypes.change,
@@ -4783,6 +5722,7 @@ function manualDispatchChangeEvent(nativeEvent) {
     nativeEvent
   );
   EventPropagators.accumulateTwoPhaseDispatches(event);
+
   // If change and propertychange bubbled, we'd just bind to it like all the
   // other events and have it go through ReactBrowserEventEmitter. Since it
   // doesn't, we manually listen for the events and so we have to enqueue and
@@ -4796,15 +5736,18 @@ function manualDispatchChangeEvent(nativeEvent) {
   // handlers can run. See https://github.com/facebook/react/issues/708.
   ReactUpdates.batchedUpdates(runEventInBatch, event);
 }
+
 function runEventInBatch(event) {
   EventPluginHub.enqueueEvents(event);
   EventPluginHub.processEventQueue();
 }
+
 function startWatchingForChangeEventIE8(target, targetID) {
   activeElement = target;
   activeElementID = targetID;
   activeElement.attachEvent('onchange', manualDispatchChangeEvent);
 }
+
 function stopWatchingForChangeEventIE8() {
   if (!activeElement) {
     return;
@@ -4813,6 +5756,7 @@ function stopWatchingForChangeEventIE8() {
   activeElement = null;
   activeElementID = null;
 }
+
 function getTargetIDForChangeEvent(
     topLevelType,
     topLevelTarget,
@@ -4834,6 +5778,8 @@ function handleEventsForChangeEventIE8(
     stopWatchingForChangeEventIE8();
   }
 }
+
+
 /**
  * SECTION: handle `input` event
  */
@@ -4845,6 +5791,7 @@ if (ExecutionEnvironment.canUseDOM) {
     !('documentMode' in document) || document.documentMode > 9
   );
 }
+
 /**
  * (For old IE.) Replacement getter/setter for the `value` property that gets
  * set on the active element.
@@ -4859,6 +5806,7 @@ var newValueProp = {
     activeElementValueProp.set.call(this, val);
   }
 };
+
 /**
  * (For old IE.) Starts tracking propertychange events on the passed-in element
  * and override the value property so that we can distinguish user events from
@@ -4872,9 +5820,11 @@ function startWatchingForValueChange(target, targetID) {
     target.constructor.prototype,
     'value'
   );
+
   Object.defineProperty(activeElement, 'value', newValueProp);
   activeElement.attachEvent('onpropertychange', handlePropertyChange);
 }
+
 /**
  * (For old IE.) Removes the event listeners from the currently-tracked element,
  * if any exists.
@@ -4883,14 +5833,17 @@ function stopWatchingForValueChange() {
   if (!activeElement) {
     return;
   }
+
   // delete restores the original property definition
   delete activeElement.value;
   activeElement.detachEvent('onpropertychange', handlePropertyChange);
+
   activeElement = null;
   activeElementID = null;
   activeElementValue = null;
   activeElementValueProp = null;
 }
+
 /**
  * (For old IE.) Handles a propertychange event, sending a `change` event if
  * the value of the active element has changed.
@@ -4904,8 +5857,10 @@ function handlePropertyChange(nativeEvent) {
     return;
   }
   activeElementValue = value;
+
   manualDispatchChangeEvent(nativeEvent);
 }
+
 /**
  * If a `change` event should be fired, returns the target's ID.
  */
@@ -4919,6 +5874,7 @@ function getTargetIDForInputEvent(
     return topLevelTargetID;
   }
 }
+
 // For IE8 and IE9.
 function handleEventsForInputEventIE(
     topLevelType,
@@ -4944,6 +5900,7 @@ function handleEventsForInputEventIE(
     stopWatchingForValueChange();
   }
 }
+
 // For IE8 and IE9.
 function getTargetIDForInputEventIE(
     topLevelType,
@@ -4968,6 +5925,8 @@ function getTargetIDForInputEventIE(
     }
   }
 }
+
+
 /**
  * SECTION: handle `click` event
  */
@@ -4980,6 +5939,7 @@ function shouldUseClickEvent(elem) {
     (elem.type === 'checkbox' || elem.type === 'radio')
   );
 }
+
 function getTargetIDForClickEvent(
     topLevelType,
     topLevelTarget,
@@ -4988,6 +5948,7 @@ function getTargetIDForClickEvent(
     return topLevelTargetID;
   }
 }
+
 /**
  * This plugin creates an `onChange` event that normalizes change events
  * across form elements. This event fires at a time when it's possible to
@@ -4999,7 +5960,9 @@ function getTargetIDForClickEvent(
  * - select
  */
 var ChangeEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -5013,6 +5976,7 @@ var ChangeEventPlugin = {
       topLevelTarget,
       topLevelTargetID,
       nativeEvent) {
+
     var getTargetIDFunc, handleEventFunc;
     if (shouldUseChangeEvent(topLevelTarget)) {
       if (doesChangeEventBubble) {
@@ -5030,6 +5994,7 @@ var ChangeEventPlugin = {
     } else if (shouldUseClickEvent(topLevelTarget)) {
       getTargetIDFunc = getTargetIDForClickEvent;
     }
+
     if (getTargetIDFunc) {
       var targetID = getTargetIDFunc(
         topLevelType,
@@ -5046,6 +6011,7 @@ var ChangeEventPlugin = {
         return event;
       }
     }
+
     if (handleEventFunc) {
       handleEventFunc(
         topLevelType,
@@ -5054,8 +6020,11 @@ var ChangeEventPlugin = {
       );
     }
   }
+
 };
+
 module.exports = ChangeEventPlugin;
+
 },{"./EventConstants":18,"./EventPluginHub":20,"./EventPropagators":23,"./ExecutionEnvironment":24,"./ReactUpdates":82,"./SyntheticEvent":90,"./isEventSupported":130,"./isTextInputElement":132,"./keyOf":136}],10:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -5068,14 +6037,19 @@ module.exports = ChangeEventPlugin;
  * @providesModule ClientReactRootIndex
  * @typechecks
  */
+
 "use strict";
+
 var nextReactRootIndex = 0;
+
 var ClientReactRootIndex = {
   createReactRootIndex: function() {
     return nextReactRootIndex++;
   }
 };
+
 module.exports = ClientReactRootIndex;
+
 },{}],11:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -5088,20 +6062,26 @@ module.exports = ClientReactRootIndex;
  * @providesModule CompositionEventPlugin
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPropagators = require("./EventPropagators");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
 var ReactInputSelection = require("./ReactInputSelection");
 var SyntheticCompositionEvent = require("./SyntheticCompositionEvent");
+
 var getTextContentAccessor = require("./getTextContentAccessor");
 var keyOf = require("./keyOf");
+
 var END_KEYCODES = [9, 13, 27, 32]; // Tab, Return, Esc, Space
 var START_KEYCODE = 229;
+
 var useCompositionEvent = (
   ExecutionEnvironment.canUseDOM &&
   'CompositionEvent' in window
 );
+
 // In IE9+, we have access to composition events, but the data supplied
 // by the native compositionend event may be incorrect. In Korean, for example,
 // the compositionend event contains only one character regardless of
@@ -5116,8 +6096,10 @@ var useFallbackData = (
     document.documentMode <= 11
   )
 );
+
 var topLevelTypes = EventConstants.topLevelTypes;
 var currentComposition = null;
+
 // Events and their corresponding property names.
 var eventTypes = {
   compositionEnd: {
@@ -5163,6 +6145,7 @@ var eventTypes = {
     ]
   }
 };
+
 /**
  * Translate native top level events into event types.
  *
@@ -5179,6 +6162,7 @@ function getCompositionEventType(topLevelType) {
       return eventTypes.compositionUpdate;
   }
 }
+
 /**
  * Does our fallback best-guess model think this event signifies that
  * composition has begun?
@@ -5193,6 +6177,7 @@ function isFallbackStart(topLevelType, nativeEvent) {
     nativeEvent.keyCode === START_KEYCODE
   );
 }
+
 /**
  * Does our fallback mode think that this event is the end of composition?
  *
@@ -5218,6 +6203,7 @@ function isFallbackEnd(topLevelType, nativeEvent) {
       return false;
   }
 }
+
 /**
  * Helper class stores information about selection and document state
  * so we can figure out what changed at a later date.
@@ -5229,6 +6215,7 @@ function FallbackCompositionState(root) {
   this.startSelection = ReactInputSelection.getSelection(root);
   this.startValue = this.getText();
 }
+
 /**
  * Get current text of input.
  *
@@ -5237,6 +6224,7 @@ function FallbackCompositionState(root) {
 FallbackCompositionState.prototype.getText = function() {
   return this.root.value || this.root[getTextContentAccessor()];
 };
+
 /**
  * Text that has changed since the start of composition.
  *
@@ -5246,18 +6234,22 @@ FallbackCompositionState.prototype.getData = function() {
   var endValue = this.getText();
   var prefixLength = this.startSelection.start;
   var suffixLength = this.startValue.length - this.startSelection.end;
+
   return endValue.substr(
     prefixLength,
     endValue.length - suffixLength - prefixLength
   );
 };
+
 /**
  * This plugin creates `onCompositionStart`, `onCompositionUpdate` and
  * `onCompositionEnd` events on inputs, textareas and contentEditable
  * nodes.
  */
 var CompositionEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -5271,8 +6263,10 @@ var CompositionEventPlugin = {
       topLevelTarget,
       topLevelTargetID,
       nativeEvent) {
+
     var eventType;
     var data;
+
     if (useCompositionEvent) {
       eventType = getCompositionEventType(topLevelType);
     } else if (!currentComposition) {
@@ -5282,6 +6276,7 @@ var CompositionEventPlugin = {
     } else if (isFallbackEnd(topLevelType, nativeEvent)) {
       eventType = eventTypes.compositionEnd;
     }
+
     if (useFallbackData) {
       // The current composition is stored statically and must not be
       // overwritten while composition continues.
@@ -5294,6 +6289,7 @@ var CompositionEventPlugin = {
         }
       }
     }
+
     if (eventType) {
       var event = SyntheticCompositionEvent.getPooled(
         eventType,
@@ -5310,7 +6306,9 @@ var CompositionEventPlugin = {
     }
   }
 };
+
 module.exports = CompositionEventPlugin;
+
 },{"./EventConstants":18,"./EventPropagators":23,"./ExecutionEnvironment":24,"./ReactInputSelection":62,"./SyntheticCompositionEvent":88,"./getTextContentAccessor":124,"./keyOf":136}],12:[function(require,module,exports){
 (function (process){
 /**
@@ -5324,11 +6322,15 @@ module.exports = CompositionEventPlugin;
  * @providesModule DOMChildrenOperations
  * @typechecks static-only
  */
+
 "use strict";
+
 var Danger = require("./Danger");
 var ReactMultiChildUpdateTypes = require("./ReactMultiChildUpdateTypes");
+
 var getTextContentAccessor = require("./getTextContentAccessor");
 var invariant = require("./invariant");
+
 /**
  * The DOM property to use when setting text content.
  *
@@ -5336,6 +6338,7 @@ var invariant = require("./invariant");
  * @private
  */
 var textContentAccessor = getTextContentAccessor();
+
 /**
  * Inserts `childNode` as a child of `parentNode` at the `index`.
  *
@@ -5354,6 +6357,7 @@ function insertChildAt(parentNode, childNode, index) {
     parentNode.childNodes[index] || null
   );
 }
+
 var updateTextContent;
 if (textContentAccessor === 'textContent') {
   /**
@@ -5384,12 +6388,16 @@ if (textContentAccessor === 'textContent') {
     }
   };
 }
+
 /**
  * Operations for updating with DOM children.
  */
 var DOMChildrenOperations = {
+
   dangerouslyReplaceNodeWithMarkup: Danger.dangerouslyReplaceNodeWithMarkup,
+
   updateTextContent: updateTextContent,
+
   /**
    * Updates a component's children by processing a series of updates. The
    * update configurations are each expected to have a `parentNode` property.
@@ -5404,12 +6412,14 @@ var DOMChildrenOperations = {
     var initialChildren = null;
     // List of children that will be moved or removed.
     var updatedChildren = null;
+
     for (var i = 0; update = updates[i]; i++) {
       if (update.type === ReactMultiChildUpdateTypes.MOVE_EXISTING ||
           update.type === ReactMultiChildUpdateTypes.REMOVE_NODE) {
         var updatedIndex = update.fromIndex;
         var updatedChild = update.parentNode.childNodes[updatedIndex];
         var parentID = update.parentID;
+
         ("production" !== process.env.NODE_ENV ? invariant(
           updatedChild,
           'processUpdates(): Unable to find child %s of element. This ' +
@@ -5421,20 +6431,25 @@ var DOMChildrenOperations = {
           updatedIndex,
           parentID
         ) : invariant(updatedChild));
+
         initialChildren = initialChildren || {};
         initialChildren[parentID] = initialChildren[parentID] || [];
         initialChildren[parentID][updatedIndex] = updatedChild;
+
         updatedChildren = updatedChildren || [];
         updatedChildren.push(updatedChild);
       }
     }
+
     var renderedMarkup = Danger.dangerouslyRenderMarkup(markupList);
+
     // Remove updated children first so that `toIndex` is consistent.
     if (updatedChildren) {
       for (var j = 0; j < updatedChildren.length; j++) {
         updatedChildren[j].parentNode.removeChild(updatedChildren[j]);
       }
     }
+
     for (var k = 0; update = updates[k]; k++) {
       switch (update.type) {
         case ReactMultiChildUpdateTypes.INSERT_MARKUP:
@@ -5463,8 +6478,11 @@ var DOMChildrenOperations = {
       }
     }
   }
+
 };
+
 module.exports = DOMChildrenOperations;
+
 }).call(this,require("JkpR2F"))
 },{"./Danger":15,"./ReactMultiChildUpdateTypes":68,"./getTextContentAccessor":124,"./invariant":129,"JkpR2F":3}],13:[function(require,module,exports){
 (function (process){
@@ -5479,12 +6497,17 @@ module.exports = DOMChildrenOperations;
  * @providesModule DOMProperty
  * @typechecks static-only
  */
+
 /*jslint bitwise: true */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 function checkMask(value, bitmask) {
   return (value & bitmask) === bitmask;
 }
+
 var DOMPropertyInjection = {
   /**
    * Mapping from normalized, camelcased property names to a configuration that
@@ -5497,6 +6520,7 @@ var DOMPropertyInjection = {
   HAS_NUMERIC_VALUE: 0x10,
   HAS_POSITIVE_NUMERIC_VALUE: 0x20 | 0x10,
   HAS_OVERLOADED_BOOLEAN_VALUE: 0x40,
+
   /**
    * Inject some specialized knowledge about the DOM. This takes a config object
    * with the following properties:
@@ -5527,11 +6551,13 @@ var DOMPropertyInjection = {
     var DOMAttributeNames = domPropertyConfig.DOMAttributeNames || {};
     var DOMPropertyNames = domPropertyConfig.DOMPropertyNames || {};
     var DOMMutationMethods = domPropertyConfig.DOMMutationMethods || {};
+
     if (domPropertyConfig.isCustomAttribute) {
       DOMProperty._isCustomAttributeFunctions.push(
         domPropertyConfig.isCustomAttribute
       );
     }
+
     for (var propName in Properties) {
       ("production" !== process.env.NODE_ENV ? invariant(
         !DOMProperty.isStandardName.hasOwnProperty(propName),
@@ -5541,9 +6567,12 @@ var DOMPropertyInjection = {
         'injecting two configs that have conflicting property names.',
         propName
       ) : invariant(!DOMProperty.isStandardName.hasOwnProperty(propName)));
+
       DOMProperty.isStandardName[propName] = true;
+
       var lowerCased = propName.toLowerCase();
       DOMProperty.getPossibleStandardName[lowerCased] = propName;
+
       if (DOMAttributeNames.hasOwnProperty(propName)) {
         var attributeName = DOMAttributeNames[propName];
         DOMProperty.getPossibleStandardName[attributeName] = propName;
@@ -5551,15 +6580,18 @@ var DOMPropertyInjection = {
       } else {
         DOMProperty.getAttributeName[propName] = lowerCased;
       }
+
       DOMProperty.getPropertyName[propName] =
         DOMPropertyNames.hasOwnProperty(propName) ?
           DOMPropertyNames[propName] :
           propName;
+
       if (DOMMutationMethods.hasOwnProperty(propName)) {
         DOMProperty.getMutationMethod[propName] = DOMMutationMethods[propName];
       } else {
         DOMProperty.getMutationMethod[propName] = null;
       }
+
       var propConfig = Properties[propName];
       DOMProperty.mustUseAttribute[propName] =
         checkMask(propConfig, DOMPropertyInjection.MUST_USE_ATTRIBUTE);
@@ -5575,6 +6607,7 @@ var DOMPropertyInjection = {
         checkMask(propConfig, DOMPropertyInjection.HAS_POSITIVE_NUMERIC_VALUE);
       DOMProperty.hasOverloadedBooleanValue[propName] =
         checkMask(propConfig, DOMPropertyInjection.HAS_OVERLOADED_BOOLEAN_VALUE);
+
       ("production" !== process.env.NODE_ENV ? invariant(
         !DOMProperty.mustUseAttribute[propName] ||
           !DOMProperty.mustUseProperty[propName],
@@ -5603,6 +6636,7 @@ var DOMPropertyInjection = {
   }
 };
 var defaultValueCache = {};
+
 /**
  * DOMProperty exports lookup objects that can be used like functions:
  *
@@ -5617,47 +6651,56 @@ var defaultValueCache = {};
  * @see http://jsperf.com/key-missing
  */
 var DOMProperty = {
+
   ID_ATTRIBUTE_NAME: 'data-reactid',
+
   /**
    * Checks whether a property name is a standard property.
    * @type {Object}
    */
   isStandardName: {},
+
   /**
    * Mapping from lowercase property names to the properly cased version, used
    * to warn in the case of missing properties.
    * @type {Object}
    */
   getPossibleStandardName: {},
+
   /**
    * Mapping from normalized names to attribute names that differ. Attribute
    * names are used when rendering markup or with `*Attribute()`.
    * @type {Object}
    */
   getAttributeName: {},
+
   /**
    * Mapping from normalized names to properties on DOM node instances.
    * (This includes properties that mutate due to external factors.)
    * @type {Object}
    */
   getPropertyName: {},
+
   /**
    * Mapping from normalized names to mutation methods. This will only exist if
    * mutation cannot be set simply by the property or `setAttribute()`.
    * @type {Object}
    */
   getMutationMethod: {},
+
   /**
    * Whether the property must be accessed and mutated as an object property.
    * @type {Object}
    */
   mustUseAttribute: {},
+
   /**
    * Whether the property must be accessed and mutated using `*Attribute()`.
    * (This includes anything that fails `<propName> in <element>`.)
    * @type {Object}
    */
   mustUseProperty: {},
+
   /**
    * Whether or not setting a value causes side effects such as triggering
    * resources to be loaded or text selection changes. We must ensure that
@@ -5665,23 +6708,27 @@ var DOMProperty = {
    * @type {Object}
    */
   hasSideEffects: {},
+
   /**
    * Whether the property should be removed when set to a falsey value.
    * @type {Object}
    */
   hasBooleanValue: {},
+
   /**
    * Whether the property must be numeric or parse as a
    * numeric and should be removed when set to a falsey value.
    * @type {Object}
    */
   hasNumericValue: {},
+
   /**
    * Whether the property must be positive numeric or parse as a positive
    * numeric and should be removed when set to a falsey value.
    * @type {Object}
    */
   hasPositiveNumericValue: {},
+
   /**
    * Whether the property can be used as a flag as well as with a value. Removed
    * when strictly equal to false; present without a value when strictly equal
@@ -5689,10 +6736,12 @@ var DOMProperty = {
    * @type {Object}
    */
   hasOverloadedBooleanValue: {},
+
   /**
    * All of the isCustomAttribute() functions that have been injected.
    */
   _isCustomAttributeFunctions: [],
+
   /**
    * Checks whether a property name is a custom attribute.
    * @method
@@ -5706,6 +6755,7 @@ var DOMProperty = {
     }
     return false;
   },
+
   /**
    * Returns the default property value for a DOM property (i.e., not an
    * attribute). Most default values are '' or false, but not all. Worse yet,
@@ -5726,9 +6776,12 @@ var DOMProperty = {
     }
     return nodeDefaults[prop];
   },
+
   injection: DOMPropertyInjection
 };
+
 module.exports = DOMProperty;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],14:[function(require,module,exports){
 (function (process){
@@ -5743,11 +6796,15 @@ module.exports = DOMProperty;
  * @providesModule DOMPropertyOperations
  * @typechecks static-only
  */
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
+
 var escapeTextForBrowser = require("./escapeTextForBrowser");
 var memoizeStringOnly = require("./memoizeStringOnly");
 var warning = require("./warning");
+
 function shouldIgnoreValue(name, value) {
   return value == null ||
     (DOMProperty.hasBooleanValue[name] && !value) ||
@@ -5755,9 +6812,11 @@ function shouldIgnoreValue(name, value) {
     (DOMProperty.hasPositiveNumericValue[name] && (value < 1)) ||
     (DOMProperty.hasOverloadedBooleanValue[name] && value === false);
 }
+
 var processAttributeNameAndPrefix = memoizeStringOnly(function(name) {
   return escapeTextForBrowser(name) + '="';
 });
+
 if ("production" !== process.env.NODE_ENV) {
   var reactProps = {
     children: true,
@@ -5766,13 +6825,16 @@ if ("production" !== process.env.NODE_ENV) {
     ref: true
   };
   var warnedProperties = {};
+
   var warnUnknownProperty = function(name) {
     if (reactProps.hasOwnProperty(name) && reactProps[name] ||
         warnedProperties.hasOwnProperty(name) && warnedProperties[name]) {
       return;
     }
+
     warnedProperties[name] = true;
     var lowerCasedName = name.toLowerCase();
+
     // data-* attributes should be lowercase; suggest the lowercase version
     var standardName = (
       DOMProperty.isCustomAttribute(lowerCasedName) ?
@@ -5781,18 +6843,22 @@ if ("production" !== process.env.NODE_ENV) {
         DOMProperty.getPossibleStandardName[lowerCasedName] :
         null
     );
+
     // For now, only warn when we have a suggested correction. This prevents
     // logging too much when using transferPropsTo.
     ("production" !== process.env.NODE_ENV ? warning(
       standardName == null,
       'Unknown DOM property ' + name + '. Did you mean ' + standardName + '?'
     ) : null);
+
   };
 }
+
 /**
  * Operations for dealing with DOM properties.
  */
 var DOMPropertyOperations = {
+
   /**
    * Creates markup for the ID property.
    *
@@ -5803,6 +6869,7 @@ var DOMPropertyOperations = {
     return processAttributeNameAndPrefix(DOMProperty.ID_ATTRIBUTE_NAME) +
       escapeTextForBrowser(id) + '"';
   },
+
   /**
    * Creates markup for a property.
    *
@@ -5834,6 +6901,7 @@ var DOMPropertyOperations = {
     }
     return null;
   },
+
   /**
    * Sets the value for a property on a node.
    *
@@ -5874,6 +6942,7 @@ var DOMPropertyOperations = {
       warnUnknownProperty(name);
     }
   },
+
   /**
    * Deletes the value for a property on a node.
    *
@@ -5905,8 +6974,11 @@ var DOMPropertyOperations = {
       warnUnknownProperty(name);
     }
   }
+
 };
+
 module.exports = DOMPropertyOperations;
+
 }).call(this,require("JkpR2F"))
 },{"./DOMProperty":13,"./escapeTextForBrowser":112,"./memoizeStringOnly":138,"./warning":148,"JkpR2F":3}],15:[function(require,module,exports){
 (function (process){
@@ -5921,15 +6993,21 @@ module.exports = DOMPropertyOperations;
  * @providesModule Danger
  * @typechecks static-only
  */
+
 /*jslint evil: true, sub: true */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var createNodesFromMarkup = require("./createNodesFromMarkup");
 var emptyFunction = require("./emptyFunction");
 var getMarkupWrap = require("./getMarkupWrap");
 var invariant = require("./invariant");
+
 var OPEN_TAG_NAME_EXP = /^(<[^ \/>]+)/;
 var RESULT_INDEX_ATTR = 'data-danger-index';
+
 /**
  * Extracts the `nodeName` from a string of markup.
  *
@@ -5944,7 +7022,9 @@ var RESULT_INDEX_ATTR = 'data-danger-index';
 function getNodeName(markup) {
   return markup.substring(1, markup.indexOf(' '));
 }
+
 var Danger = {
+
   /**
    * Renders markup into an array of nodes. The markup is expected to render
    * into a list of root nodes. Also, the length of `resultList` and
@@ -5982,12 +7062,14 @@ var Danger = {
         continue;
       }
       var markupListByNodeName = markupByNodeName[nodeName];
+
       // This for-in loop skips the holes of the sparse array. The order of
       // iteration should follow the order of assignment, which happens to match
       // numerical index order, but we don't rely on that.
       for (var resultIndex in markupListByNodeName) {
         if (markupListByNodeName.hasOwnProperty(resultIndex)) {
           var markup = markupListByNodeName[resultIndex];
+
           // Push the requested markup with an additional RESULT_INDEX_ATTR
           // attribute.  If the markup does not start with a < character, it
           // will be discarded below (with an appropriate console.error).
@@ -5998,25 +7080,32 @@ var Danger = {
           );
         }
       }
+
       // Render each group of markup with similar wrapping `nodeName`.
       var renderNodes = createNodesFromMarkup(
         markupListByNodeName.join(''),
         emptyFunction // Do nothing special with <script> tags.
       );
+
       for (i = 0; i < renderNodes.length; ++i) {
         var renderNode = renderNodes[i];
         if (renderNode.hasAttribute &&
             renderNode.hasAttribute(RESULT_INDEX_ATTR)) {
+
           resultIndex = +renderNode.getAttribute(RESULT_INDEX_ATTR);
           renderNode.removeAttribute(RESULT_INDEX_ATTR);
+
           ("production" !== process.env.NODE_ENV ? invariant(
             !resultList.hasOwnProperty(resultIndex),
             'Danger: Assigning to an already-occupied result index.'
           ) : invariant(!resultList.hasOwnProperty(resultIndex)));
+
           resultList[resultIndex] = renderNode;
+
           // This should match resultList.length and markupList.length when
           // we're done.
           resultListAssignmentCount += 1;
+
         } else if ("production" !== process.env.NODE_ENV) {
           console.error(
             "Danger: Discarding unexpected node:",
@@ -6025,20 +7114,24 @@ var Danger = {
         }
       }
     }
+
     // Although resultList was populated out of order, it should now be a dense
     // array.
     ("production" !== process.env.NODE_ENV ? invariant(
       resultListAssignmentCount === resultList.length,
       'Danger: Did not assign to every index of resultList.'
     ) : invariant(resultListAssignmentCount === resultList.length));
+
     ("production" !== process.env.NODE_ENV ? invariant(
       resultList.length === markupList.length,
       'Danger: Expected markup to render %s nodes, but rendered %s.',
       markupList.length,
       resultList.length
     ) : invariant(resultList.length === markupList.length));
+
     return resultList;
   },
+
   /**
    * Replaces a node with a string of markup at its current position within its
    * parent. The markup must render into a single root node.
@@ -6063,11 +7156,15 @@ var Danger = {
       'and/or slow. If you want to render to the root you must use ' +
       'server rendering. See renderComponentToString().'
     ) : invariant(oldChild.tagName.toLowerCase() !== 'html'));
+
     var newChild = createNodesFromMarkup(markup, emptyFunction)[0];
     oldChild.parentNode.replaceChild(newChild, oldChild);
   }
+
 };
+
 module.exports = Danger;
+
 }).call(this,require("JkpR2F"))
 },{"./ExecutionEnvironment":24,"./createNodesFromMarkup":107,"./emptyFunction":110,"./getMarkupWrap":121,"./invariant":129,"JkpR2F":3}],16:[function(require,module,exports){
 /**
@@ -6080,8 +7177,11 @@ module.exports = Danger;
  *
  * @providesModule DefaultEventPluginOrder
  */
+
 "use strict";
+
  var keyOf = require("./keyOf");
+
 /**
  * Module that is injectable into `EventPluginHub`, that specifies a
  * deterministic ordering of `EventPlugin`s. A convenient way to reason about
@@ -6103,7 +7203,9 @@ var DefaultEventPluginOrder = [
   keyOf({AnalyticsEventPlugin: null}),
   keyOf({MobileSafariClickEventPlugin: null})
 ];
+
 module.exports = DefaultEventPluginOrder;
+
 },{"./keyOf":136}],17:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -6116,14 +7218,19 @@ module.exports = DefaultEventPluginOrder;
  * @providesModule EnterLeaveEventPlugin
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPropagators = require("./EventPropagators");
 var SyntheticMouseEvent = require("./SyntheticMouseEvent");
+
 var ReactMount = require("./ReactMount");
 var keyOf = require("./keyOf");
+
 var topLevelTypes = EventConstants.topLevelTypes;
 var getFirstReactDOM = ReactMount.getFirstReactDOM;
+
 var eventTypes = {
   mouseEnter: {
     registrationName: keyOf({onMouseEnter: null}),
@@ -6140,9 +7247,13 @@ var eventTypes = {
     ]
   }
 };
+
 var extractedEvents = [null, null];
+
 var EnterLeaveEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * For almost every interaction we care about, there will be both a top-level
    * `mouseover` and `mouseout` event that occurs. Only use `mouseout` so that
@@ -6171,6 +7282,7 @@ var EnterLeaveEventPlugin = {
       // Must not be a mouse in or mouse out - ignoring.
       return null;
     }
+
     var win;
     if (topLevelTarget.window === topLevelTarget) {
       // `topLevelTarget` is probably a window object.
@@ -6184,6 +7296,7 @@ var EnterLeaveEventPlugin = {
         win = window;
       }
     }
+
     var from, to;
     if (topLevelType === topLevelTypes.topMouseOut) {
       from = topLevelTarget;
@@ -6194,12 +7307,15 @@ var EnterLeaveEventPlugin = {
       from = win;
       to = topLevelTarget;
     }
+
     if (from === to) {
       // Nothing pertains to our managed components.
       return null;
     }
+
     var fromID = from ? ReactMount.getID(from) : '';
     var toID = to ? ReactMount.getID(to) : '';
+
     var leave = SyntheticMouseEvent.getPooled(
       eventTypes.mouseLeave,
       fromID,
@@ -6208,6 +7324,7 @@ var EnterLeaveEventPlugin = {
     leave.type = 'mouseleave';
     leave.target = from;
     leave.relatedTarget = to;
+
     var enter = SyntheticMouseEvent.getPooled(
       eventTypes.mouseEnter,
       toID,
@@ -6216,13 +7333,19 @@ var EnterLeaveEventPlugin = {
     enter.type = 'mouseenter';
     enter.target = to;
     enter.relatedTarget = from;
+
     EventPropagators.accumulateEnterLeaveDispatches(leave, enter, fromID, toID);
+
     extractedEvents[0] = leave;
     extractedEvents[1] = enter;
+
     return extractedEvents;
   }
+
 };
+
 module.exports = EnterLeaveEventPlugin;
+
 },{"./EventConstants":18,"./EventPropagators":23,"./ReactMount":66,"./SyntheticMouseEvent":94,"./keyOf":136}],18:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -6234,9 +7357,13 @@ module.exports = EnterLeaveEventPlugin;
  *
  * @providesModule EventConstants
  */
+
 "use strict";
+
 var keyMirror = require("./keyMirror");
+
 var PropagationPhases = keyMirror({bubbled: null, captured: null});
+
 /**
  * Types of raw signals from the browser caught at the top level.
  */
@@ -6283,11 +7410,14 @@ var topLevelTypes = keyMirror({
   topTouchStart: null,
   topWheel: null
 });
+
 var EventConstants = {
   topLevelTypes: topLevelTypes,
   PropagationPhases: PropagationPhases
 };
+
 module.exports = EventConstants;
+
 },{"./keyMirror":135}],19:[function(require,module,exports){
 (function (process){
 /**
@@ -6308,7 +7438,9 @@ module.exports = EventConstants;
  * @providesModule EventListener
  * @typechecks
  */
+
 var emptyFunction = require("./emptyFunction");
+
 /**
  * Upstream version of event listener. Does not take into account specific
  * nature of platform.
@@ -6339,6 +7471,7 @@ var EventListener = {
       };
     }
   },
+
   /**
    * Listen to DOM events during the capture phase.
    *
@@ -6368,9 +7501,12 @@ var EventListener = {
       };
     }
   },
+
   registerDefault: function() {}
 };
+
 module.exports = EventListener;
+
 }).call(this,require("JkpR2F"))
 },{"./emptyFunction":110,"JkpR2F":3}],20:[function(require,module,exports){
 (function (process){
@@ -6384,21 +7520,27 @@ module.exports = EventListener;
  *
  * @providesModule EventPluginHub
  */
+
 "use strict";
+
 var EventPluginRegistry = require("./EventPluginRegistry");
 var EventPluginUtils = require("./EventPluginUtils");
+
 var accumulateInto = require("./accumulateInto");
 var forEachAccumulated = require("./forEachAccumulated");
 var invariant = require("./invariant");
+
 /**
  * Internal store for event listeners
  */
 var listenerBank = {};
+
 /**
  * Internal queue of events that have accumulated their dispatches and are
  * waiting to have their dispatches executed.
  */
 var eventQueue = null;
+
 /**
  * Dispatches an event and releases it back into the pool, unless persistent.
  *
@@ -6414,16 +7556,19 @@ var executeDispatchesAndRelease = function(event) {
       executeDispatch = PluginModule.executeDispatch;
     }
     EventPluginUtils.executeDispatchesInOrder(event, executeDispatch);
+
     if (!event.isPersistent()) {
       event.constructor.release(event);
     }
   }
 };
+
 /**
  * - `InstanceHandle`: [required] Module that performs logical traversals of DOM
  *   hierarchy given ids of the logical DOM elements involved.
  */
 var InstanceHandle = null;
+
 function validateInstanceHandle() {
   var invalid = !InstanceHandle||
     !InstanceHandle.traverseTwoPhase ||
@@ -6432,6 +7577,7 @@ function validateInstanceHandle() {
     throw new Error('InstanceHandle not injected before use!');
   }
 }
+
 /**
  * This is a unified interface for event plugins to be installed and configured.
  *
@@ -6455,15 +7601,18 @@ function validateInstanceHandle() {
  * @public
  */
 var EventPluginHub = {
+
   /**
    * Methods for injecting dependencies.
    */
   injection: {
+
     /**
      * @param {object} InjectedMount
      * @public
      */
     injectMount: EventPluginUtils.injection.injectMount,
+
     /**
      * @param {object} InjectedInstanceHandle
      * @public
@@ -6474,24 +7623,31 @@ var EventPluginHub = {
         validateInstanceHandle();
       }
     },
+
     getInstanceHandle: function() {
       if ("production" !== process.env.NODE_ENV) {
         validateInstanceHandle();
       }
       return InstanceHandle;
     },
+
     /**
      * @param {array} InjectedEventPluginOrder
      * @public
      */
     injectEventPluginOrder: EventPluginRegistry.injectEventPluginOrder,
+
     /**
      * @param {object} injectedNamesToPlugins Map from names to plugin modules.
      */
     injectEventPluginsByName: EventPluginRegistry.injectEventPluginsByName
+
   },
+
   eventNameDispatchConfigs: EventPluginRegistry.eventNameDispatchConfigs,
+
   registrationNameModules: EventPluginRegistry.registrationNameModules,
+
   /**
    * Stores `listener` at `listenerBank[registrationName][id]`. Is idempotent.
    *
@@ -6505,10 +7661,12 @@ var EventPluginHub = {
       'Expected %s listener to be a function, instead got type %s',
       registrationName, typeof listener
     ) : invariant(!listener || typeof listener === 'function'));
+
     var bankForRegistrationName =
       listenerBank[registrationName] || (listenerBank[registrationName] = {});
     bankForRegistrationName[id] = listener;
   },
+
   /**
    * @param {string} id ID of the DOM element.
    * @param {string} registrationName Name of listener (e.g. `onClick`).
@@ -6518,6 +7676,7 @@ var EventPluginHub = {
     var bankForRegistrationName = listenerBank[registrationName];
     return bankForRegistrationName && bankForRegistrationName[id];
   },
+
   /**
    * Deletes a listener from the registration bank.
    *
@@ -6530,6 +7689,7 @@ var EventPluginHub = {
       delete bankForRegistrationName[id];
     }
   },
+
   /**
    * Deletes all listeners for the DOM element with the supplied ID.
    *
@@ -6540,6 +7700,7 @@ var EventPluginHub = {
       delete listenerBank[registrationName][id];
     }
   },
+
   /**
    * Allows registered plugins an opportunity to extract events from top-level
    * native browser events.
@@ -6575,6 +7736,7 @@ var EventPluginHub = {
     }
     return events;
   },
+
   /**
    * Enqueues a synthetic event that should be dispatched when
    * `processEventQueue` is invoked.
@@ -6587,6 +7749,7 @@ var EventPluginHub = {
       eventQueue = accumulateInto(eventQueue, events);
     }
   },
+
   /**
    * Dispatches all synthetic events on the event queue.
    *
@@ -6604,17 +7767,22 @@ var EventPluginHub = {
       'an event queue. Support for this has not yet been implemented.'
     ) : invariant(!eventQueue));
   },
+
   /**
    * These are needed for tests only. Do not use!
    */
   __purge: function() {
     listenerBank = {};
   },
+
   __getListenerBank: function() {
     return listenerBank;
   }
+
 };
+
 module.exports = EventPluginHub;
+
 }).call(this,require("JkpR2F"))
 },{"./EventPluginRegistry":21,"./EventPluginUtils":22,"./accumulateInto":100,"./forEachAccumulated":115,"./invariant":129,"JkpR2F":3}],21:[function(require,module,exports){
 (function (process){
@@ -6629,16 +7797,21 @@ module.exports = EventPluginHub;
  * @providesModule EventPluginRegistry
  * @typechecks static-only
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  * Injectable ordering of event plugins.
  */
 var EventPluginOrder = null;
+
 /**
  * Injectable mapping from names to event plugin modules.
  */
 var namesToPlugins = {};
+
 /**
  * Recomputes the plugin list using the injected plugins and plugin ordering.
  *
@@ -6687,6 +7860,7 @@ function recomputePluginOrdering() {
     }
   }
 }
+
 /**
  * Publishes an event so that it can be dispatched by the supplied plugin.
  *
@@ -6703,6 +7877,7 @@ function publishEventForPlugin(dispatchConfig, PluginModule, eventName) {
     eventName
   ) : invariant(!EventPluginRegistry.eventNameDispatchConfigs.hasOwnProperty(eventName)));
   EventPluginRegistry.eventNameDispatchConfigs[eventName] = dispatchConfig;
+
   var phasedRegistrationNames = dispatchConfig.phasedRegistrationNames;
   if (phasedRegistrationNames) {
     for (var phaseName in phasedRegistrationNames) {
@@ -6726,6 +7901,7 @@ function publishEventForPlugin(dispatchConfig, PluginModule, eventName) {
   }
   return false;
 }
+
 /**
  * Publishes a registration name that is used to identify dispatched events and
  * can be used with `EventPluginHub.putListener` to register listeners.
@@ -6745,28 +7921,34 @@ function publishRegistrationName(registrationName, PluginModule, eventName) {
   EventPluginRegistry.registrationNameDependencies[registrationName] =
     PluginModule.eventTypes[eventName].dependencies;
 }
+
 /**
  * Registers plugins so that they can extract and dispatch events.
  *
  * @see {EventPluginHub}
  */
 var EventPluginRegistry = {
+
   /**
    * Ordered list of injected plugins.
    */
   plugins: [],
+
   /**
    * Mapping from event name to dispatch config
    */
   eventNameDispatchConfigs: {},
+
   /**
    * Mapping from registration name to plugin module
    */
   registrationNameModules: {},
+
   /**
    * Mapping from registration name to event name
    */
   registrationNameDependencies: {},
+
   /**
    * Injects an ordering of plugins (by plugin name). This allows the ordering
    * to be decoupled from injection of the actual plugins so that ordering is
@@ -6786,6 +7968,7 @@ var EventPluginRegistry = {
     EventPluginOrder = Array.prototype.slice.call(InjectedEventPluginOrder);
     recomputePluginOrdering();
   },
+
   /**
    * Injects plugins to be used by `EventPluginHub`. The plugin names must be
    * in the ordering injected by `injectEventPluginOrder`.
@@ -6819,6 +8002,7 @@ var EventPluginRegistry = {
       recomputePluginOrdering();
     }
   },
+
   /**
    * Looks up the plugin for the supplied event.
    *
@@ -6846,6 +8030,7 @@ var EventPluginRegistry = {
     }
     return null;
   },
+
   /**
    * Exposed for unit testing.
    * @private
@@ -6858,12 +8043,14 @@ var EventPluginRegistry = {
       }
     }
     EventPluginRegistry.plugins.length = 0;
+
     var eventNameDispatchConfigs = EventPluginRegistry.eventNameDispatchConfigs;
     for (var eventName in eventNameDispatchConfigs) {
       if (eventNameDispatchConfigs.hasOwnProperty(eventName)) {
         delete eventNameDispatchConfigs[eventName];
       }
     }
+
     var registrationNameModules = EventPluginRegistry.registrationNameModules;
     for (var registrationName in registrationNameModules) {
       if (registrationNameModules.hasOwnProperty(registrationName)) {
@@ -6871,8 +8058,11 @@ var EventPluginRegistry = {
       }
     }
   }
+
 };
+
 module.exports = EventPluginRegistry;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],22:[function(require,module,exports){
 (function (process){
@@ -6886,12 +8076,17 @@ module.exports = EventPluginRegistry;
  *
  * @providesModule EventPluginUtils
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
+
 var invariant = require("./invariant");
+
 /**
  * Injected dependencies:
  */
+
 /**
  * - `Mount`: [required] Module that can convert between React dom IDs and
  *   actual node references.
@@ -6909,12 +8104,15 @@ var injection = {
     }
   }
 };
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 function isEndish(topLevelType) {
   return topLevelType === topLevelTypes.topMouseUp ||
          topLevelType === topLevelTypes.topTouchEnd ||
          topLevelType === topLevelTypes.topTouchCancel;
 }
+
 function isMoveish(topLevelType) {
   return topLevelType === topLevelTypes.topMouseMove ||
          topLevelType === topLevelTypes.topTouchMove;
@@ -6923,23 +8121,28 @@ function isStartish(topLevelType) {
   return topLevelType === topLevelTypes.topMouseDown ||
          topLevelType === topLevelTypes.topTouchStart;
 }
+
+
 var validateEventDispatches;
 if ("production" !== process.env.NODE_ENV) {
   validateEventDispatches = function(event) {
     var dispatchListeners = event._dispatchListeners;
     var dispatchIDs = event._dispatchIDs;
+
     var listenersIsArr = Array.isArray(dispatchListeners);
     var idsIsArr = Array.isArray(dispatchIDs);
     var IDsLen = idsIsArr ? dispatchIDs.length : dispatchIDs ? 1 : 0;
     var listenersLen = listenersIsArr ?
       dispatchListeners.length :
       dispatchListeners ? 1 : 0;
+
     ("production" !== process.env.NODE_ENV ? invariant(
       idsIsArr === listenersIsArr && IDsLen === listenersLen,
       'EventPluginUtils: Invalid `event`.'
     ) : invariant(idsIsArr === listenersIsArr && IDsLen === listenersLen));
   };
 }
+
 /**
  * Invokes `cb(event, listener, id)`. Avoids using call if no scope is
  * provided. The `(listener,id)` pair effectively forms the "dispatch" but are
@@ -6963,6 +8166,7 @@ function forEachEventDispatch(event, cb) {
     cb(event, dispatchListeners, dispatchIDs);
   }
 }
+
 /**
  * Default implementation of PluginModule.executeDispatch().
  * @param {SyntheticEvent} SyntheticEvent to handle
@@ -6975,6 +8179,7 @@ function executeDispatch(event, listener, domID) {
   event.currentTarget = null;
   return returnValue;
 }
+
 /**
  * Standard/simple iteration through an event's collected dispatches.
  */
@@ -6983,6 +8188,7 @@ function executeDispatchesInOrder(event, executeDispatch) {
   event._dispatchListeners = null;
   event._dispatchIDs = null;
 }
+
 /**
  * Standard/simple iteration through an event's collected dispatches, but stops
  * at the first dispatch execution returning true, and returns that id.
@@ -7013,6 +8219,7 @@ function executeDispatchesInOrderStopAtTrueImpl(event) {
   }
   return null;
 }
+
 /**
  * @see executeDispatchesInOrderStopAtTrueImpl
  */
@@ -7022,6 +8229,7 @@ function executeDispatchesInOrderStopAtTrue(event) {
   event._dispatchListeners = null;
   return ret;
 }
+
 /**
  * Execution of a "direct" dispatch - there must be at most one dispatch
  * accumulated on the event or it is considered an error. It doesn't really make
@@ -7048,6 +8256,7 @@ function executeDirectDispatch(event) {
   event._dispatchIDs = null;
   return res;
 }
+
 /**
  * @param {SyntheticEvent} event
  * @return {bool} True iff number of dispatches accumulated is greater than 0.
@@ -7055,6 +8264,7 @@ function executeDirectDispatch(event) {
 function hasDispatches(event) {
   return !!event._dispatchListeners;
 }
+
 /**
  * General utilities that are useful in creating custom Event Plugins.
  */
@@ -7062,6 +8272,7 @@ var EventPluginUtils = {
   isEndish: isEndish,
   isMoveish: isMoveish,
   isStartish: isStartish,
+
   executeDirectDispatch: executeDirectDispatch,
   executeDispatch: executeDispatch,
   executeDispatchesInOrder: executeDispatchesInOrder,
@@ -7070,7 +8281,9 @@ var EventPluginUtils = {
   injection: injection,
   useTouchEvents: false
 };
+
 module.exports = EventPluginUtils;
+
 }).call(this,require("JkpR2F"))
 },{"./EventConstants":18,"./invariant":129,"JkpR2F":3}],23:[function(require,module,exports){
 (function (process){
@@ -7084,13 +8297,18 @@ module.exports = EventPluginUtils;
  *
  * @providesModule EventPropagators
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPluginHub = require("./EventPluginHub");
+
 var accumulateInto = require("./accumulateInto");
 var forEachAccumulated = require("./forEachAccumulated");
+
 var PropagationPhases = EventConstants.PropagationPhases;
 var getListener = EventPluginHub.getListener;
+
 /**
  * Some event types have a notion of different registration names for different
  * "phases" of propagation. This finds listeners by a given phase.
@@ -7100,6 +8318,7 @@ function listenerAtPhase(id, event, propagationPhase) {
     event.dispatchConfig.phasedRegistrationNames[propagationPhase];
   return getListener(id, registrationName);
 }
+
 /**
  * Tags a `SyntheticEvent` with dispatched listeners. Creating this function
  * here, allows us to not have to bind or create functions for each event.
@@ -7120,6 +8339,7 @@ function accumulateDirectionalDispatches(domID, upwards, event) {
     event._dispatchIDs = accumulateInto(event._dispatchIDs, domID);
   }
 }
+
 /**
  * Collect dispatches (must be entirely collected before dispatching - see unit
  * tests). Lazily allocate the array to conserve memory.  We must loop through
@@ -7136,6 +8356,8 @@ function accumulateTwoPhaseDispatchesSingle(event) {
     );
   }
 }
+
+
 /**
  * Accumulates without regard to direction, does not look for phased
  * registration names. Same as `accumulateDirectDispatchesSingle` but without
@@ -7152,6 +8374,7 @@ function accumulateDispatches(id, ignoredDirection, event) {
     }
   }
 }
+
 /**
  * Accumulates dispatches on an `SyntheticEvent`, but only for the
  * `dispatchMarker`.
@@ -7162,9 +8385,11 @@ function accumulateDirectDispatchesSingle(event) {
     accumulateDispatches(event.dispatchMarker, null, event);
   }
 }
+
 function accumulateTwoPhaseDispatches(events) {
   forEachAccumulated(events, accumulateTwoPhaseDispatchesSingle);
 }
+
 function accumulateEnterLeaveDispatches(leave, enter, fromID, toID) {
   EventPluginHub.injection.getInstanceHandle().traverseEnterLeave(
     fromID,
@@ -7174,9 +8399,14 @@ function accumulateEnterLeaveDispatches(leave, enter, fromID, toID) {
     enter
   );
 }
+
+
 function accumulateDirectDispatches(events) {
   forEachAccumulated(events, accumulateDirectDispatchesSingle);
 }
+
+
+
 /**
  * A small set of propagation patterns, each of which will accept a small amount
  * of information, and generate a set of "dispatch ready event objects" - which
@@ -7193,7 +8423,9 @@ var EventPropagators = {
   accumulateDirectDispatches: accumulateDirectDispatches,
   accumulateEnterLeaveDispatches: accumulateEnterLeaveDispatches
 };
+
 module.exports = EventPropagators;
+
 }).call(this,require("JkpR2F"))
 },{"./EventConstants":18,"./EventPluginHub":20,"./accumulateInto":100,"./forEachAccumulated":115,"JkpR2F":3}],24:[function(require,module,exports){
 /**
@@ -7206,13 +8438,17 @@ module.exports = EventPropagators;
  *
  * @providesModule ExecutionEnvironment
  */
+
 /*jslint evil: true */
+
 "use strict";
+
 var canUseDOM = !!(
   typeof window !== 'undefined' &&
   window.document &&
   window.document.createElement
 );
+
 /**
  * Simple, lightweight module assisting with the detection and context of
  * Worker. Helps avoid circular dependencies and allows code to reason about
@@ -7220,14 +8456,22 @@ var canUseDOM = !!(
  * `ReactWorker` dependency.
  */
 var ExecutionEnvironment = {
+
   canUseDOM: canUseDOM,
+
   canUseWorkers: typeof Worker !== 'undefined',
+
   canUseEventListeners:
     canUseDOM && !!(window.addEventListener || window.attachEvent),
+
   canUseViewport: canUseDOM && !!window.screen,
+
   isInWorker: !canUseDOM // For now, this is true - might change in the future.
+
 };
+
 module.exports = ExecutionEnvironment;
+
 },{}],25:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -7239,10 +8483,14 @@ module.exports = ExecutionEnvironment;
  *
  * @providesModule HTMLDOMPropertyConfig
  */
+
 /*jslint bitwise: true*/
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
 var MUST_USE_PROPERTY = DOMProperty.injection.MUST_USE_PROPERTY;
 var HAS_BOOLEAN_VALUE = DOMProperty.injection.HAS_BOOLEAN_VALUE;
@@ -7252,6 +8500,7 @@ var HAS_POSITIVE_NUMERIC_VALUE =
   DOMProperty.injection.HAS_POSITIVE_NUMERIC_VALUE;
 var HAS_OVERLOADED_BOOLEAN_VALUE =
   DOMProperty.injection.HAS_OVERLOADED_BOOLEAN_VALUE;
+
 var hasSVG;
 if (ExecutionEnvironment.canUseDOM) {
   var implementation = document.implementation;
@@ -7264,6 +8513,8 @@ if (ExecutionEnvironment.canUseDOM) {
     )
   );
 }
+
+
 var HTMLDOMPropertyConfig = {
   isCustomAttribute: RegExp.prototype.test.bind(
     /^(data|aria)-[a-z_][a-z\d_.\-]*$/
@@ -7379,6 +8630,7 @@ var HTMLDOMPropertyConfig = {
     value: MUST_USE_PROPERTY | HAS_SIDE_EFFECTS,
     width: MUST_USE_ATTRIBUTE,
     wmode: MUST_USE_ATTRIBUTE,
+
     /**
      * Non-standard Properties
      */
@@ -7409,7 +8661,9 @@ var HTMLDOMPropertyConfig = {
     srcSet: 'srcset'
   }
 };
+
 module.exports = HTMLDOMPropertyConfig;
+
 },{"./DOMProperty":13,"./ExecutionEnvironment":24}],26:[function(require,module,exports){
 (function (process){
 /**
@@ -7423,9 +8677,13 @@ module.exports = HTMLDOMPropertyConfig;
  * @providesModule LinkedValueUtils
  * @typechecks static-only
  */
+
 "use strict";
+
 var ReactPropTypes = require("./ReactPropTypes");
+
 var invariant = require("./invariant");
+
 var hasReadOnlyValue = {
   'button': true,
   'checkbox': true,
@@ -7435,6 +8693,7 @@ var hasReadOnlyValue = {
   'reset': true,
   'submit': true
 };
+
 function _assertSingleLink(input) {
   ("production" !== process.env.NODE_ENV ? invariant(
     input.props.checkedLink == null || input.props.valueLink == null,
@@ -7450,6 +8709,7 @@ function _assertValueLink(input) {
     'to use value or onChange, you probably don\'t want to use valueLink.'
   ) : invariant(input.props.value == null && input.props.onChange == null));
 }
+
 function _assertCheckedLink(input) {
   _assertSingleLink(input);
   ("production" !== process.env.NODE_ENV ? invariant(
@@ -7459,6 +8719,7 @@ function _assertCheckedLink(input) {
     'use checkedLink'
   ) : invariant(input.props.checked == null && input.props.onChange == null));
 }
+
 /**
  * @param {SyntheticEvent} e change event to handle
  */
@@ -7466,6 +8727,7 @@ function _handleLinkedValueChange(e) {
   /*jshint validthis:true */
   this.props.valueLink.requestChange(e.target.value);
 }
+
 /**
   * @param {SyntheticEvent} e change event to handle
   */
@@ -7473,6 +8735,7 @@ function _handleLinkedCheckChange(e) {
   /*jshint validthis:true */
   this.props.checkedLink.requestChange(e.target.checked);
 }
+
 /**
  * Provide a linked `value` attribute for controlled forms. You should not use
  * this outside of the ReactDOM controlled form components.
@@ -7512,6 +8775,7 @@ var LinkedValueUtils = {
       onChange: ReactPropTypes.func
     }
   },
+
   /**
    * @param {ReactComponent} input Form component
    * @return {*} current value of the input either from value prop or link.
@@ -7523,6 +8787,7 @@ var LinkedValueUtils = {
     }
     return input.props.value;
   },
+
   /**
    * @param {ReactComponent} input Form component
    * @return {*} current checked status of the input either from checked prop
@@ -7535,6 +8800,7 @@ var LinkedValueUtils = {
     }
     return input.props.checked;
   },
+
   /**
    * @param {ReactComponent} input Form component
    * @return {function} change callback either from onChange prop or link.
@@ -7550,7 +8816,9 @@ var LinkedValueUtils = {
     return input.props.onChange;
   }
 };
+
 module.exports = LinkedValueUtils;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactPropTypes":75,"./invariant":129,"JkpR2F":3}],27:[function(require,module,exports){
 (function (process){
@@ -7564,14 +8832,19 @@ module.exports = LinkedValueUtils;
  *
  * @providesModule LocalEventTrapMixin
  */
+
 "use strict";
+
 var ReactBrowserEventEmitter = require("./ReactBrowserEventEmitter");
+
 var accumulateInto = require("./accumulateInto");
 var forEachAccumulated = require("./forEachAccumulated");
 var invariant = require("./invariant");
+
 function remove(event) {
   event.remove();
 }
+
 var LocalEventTrapMixin = {
   trapBubbledEvent:function(topLevelType, handlerBaseName) {
     ("production" !== process.env.NODE_ENV ? invariant(this.isMounted(), 'Must be mounted to trap events') : invariant(this.isMounted()));
@@ -7583,15 +8856,19 @@ var LocalEventTrapMixin = {
     this._localEventListeners =
       accumulateInto(this._localEventListeners, listener);
   },
+
   // trapCapturedEvent would look nearly identical. We don't implement that
   // method because it isn't currently needed.
+
   componentWillUnmount:function() {
     if (this._localEventListeners) {
       forEachAccumulated(this._localEventListeners, remove);
     }
   }
 };
+
 module.exports = LocalEventTrapMixin;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactBrowserEventEmitter":33,"./accumulateInto":100,"./forEachAccumulated":115,"./invariant":129,"JkpR2F":3}],28:[function(require,module,exports){
 /**
@@ -7605,10 +8882,15 @@ module.exports = LocalEventTrapMixin;
  * @providesModule MobileSafariClickEventPlugin
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
+
 var emptyFunction = require("./emptyFunction");
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 /**
  * Mobile Safari does not fire properly bubble click events on non-interactive
  * elements, which means delegated click listeners do not fire. The workaround
@@ -7618,7 +8900,9 @@ var topLevelTypes = EventConstants.topLevelTypes;
  * listener on `touchstart` (which does fire on every element).
  */
 var MobileSafariClickEventPlugin = {
+
   eventTypes: null,
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -7639,8 +8923,11 @@ var MobileSafariClickEventPlugin = {
       }
     }
   }
+
 };
+
 module.exports = MobileSafariClickEventPlugin;
+
 },{"./EventConstants":18,"./emptyFunction":110}],29:[function(require,module,exports){
 /**
  * Copyright 2014, Facebook, Inc.
@@ -7652,32 +8939,42 @@ module.exports = MobileSafariClickEventPlugin;
  *
  * @providesModule Object.assign
  */
+
 // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-object.assign
+
 function assign(target, sources) {
   if (target == null) {
     throw new TypeError('Object.assign target cannot be null or undefined');
   }
+
   var to = Object(target);
   var hasOwnProperty = Object.prototype.hasOwnProperty;
+
   for (var nextIndex = 1; nextIndex < arguments.length; nextIndex++) {
     var nextSource = arguments[nextIndex];
     if (nextSource == null) {
       continue;
     }
+
     var from = Object(nextSource);
+
     // We don't currently support accessors nor proxies. Therefore this
     // copy cannot throw. If we ever supported this then we must handle
     // exceptions and side-effects. We don't support symbols so they won't
     // be transferred.
+
     for (var key in from) {
       if (hasOwnProperty.call(from, key)) {
         to[key] = from[key];
       }
     }
   }
+
   return to;
 };
+
 module.exports = assign;
+
 },{}],30:[function(require,module,exports){
 (function (process){
 /**
@@ -7690,8 +8987,11 @@ module.exports = assign;
  *
  * @providesModule PooledClass
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  * Static poolers. Several custom versions for each potential number of
  * arguments. A completely generic pooler is easy to implement, but would
@@ -7709,6 +9009,7 @@ var oneArgumentPooler = function(copyFieldsFrom) {
     return new Klass(copyFieldsFrom);
   }
 };
+
 var twoArgumentPooler = function(a1, a2) {
   var Klass = this;
   if (Klass.instancePool.length) {
@@ -7719,6 +9020,7 @@ var twoArgumentPooler = function(a1, a2) {
     return new Klass(a1, a2);
   }
 };
+
 var threeArgumentPooler = function(a1, a2, a3) {
   var Klass = this;
   if (Klass.instancePool.length) {
@@ -7729,6 +9031,7 @@ var threeArgumentPooler = function(a1, a2, a3) {
     return new Klass(a1, a2, a3);
   }
 };
+
 var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
   var Klass = this;
   if (Klass.instancePool.length) {
@@ -7739,6 +9042,7 @@ var fiveArgumentPooler = function(a1, a2, a3, a4, a5) {
     return new Klass(a1, a2, a3, a4, a5);
   }
 };
+
 var standardReleaser = function(instance) {
   var Klass = this;
   ("production" !== process.env.NODE_ENV ? invariant(
@@ -7752,8 +9056,10 @@ var standardReleaser = function(instance) {
     Klass.instancePool.push(instance);
   }
 };
+
 var DEFAULT_POOL_SIZE = 10;
 var DEFAULT_POOLER = oneArgumentPooler;
+
 /**
  * Augments `CopyConstructor` to be a poolable class, augmenting only the class
  * itself (statically) not adding any prototypical fields. Any CopyConstructor
@@ -7773,6 +9079,7 @@ var addPoolingTo = function(CopyConstructor, pooler) {
   NewKlass.release = standardReleaser;
   return NewKlass;
 };
+
 var PooledClass = {
   addPoolingTo: addPoolingTo,
   oneArgumentPooler: oneArgumentPooler,
@@ -7780,7 +9087,9 @@ var PooledClass = {
   threeArgumentPooler: threeArgumentPooler,
   fiveArgumentPooler: fiveArgumentPooler
 };
+
 module.exports = PooledClass;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],31:[function(require,module,exports){
 (function (process){
@@ -7794,7 +9103,9 @@ module.exports = PooledClass;
  *
  * @providesModule React
  */
+
 "use strict";
+
 var DOMPropertyOperations = require("./DOMPropertyOperations");
 var EventPluginUtils = require("./EventPluginUtils");
 var ReactChildren = require("./ReactChildren");
@@ -7815,16 +9126,21 @@ var ReactPerf = require("./ReactPerf");
 var ReactPropTypes = require("./ReactPropTypes");
 var ReactServerRendering = require("./ReactServerRendering");
 var ReactTextComponent = require("./ReactTextComponent");
+
 var assign = require("./Object.assign");
 var deprecated = require("./deprecated");
 var onlyChild = require("./onlyChild");
+
 ReactDefaultInjection.inject();
+
 var createElement = ReactElement.createElement;
 var createFactory = ReactElement.createFactory;
+
 if ("production" !== process.env.NODE_ENV) {
   createElement = ReactElementValidator.createElement;
   createFactory = ReactElementValidator.createFactory;
 }
+
 // TODO: Drop legacy elements once classes no longer export these factories
 createElement = ReactLegacyElement.wrapCreateElement(
   createElement
@@ -7832,7 +9148,9 @@ createElement = ReactLegacyElement.wrapCreateElement(
 createFactory = ReactLegacyElement.wrapCreateFactory(
   createFactory
 );
+
 var render = ReactPerf.measure('React', 'render', ReactMount.render);
+
 var React = {
   Children: {
     map: ReactChildren.map,
@@ -7857,8 +9175,10 @@ var React = {
   isValidClass: ReactLegacyElement.isValidClass,
   isValidElement: ReactElement.isValidElement,
   withContext: ReactContext.withContext,
+
   // Hook for JSX spread, don't use this for anything else.
   __spread: assign,
+
   // Deprecations (remove for 0.13)
   renderComponent: deprecated(
     'React',
@@ -7889,6 +9209,7 @@ var React = {
     ReactElement.isValidElement
   )
 };
+
 // Inject the runtime into a devtools global hook regardless of browser.
 // Allows for debugging when the hook is injected on the page.
 if (
@@ -7905,9 +9226,11 @@ if (
     TextComponent: ReactTextComponent
   });
 }
+
 if ("production" !== process.env.NODE_ENV) {
   var ExecutionEnvironment = require("./ExecutionEnvironment");
   if (ExecutionEnvironment.canUseDOM && window.top === window.self) {
+
     // If we're in Chrome, look for the devtools marker and provide a download
     // link if not installed.
     if (navigator.userAgent.indexOf('Chrome') > -1) {
@@ -7918,6 +9241,7 @@ if ("production" !== process.env.NODE_ENV) {
         );
       }
     }
+
     var expectedFeatures = [
       // shims
       Array.isArray,
@@ -7930,10 +9254,12 @@ if ("production" !== process.env.NODE_ENV) {
       Object.keys,
       String.prototype.split,
       String.prototype.trim,
+
       // shams
       Object.create,
       Object.freeze
     ];
+
     for (var i = 0; i < expectedFeatures.length; i++) {
       if (!expectedFeatures[i]) {
         console.error(
@@ -7945,10 +9271,13 @@ if ("production" !== process.env.NODE_ENV) {
     }
   }
 }
+
 // Version exists only in the open-source version of React, not in Facebook's
 // internal version.
 React.version = '0.12.2';
+
 module.exports = React;
+
 }).call(this,require("JkpR2F"))
 },{"./DOMPropertyOperations":14,"./EventPluginUtils":22,"./ExecutionEnvironment":24,"./Object.assign":29,"./ReactChildren":34,"./ReactComponent":35,"./ReactCompositeComponent":37,"./ReactContext":38,"./ReactCurrentOwner":39,"./ReactDOM":40,"./ReactDOMComponent":42,"./ReactDefaultInjection":52,"./ReactElement":55,"./ReactElementValidator":56,"./ReactInstanceHandles":63,"./ReactLegacyElement":64,"./ReactMount":66,"./ReactMultiChild":67,"./ReactPerf":71,"./ReactPropTypes":75,"./ReactServerRendering":79,"./ReactTextComponent":81,"./deprecated":109,"./onlyChild":140,"JkpR2F":3}],32:[function(require,module,exports){
 (function (process){
@@ -7962,10 +9291,14 @@ module.exports = React;
  *
  * @providesModule ReactBrowserComponentMixin
  */
+
 "use strict";
+
 var ReactEmptyComponent = require("./ReactEmptyComponent");
 var ReactMount = require("./ReactMount");
+
 var invariant = require("./invariant");
+
 var ReactBrowserComponentMixin = {
   /**
    * Returns the DOM node rendered by this component.
@@ -7985,7 +9318,9 @@ var ReactBrowserComponentMixin = {
     return ReactMount.getNode(this._rootNodeID);
   }
 };
+
 module.exports = ReactBrowserComponentMixin;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactEmptyComponent":57,"./ReactMount":66,"./invariant":129,"JkpR2F":3}],33:[function(require,module,exports){
 /**
@@ -7999,14 +9334,18 @@ module.exports = ReactBrowserComponentMixin;
  * @providesModule ReactBrowserEventEmitter
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPluginHub = require("./EventPluginHub");
 var EventPluginRegistry = require("./EventPluginRegistry");
 var ReactEventEmitterMixin = require("./ReactEventEmitterMixin");
 var ViewportMetrics = require("./ViewportMetrics");
+
 var assign = require("./Object.assign");
 var isEventSupported = require("./isEventSupported");
+
 /**
  * Summary of `ReactBrowserEventEmitter` event handling:
  *
@@ -8061,9 +9400,11 @@ var isEventSupported = require("./isEventSupported");
  *                   .
  *    React Core     .  General Purpose Event Plugin System
  */
+
 var alreadyListeningTo = {};
 var isMonitoringScrollValue = false;
 var reactTopListenersCounter = 0;
+
 // For events like 'submit' which don't consistently bubble (which we trap at a
 // lower node than `document`), binding at `document` would cause duplicate
 // events so we don't include them here
@@ -8106,10 +9447,12 @@ var topEventMapping = {
   topTouchStart: 'touchstart',
   topWheel: 'wheel'
 };
+
 /**
  * To ensure no conflicts with other potential React instances on the page
  */
 var topListenersIDKey = "_reactListenersID" + String(Math.random()).slice(2);
+
 function getListeningForDocument(mountAt) {
   // In IE8, `mountAt` is a host object and doesn't have `hasOwnProperty`
   // directly.
@@ -8119,6 +9462,7 @@ function getListeningForDocument(mountAt) {
   }
   return alreadyListeningTo[mountAt[topListenersIDKey]];
 }
+
 /**
  * `ReactBrowserEventEmitter` is used to attach top-level event listeners. For
  * example:
@@ -8130,10 +9474,12 @@ function getListeningForDocument(mountAt) {
  * @internal
  */
 var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
+
   /**
    * Injectable event backend
    */
   ReactEventListener: null,
+
   injection: {
     /**
      * @param {object} ReactEventListener
@@ -8145,6 +9491,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       ReactBrowserEventEmitter.ReactEventListener = ReactEventListener;
     }
   },
+
   /**
    * Sets whether or not any created callbacks should be enabled.
    *
@@ -8155,6 +9502,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       ReactBrowserEventEmitter.ReactEventListener.setEnabled(enabled);
     }
   },
+
   /**
    * @return {boolean} True if callbacks are enabled.
    */
@@ -8164,6 +9512,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       ReactBrowserEventEmitter.ReactEventListener.isEnabled()
     );
   },
+
   /**
    * We listen for bubbled touch events on the document object.
    *
@@ -8190,6 +9539,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
     var isListening = getListeningForDocument(mountAt);
     var dependencies = EventPluginRegistry.
       registrationNameDependencies[registrationName];
+
     var topLevelTypes = EventConstants.topLevelTypes;
     for (var i = 0, l = dependencies.length; i < l; i++) {
       var dependency = dependencies[i];
@@ -8220,6 +9570,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
             );
           }
         } else if (dependency === topLevelTypes.topScroll) {
+
           if (isEventSupported('scroll', true)) {
             ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent(
               topLevelTypes.topScroll,
@@ -8235,6 +9586,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
           }
         } else if (dependency === topLevelTypes.topFocus ||
             dependency === topLevelTypes.topBlur) {
+
           if (isEventSupported('focus', true)) {
             ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent(
               topLevelTypes.topFocus,
@@ -8260,6 +9612,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
               mountAt
             );
           }
+
           // to make sure blur and focus event listeners are only attached once
           isListening[topLevelTypes.topBlur] = true;
           isListening[topLevelTypes.topFocus] = true;
@@ -8270,10 +9623,12 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
             mountAt
           );
         }
+
         isListening[dependency] = true;
       }
     }
   },
+
   trapBubbledEvent: function(topLevelType, handlerBaseName, handle) {
     return ReactBrowserEventEmitter.ReactEventListener.trapBubbledEvent(
       topLevelType,
@@ -8281,6 +9636,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       handle
     );
   },
+
   trapCapturedEvent: function(topLevelType, handlerBaseName, handle) {
     return ReactBrowserEventEmitter.ReactEventListener.trapCapturedEvent(
       topLevelType,
@@ -8288,6 +9644,7 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       handle
     );
   },
+
   /**
    * Listens to window scroll and resize events. We cache scroll values so that
    * application code can access them without triggering reflows.
@@ -8303,14 +9660,23 @@ var ReactBrowserEventEmitter = assign({}, ReactEventEmitterMixin, {
       isMonitoringScrollValue = true;
     }
   },
+
   eventNameDispatchConfigs: EventPluginHub.eventNameDispatchConfigs,
+
   registrationNameModules: EventPluginHub.registrationNameModules,
+
   putListener: EventPluginHub.putListener,
+
   getListener: EventPluginHub.getListener,
+
   deleteListener: EventPluginHub.deleteListener,
+
   deleteAllListeners: EventPluginHub.deleteAllListeners
+
 });
+
 module.exports = ReactBrowserEventEmitter;
+
 },{"./EventConstants":18,"./EventPluginHub":20,"./EventPluginRegistry":21,"./Object.assign":29,"./ReactEventEmitterMixin":59,"./ViewportMetrics":99,"./isEventSupported":130}],34:[function(require,module,exports){
 (function (process){
 /**
@@ -8323,12 +9689,17 @@ module.exports = ReactBrowserEventEmitter;
  *
  * @providesModule ReactChildren
  */
+
 "use strict";
+
 var PooledClass = require("./PooledClass");
+
 var traverseAllChildren = require("./traverseAllChildren");
 var warning = require("./warning");
+
 var twoArgumentPooler = PooledClass.twoArgumentPooler;
 var threeArgumentPooler = PooledClass.threeArgumentPooler;
+
 /**
  * PooledClass representing the bookkeeping associated with performing a child
  * traversal. Allows avoiding binding callbacks.
@@ -8342,11 +9713,13 @@ function ForEachBookKeeping(forEachFunction, forEachContext) {
   this.forEachContext = forEachContext;
 }
 PooledClass.addPoolingTo(ForEachBookKeeping, twoArgumentPooler);
+
 function forEachSingleChild(traverseContext, child, name, i) {
   var forEachBookKeeping = traverseContext;
   forEachBookKeeping.forEachFunction.call(
     forEachBookKeeping.forEachContext, child, i);
 }
+
 /**
  * Iterates through children that are typically specified as `props.children`.
  *
@@ -8361,11 +9734,13 @@ function forEachChildren(children, forEachFunc, forEachContext) {
   if (children == null) {
     return children;
   }
+
   var traverseContext =
     ForEachBookKeeping.getPooled(forEachFunc, forEachContext);
   traverseAllChildren(children, forEachSingleChild, traverseContext);
   ForEachBookKeeping.release(traverseContext);
 }
+
 /**
  * PooledClass representing the bookkeeping associated with performing a child
  * mapping. Allows avoiding binding callbacks.
@@ -8381,9 +9756,11 @@ function MapBookKeeping(mapResult, mapFunction, mapContext) {
   this.mapContext = mapContext;
 }
 PooledClass.addPoolingTo(MapBookKeeping, threeArgumentPooler);
+
 function mapSingleChildIntoContext(traverseContext, child, name, i) {
   var mapBookKeeping = traverseContext;
   var mapResult = mapBookKeeping.mapResult;
+
   var keyUnique = !mapResult.hasOwnProperty(name);
   ("production" !== process.env.NODE_ENV ? warning(
     keyUnique,
@@ -8392,12 +9769,14 @@ function mapSingleChildIntoContext(traverseContext, child, name, i) {
     'the first child will be used.',
     name
   ) : null);
+
   if (keyUnique) {
     var mappedChild =
       mapBookKeeping.mapFunction.call(mapBookKeeping.mapContext, child, i);
     mapResult[name] = mappedChild;
   }
 }
+
 /**
  * Maps children that are typically specified as `props.children`.
  *
@@ -8416,15 +9795,18 @@ function mapChildren(children, func, context) {
   if (children == null) {
     return children;
   }
+
   var mapResult = {};
   var traverseContext = MapBookKeeping.getPooled(mapResult, func, context);
   traverseAllChildren(children, mapSingleChildIntoContext, traverseContext);
   MapBookKeeping.release(traverseContext);
   return mapResult;
 }
+
 function forEachSingleChildDummy(traverseContext, child, name, i) {
   return null;
 }
+
 /**
  * Count the number of children that are typically specified as
  * `props.children`.
@@ -8435,12 +9817,15 @@ function forEachSingleChildDummy(traverseContext, child, name, i) {
 function countChildren(children, context) {
   return traverseAllChildren(children, forEachSingleChildDummy, null);
 }
+
 var ReactChildren = {
   forEach: forEachChildren,
   map: mapChildren,
   count: countChildren
 };
+
 module.exports = ReactChildren;
+
 }).call(this,require("JkpR2F"))
 },{"./PooledClass":30,"./traverseAllChildren":147,"./warning":148,"JkpR2F":3}],35:[function(require,module,exports){
 (function (process){
@@ -8454,13 +9839,17 @@ module.exports = ReactChildren;
  *
  * @providesModule ReactComponent
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactOwner = require("./ReactOwner");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
 var keyMirror = require("./keyMirror");
+
 /**
  * Every React component is in one of these life cycles.
  */
@@ -8475,7 +9864,9 @@ var ComponentLifeCycle = keyMirror({
    */
   UNMOUNTED: null
 });
+
 var injected = false;
+
 /**
  * Optionally injectable environment dependent cleanup hook. (server vs.
  * browser etc). Example: A browser system caches DOM nodes based on component
@@ -8484,6 +9875,7 @@ var injected = false;
  * @private
  */
 var unmountIDFromEnvironment = null;
+
 /**
  * The "image" of a component tree, is the platform specific (typically
  * serialized) data that represents a tree of lower level UI building blocks.
@@ -8494,6 +9886,7 @@ var unmountIDFromEnvironment = null;
  * @private
  */
 var mountImageIntoNode = null;
+
 /**
  * Components are the basic units of composition in React.
  *
@@ -8520,6 +9913,7 @@ var mountImageIntoNode = null;
  * @class ReactComponent
  */
 var ReactComponent = {
+
   injection: {
     injectEnvironment: function(ReactComponentEnvironment) {
       ("production" !== process.env.NODE_ENV ? invariant(
@@ -8534,10 +9928,12 @@ var ReactComponent = {
       injected = true;
     }
   },
+
   /**
    * @internal
    */
   LifeCycle: ComponentLifeCycle,
+
   /**
    * Injected module that provides ability to mutate individual properties.
    * Injected into the base class because many different subclasses need access
@@ -8546,6 +9942,7 @@ var ReactComponent = {
    * @internal
    */
   BackendIDOperations: null,
+
   /**
    * Base functionality for every ReactComponent constructor. Mixed into the
    * `ReactComponent` prototype, but exposed statically for easy access.
@@ -8553,6 +9950,7 @@ var ReactComponent = {
    * @lends {ReactComponent.prototype}
    */
   Mixin: {
+
     /**
      * Checks whether or not this component is mounted.
      *
@@ -8563,6 +9961,7 @@ var ReactComponent = {
     isMounted: function() {
       return this._lifeCycleState === ComponentLifeCycle.MOUNTED;
     },
+
     /**
      * Sets a subset of the props.
      *
@@ -8580,6 +9979,7 @@ var ReactComponent = {
         callback
       );
     },
+
     /**
      * Replaces all of the props.
      *
@@ -8609,6 +10009,7 @@ var ReactComponent = {
       );
       ReactUpdates.enqueueUpdate(this, callback);
     },
+
     /**
      * Schedule a partial update to the props. Only used for internal testing.
      *
@@ -8627,6 +10028,7 @@ var ReactComponent = {
       );
       ReactUpdates.enqueueUpdate(this, callback);
     },
+
     /**
      * Base constructor for all React components.
      *
@@ -8646,15 +10048,19 @@ var ReactComponent = {
       // field for compatibility with devtools and as a way to make an
       // incremental update. TODO: Consider deprecating this field.
       this._owner = element._owner;
+
       // All components start unmounted.
       this._lifeCycleState = ComponentLifeCycle.UNMOUNTED;
+
       // See ReactUpdates.
       this._pendingCallbacks = null;
+
       // We keep the old element and a reference to the pending element
       // to track updates.
       this._currentElement = element;
       this._pendingElement = null;
     },
+
     /**
      * Initializes the component, renders markup, and registers event listeners.
      *
@@ -8687,6 +10093,7 @@ var ReactComponent = {
       this._mountDepth = mountDepth;
       // Effectively: return '';
     },
+
     /**
      * Releases any resources allocated by `mountComponent`.
      *
@@ -8710,6 +10117,7 @@ var ReactComponent = {
       this._rootNodeID = null;
       this._lifeCycleState = ComponentLifeCycle.UNMOUNTED;
     },
+
     /**
      * Given a new instance of this component, updates the rendered DOM nodes
      * as if that instance was rendered instead.
@@ -8729,6 +10137,7 @@ var ReactComponent = {
       this._pendingElement = nextElement;
       this.performUpdateIfNecessary(transaction);
     },
+
     /**
      * If `_pendingElement` is set, update the component.
      *
@@ -8747,6 +10156,7 @@ var ReactComponent = {
       this._pendingElement = null;
       this.updateComponent(transaction, prevElement);
     },
+
     /**
      * Updates the component's currently mounted representation.
      *
@@ -8756,16 +10166,19 @@ var ReactComponent = {
      */
     updateComponent: function(transaction, prevElement) {
       var nextElement = this._currentElement;
+
       // If either the owner or a `ref` has changed, make sure the newest owner
       // has stored a reference to `this`, and the previous owner (if different)
       // has forgotten the reference to `this`. We use the element instead
       // of the public this.props because the post processing cannot determine
       // a ref. The ref conceptually lives on the element.
+
       // TODO: Should this even be possible? The owner cannot change because
       // it's forbidden by shouldUpdateReactComponent. The ref can change
       // if you swap the keys of but not the refs. Reconsider where this check
       // is made. It probably belongs where the key checking and
       // instantiateReactComponent is done.
+
       if (nextElement._owner !== prevElement._owner ||
           nextElement.ref !== prevElement.ref) {
         if (prevElement.ref != null) {
@@ -8783,6 +10196,7 @@ var ReactComponent = {
         }
       }
     },
+
     /**
      * Mounts this component and inserts it into the DOM.
      *
@@ -8805,6 +10219,7 @@ var ReactComponent = {
       );
       ReactUpdates.ReactReconcileTransaction.release(transaction);
     },
+
     /**
      * @param {string} rootID DOM ID of the root node.
      * @param {DOMElement} container DOM element to mount into.
@@ -8821,6 +10236,7 @@ var ReactComponent = {
       var markup = this.mountComponent(rootID, transaction, 0);
       mountImageIntoNode(markup, container, shouldReuseMarkup);
     },
+
     /**
      * Checks if this component is owned by the supplied `owner` component.
      *
@@ -8832,6 +10248,7 @@ var ReactComponent = {
     isOwnedBy: function(owner) {
       return this._owner === owner;
     },
+
     /**
      * Gets another component, that shares the same owner as this one, by ref.
      *
@@ -8849,7 +10266,9 @@ var ReactComponent = {
     }
   }
 };
+
 module.exports = ReactComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./ReactElement":55,"./ReactOwner":70,"./ReactUpdates":82,"./invariant":129,"./keyMirror":135,"JkpR2F":3}],36:[function(require,module,exports){
 (function (process){
@@ -8863,25 +10282,35 @@ module.exports = ReactComponent;
  *
  * @providesModule ReactComponentBrowserEnvironment
  */
+
 /*jslint evil: true */
+
 "use strict";
+
 var ReactDOMIDOperations = require("./ReactDOMIDOperations");
 var ReactMarkupChecksum = require("./ReactMarkupChecksum");
 var ReactMount = require("./ReactMount");
 var ReactPerf = require("./ReactPerf");
 var ReactReconcileTransaction = require("./ReactReconcileTransaction");
+
 var getReactRootElementInContainer = require("./getReactRootElementInContainer");
 var invariant = require("./invariant");
 var setInnerHTML = require("./setInnerHTML");
+
+
 var ELEMENT_NODE_TYPE = 1;
 var DOC_NODE_TYPE = 9;
+
+
 /**
  * Abstracts away all functionality of `ReactComponent` requires knowledge of
  * the browser context.
  */
 var ReactComponentBrowserEnvironment = {
   ReactReconcileTransaction: ReactReconcileTransaction,
+
   BackendIDOperations: ReactDOMIDOperations,
+
   /**
    * If a particular environment requires that some resources be cleaned up,
    * specify this in the injected Mixin. In the DOM, we would likely want to
@@ -8892,6 +10321,7 @@ var ReactComponentBrowserEnvironment = {
   unmountIDFromEnvironment: function(rootNodeID) {
     ReactMount.purgeID(rootNodeID);
   },
+
   /**
    * @param {string} markup Markup string to place into the DOM Element.
    * @param {DOMElement} container DOM Element to insert markup into.
@@ -8912,6 +10342,7 @@ var ReactComponentBrowserEnvironment = {
         container.nodeType === ELEMENT_NODE_TYPE ||
           container.nodeType === DOC_NODE_TYPE
       )));
+
       if (shouldReuseMarkup) {
         if (ReactMarkupChecksum.canReuseMarkup(
           markup,
@@ -8929,6 +10360,7 @@ var ReactComponentBrowserEnvironment = {
             'should look for environment dependent code in your components ' +
             'and ensure the props are the same client and server side.'
           ) : invariant(container.nodeType !== DOC_NODE_TYPE));
+
           if ("production" !== process.env.NODE_ENV) {
             console.warn(
               'React attempted to use reuse markup in a container but the ' +
@@ -8943,6 +10375,7 @@ var ReactComponentBrowserEnvironment = {
           }
         }
       }
+
       ("production" !== process.env.NODE_ENV ? invariant(
         container.nodeType !== DOC_NODE_TYPE,
         'You\'re trying to render a component to the document but ' +
@@ -8950,11 +10383,14 @@ var ReactComponentBrowserEnvironment = {
           'without using server rendering due to cross-browser quirks. ' +
           'See renderComponentToString() for server rendering.'
       ) : invariant(container.nodeType !== DOC_NODE_TYPE));
+
       setInnerHTML(container, markup);
     }
   )
 };
+
 module.exports = ReactComponentBrowserEnvironment;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactDOMIDOperations":44,"./ReactMarkupChecksum":65,"./ReactMount":66,"./ReactPerf":71,"./ReactReconcileTransaction":77,"./getReactRootElementInContainer":123,"./invariant":129,"./setInnerHTML":143,"JkpR2F":3}],37:[function(require,module,exports){
 (function (process){
@@ -8968,7 +10404,9 @@ module.exports = ReactComponentBrowserEnvironment;
  *
  * @providesModule ReactCompositeComponent
  */
+
 "use strict";
+
 var ReactComponent = require("./ReactComponent");
 var ReactContext = require("./ReactContext");
 var ReactCurrentOwner = require("./ReactCurrentOwner");
@@ -8983,6 +10421,7 @@ var ReactPropTransferer = require("./ReactPropTransferer");
 var ReactPropTypeLocations = require("./ReactPropTypeLocations");
 var ReactPropTypeLocationNames = require("./ReactPropTypeLocationNames");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
 var instantiateReactComponent = require("./instantiateReactComponent");
 var invariant = require("./invariant");
@@ -8992,7 +10431,9 @@ var monitorCodeUse = require("./monitorCodeUse");
 var mapObject = require("./mapObject");
 var shouldUpdateReactComponent = require("./shouldUpdateReactComponent");
 var warning = require("./warning");
+
 var MIXINS_KEY = keyOf({mixins: null});
+
 /**
  * Policies that describe methods in `ReactCompositeComponentInterface`.
  */
@@ -9017,7 +10458,10 @@ var SpecPolicy = keyMirror({
    */
   DEFINE_MANY_MERGED: null
 });
+
+
 var injectedMixins = [];
+
 /**
  * Composite components are higher-level components that compose other composite
  * or native components.
@@ -9041,6 +10485,7 @@ var injectedMixins = [];
  * @internal
  */
 var ReactCompositeComponentInterface = {
+
   /**
    * An array of Mixin objects to include when defining your component.
    *
@@ -9048,6 +10493,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   mixins: SpecPolicy.DEFINE_MANY,
+
   /**
    * An object containing properties and methods that should be defined on
    * the component's constructor instead of its prototype (static methods).
@@ -9056,6 +10502,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   statics: SpecPolicy.DEFINE_MANY,
+
   /**
    * Definition of prop types for this component.
    *
@@ -9063,6 +10510,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   propTypes: SpecPolicy.DEFINE_MANY,
+
   /**
    * Definition of context types for this component.
    *
@@ -9070,6 +10518,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   contextTypes: SpecPolicy.DEFINE_MANY,
+
   /**
    * Definition of context types this component sets for its children.
    *
@@ -9077,7 +10526,9 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   childContextTypes: SpecPolicy.DEFINE_MANY,
+
   // ==== Definition methods ====
+
   /**
    * Invoked when the component is mounted. Values in the mapping will be set on
    * `this.props` if that prop is not specified (i.e. using an `in` check).
@@ -9089,6 +10540,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   getDefaultProps: SpecPolicy.DEFINE_MANY_MERGED,
+
   /**
    * Invoked once before the component is mounted. The return value will be used
    * as the initial value of `this.state`.
@@ -9104,11 +10556,13 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   getInitialState: SpecPolicy.DEFINE_MANY_MERGED,
+
   /**
    * @return {object}
    * @optional
    */
   getChildContext: SpecPolicy.DEFINE_MANY_MERGED,
+
   /**
    * Uses props from `this.props` and state from `this.state` to render the
    * structure of the component.
@@ -9126,7 +10580,11 @@ var ReactCompositeComponentInterface = {
    * @required
    */
   render: SpecPolicy.DEFINE_ONCE,
+
+
+
   // ==== Delegate methods ====
+
   /**
    * Invoked when the component is initially created and about to be mounted.
    * This may have side effects, but any external subscriptions or data created
@@ -9135,6 +10593,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentWillMount: SpecPolicy.DEFINE_MANY,
+
   /**
    * Invoked when the component has been mounted and has a DOM representation.
    * However, there is no guarantee that the DOM node is in the document.
@@ -9146,6 +10605,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentDidMount: SpecPolicy.DEFINE_MANY,
+
   /**
    * Invoked before the component receives new props.
    *
@@ -9166,6 +10626,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentWillReceiveProps: SpecPolicy.DEFINE_MANY,
+
   /**
    * Invoked while deciding if the component should be updated as a result of
    * receiving new props, state and/or context.
@@ -9187,6 +10648,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   shouldComponentUpdate: SpecPolicy.DEFINE_ONCE,
+
   /**
    * Invoked when the component is about to update due to a transition from
    * `this.props`, `this.state` and `this.context` to `nextProps`, `nextState`
@@ -9203,6 +10665,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentWillUpdate: SpecPolicy.DEFINE_MANY,
+
   /**
    * Invoked when the component's DOM representation has been updated.
    *
@@ -9216,6 +10679,7 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentDidUpdate: SpecPolicy.DEFINE_MANY,
+
   /**
    * Invoked when the component is about to be removed from its parent and have
    * its DOM representation destroyed.
@@ -9228,7 +10692,11 @@ var ReactCompositeComponentInterface = {
    * @optional
    */
   componentWillUnmount: SpecPolicy.DEFINE_MANY,
+
+
+
   // ==== Advanced methods ====
+
   /**
    * Updates the component's currently mounted DOM representation.
    *
@@ -9240,7 +10708,9 @@ var ReactCompositeComponentInterface = {
    * @overridable
    */
   updateComponent: SpecPolicy.OVERRIDE_BASE
+
 };
+
 /**
  * Mapping from class specification keys to special processing functions.
  *
@@ -9315,6 +10785,7 @@ var RESERVED_SPEC_KEYS = {
     mixStaticSpecIntoComponent(Constructor, statics);
   }
 };
+
 function getDeclarationErrorAddendum(component) {
   var owner = component._owner || null;
   if (owner && owner.constructor && owner.constructor.displayName) {
@@ -9323,6 +10794,7 @@ function getDeclarationErrorAddendum(component) {
   }
   return '';
 }
+
 function validateTypeDef(Constructor, typeDef, location) {
   for (var propName in typeDef) {
     if (typeDef.hasOwnProperty(propName)) {
@@ -9337,10 +10809,12 @@ function validateTypeDef(Constructor, typeDef, location) {
     }
   }
 }
+
 function validateMethodOverride(proto, name) {
   var specPolicy = ReactCompositeComponentInterface.hasOwnProperty(name) ?
     ReactCompositeComponentInterface[name] :
     null;
+
   // Disallow overriding of base class methods unless explicitly allowed.
   if (ReactCompositeComponentMixin.hasOwnProperty(name)) {
     ("production" !== process.env.NODE_ENV ? invariant(
@@ -9351,6 +10825,7 @@ function validateMethodOverride(proto, name) {
       name
     ) : invariant(specPolicy === SpecPolicy.OVERRIDE_BASE));
   }
+
   // Disallow defining methods more than once unless explicitly allowed.
   if (proto.hasOwnProperty(name)) {
     ("production" !== process.env.NODE_ENV ? invariant(
@@ -9364,6 +10839,7 @@ function validateMethodOverride(proto, name) {
     specPolicy === SpecPolicy.DEFINE_MANY_MERGED));
   }
 }
+
 function validateLifeCycleOnReplaceState(instance) {
   var compositeLifeCycleState = instance._compositeLifeCycleState;
   ("production" !== process.env.NODE_ENV ? invariant(
@@ -9383,6 +10859,7 @@ function validateLifeCycleOnReplaceState(instance) {
     'usually means you called setState() on an unmounted component.'
   ) : invariant(compositeLifeCycleState !== CompositeLifeCycle.UNMOUNTING));
 }
+
 /**
  * Mixin helper which handles policy validation and reserved
  * specification keys when building `ReactCompositeComponent` classses.
@@ -9391,6 +10868,7 @@ function mixSpecIntoComponent(Constructor, spec) {
   if (!spec) {
     return;
   }
+
   ("production" !== process.env.NODE_ENV ? invariant(
     !ReactLegacyElement.isValidFactory(spec),
     'ReactCompositeComponent: You\'re attempting to ' +
@@ -9401,23 +10879,29 @@ function mixSpecIntoComponent(Constructor, spec) {
     'ReactCompositeComponent: You\'re attempting to ' +
     'use a component as a mixin. Instead, just use a regular object.'
   ) : invariant(!ReactElement.isValidElement(spec)));
+
   var proto = Constructor.prototype;
+
   // By handling mixins before any other properties, we ensure the same
   // chaining order is applied to methods with DEFINE_MANY policy, whether
   // mixins are listed before or after these methods in the spec.
   if (spec.hasOwnProperty(MIXINS_KEY)) {
     RESERVED_SPEC_KEYS.mixins(Constructor, spec.mixins);
   }
+
   for (var name in spec) {
     if (!spec.hasOwnProperty(name)) {
       continue;
     }
+
     if (name === MIXINS_KEY) {
       // We have already handled mixins in a special case above
       continue;
     }
+
     var property = spec[name];
     validateMethodOverride(proto, name);
+
     if (RESERVED_SPEC_KEYS.hasOwnProperty(name)) {
       RESERVED_SPEC_KEYS[name](Constructor, property);
     } else {
@@ -9435,6 +10919,7 @@ function mixSpecIntoComponent(Constructor, spec) {
         !isCompositeComponentMethod &&
         !isAlreadyDefined &&
         !markedDontBind;
+
       if (shouldAutoBind) {
         if (!proto.__reactAutoBindMap) {
           proto.__reactAutoBindMap = {};
@@ -9444,6 +10929,7 @@ function mixSpecIntoComponent(Constructor, spec) {
       } else {
         if (isAlreadyDefined) {
           var specPolicy = ReactCompositeComponentInterface[name];
+
           // These cases should already be caught by validateMethodOverride
           ("production" !== process.env.NODE_ENV ? invariant(
             isCompositeComponentMethod && (
@@ -9458,6 +10944,7 @@ function mixSpecIntoComponent(Constructor, spec) {
             specPolicy === SpecPolicy.DEFINE_MANY_MERGED ||
             specPolicy === SpecPolicy.DEFINE_MANY
           )));
+
           // For methods which are defined more than once, call the existing
           // methods before calling the new property, merging if appropriate.
           if (specPolicy === SpecPolicy.DEFINE_MANY_MERGED) {
@@ -9479,6 +10966,7 @@ function mixSpecIntoComponent(Constructor, spec) {
     }
   }
 }
+
 function mixStaticSpecIntoComponent(Constructor, statics) {
   if (!statics) {
     return;
@@ -9488,6 +10976,7 @@ function mixStaticSpecIntoComponent(Constructor, statics) {
     if (!statics.hasOwnProperty(name)) {
       continue;
     }
+
     var isReserved = name in RESERVED_SPEC_KEYS;
     ("production" !== process.env.NODE_ENV ? invariant(
       !isReserved,
@@ -9497,6 +10986,7 @@ function mixStaticSpecIntoComponent(Constructor, statics) {
       'constructor.',
       name
     ) : invariant(!isReserved));
+
     var isInherited = name in Constructor;
     ("production" !== process.env.NODE_ENV ? invariant(
       !isInherited,
@@ -9508,6 +10998,7 @@ function mixStaticSpecIntoComponent(Constructor, statics) {
     Constructor[name] = property;
   }
 }
+
 /**
  * Merge two objects, but throw if both contain the same key.
  *
@@ -9520,6 +11011,7 @@ function mergeObjectsWithNoDuplicateKeys(one, two) {
     one && two && typeof one === 'object' && typeof two === 'object',
     'mergeObjectsWithNoDuplicateKeys(): Cannot merge non-objects'
   ) : invariant(one && two && typeof one === 'object' && typeof two === 'object'));
+
   mapObject(two, function(value, key) {
     ("production" !== process.env.NODE_ENV ? invariant(
       one[key] === undefined,
@@ -9534,6 +11026,7 @@ function mergeObjectsWithNoDuplicateKeys(one, two) {
   });
   return one;
 }
+
 /**
  * Creates a function that invokes two functions and merges their return values.
  *
@@ -9554,6 +11047,7 @@ function createMergedResultFunction(one, two) {
     return mergeObjectsWithNoDuplicateKeys(a, b);
   };
 }
+
 /**
  * Creates a function that invokes two functions and ignores their return vales.
  *
@@ -9568,6 +11062,7 @@ function createChainedFunction(one, two) {
     two.apply(this, arguments);
   };
 }
+
 /**
  * `ReactCompositeComponent` maintains an auxiliary life cycle state in
  * `this._compositeLifeCycleState` (which can be null).
@@ -9611,10 +11106,12 @@ var CompositeLifeCycle = keyMirror({
    */
   RECEIVING_PROPS: null
 });
+
 /**
  * @lends {ReactCompositeComponent.prototype}
  */
 var ReactCompositeComponentMixin = {
+
   /**
    * Base constructor for all composite component.
    *
@@ -9626,13 +11123,17 @@ var ReactCompositeComponentMixin = {
     // Children can be either an array or more than one argument
     ReactComponent.Mixin.construct.apply(this, arguments);
     ReactOwner.Mixin.construct.apply(this, arguments);
+
     this.state = null;
     this._pendingState = null;
+
     // This is the public post-processed context. The real context and pending
     // context lives on the element.
     this.context = null;
+
     this._compositeLifeCycleState = null;
   },
+
   /**
    * Checks whether or not this composite component is mounted.
    * @return {boolean} True if mounted, false otherwise.
@@ -9643,6 +11144,7 @@ var ReactCompositeComponentMixin = {
     return ReactComponent.Mixin.isMounted.call(this) &&
       this._compositeLifeCycleState !== CompositeLifeCycle.MOUNTING;
   },
+
   /**
    * Initializes the component, renders markup, and registers event listeners.
    *
@@ -9664,19 +11166,24 @@ var ReactCompositeComponentMixin = {
         mountDepth
       );
       this._compositeLifeCycleState = CompositeLifeCycle.MOUNTING;
+
       if (this.__reactAutoBindMap) {
         this._bindAutoBindMethods();
       }
+
       this.context = this._processContext(this._currentElement._context);
       this.props = this._processProps(this.props);
+
       this.state = this.getInitialState ? this.getInitialState() : null;
       ("production" !== process.env.NODE_ENV ? invariant(
         typeof this.state === 'object' && !Array.isArray(this.state),
         '%s.getInitialState(): must return an object or null',
         this.constructor.displayName || 'ReactCompositeComponent'
       ) : invariant(typeof this.state === 'object' && !Array.isArray(this.state)));
+
       this._pendingState = null;
       this._pendingForceUpdate = false;
+
       if (this.componentWillMount) {
         this.componentWillMount();
         // When mounting, calls to `setState` by `componentWillMount` will set
@@ -9686,10 +11193,12 @@ var ReactCompositeComponentMixin = {
           this._pendingState = null;
         }
       }
+
       this._renderedComponent = instantiateReactComponent(
         this._renderValidatedComponent(),
         this._currentElement.type // The wrapping type
       );
+
       // Done with mounting, `setState` will now trigger UI changes.
       this._compositeLifeCycleState = null;
       var markup = this._renderedComponent.mountComponent(
@@ -9703,6 +11212,7 @@ var ReactCompositeComponentMixin = {
       return markup;
     }
   ),
+
   /**
    * Releases any resources allocated by `mountComponent`.
    *
@@ -9715,14 +11225,18 @@ var ReactCompositeComponentMixin = {
       this.componentWillUnmount();
     }
     this._compositeLifeCycleState = null;
+
     this._renderedComponent.unmountComponent();
     this._renderedComponent = null;
+
     ReactComponent.Mixin.unmountComponent.call(this);
+
     // Some existing components rely on this.props even after they've been
     // destroyed (in event handlers).
     // TODO: this.props = null;
     // TODO: this.state = null;
   },
+
   /**
    * Sets a subset of the state. Always use this or `replaceState` to mutate
    * state. You should treat `this.state` as immutable.
@@ -9758,6 +11272,7 @@ var ReactCompositeComponentMixin = {
       callback
     );
   },
+
   /**
    * Replaces all of the state. Always use this or `setState` to mutate state.
    * You should treat `this.state` as immutable.
@@ -9783,6 +11298,7 @@ var ReactCompositeComponentMixin = {
       ReactUpdates.enqueueUpdate(this, callback);
     }
   },
+
   /**
    * Filters the context object to only contain keys specified in
    * `contextTypes`, and asserts that they are valid.
@@ -9809,6 +11325,7 @@ var ReactCompositeComponentMixin = {
     }
     return maskedContext;
   },
+
   /**
    * @param {object} currentContext
    * @return {object}
@@ -9843,6 +11360,7 @@ var ReactCompositeComponentMixin = {
     }
     return currentContext;
   },
+
   /**
    * Processes props by setting default values for unspecified props and
    * asserting that the props are valid. Does not mutate its argument; returns
@@ -9861,6 +11379,7 @@ var ReactCompositeComponentMixin = {
     }
     return newProps;
   },
+
   /**
    * Assert that the props are valid
    *
@@ -9887,6 +11406,7 @@ var ReactCompositeComponentMixin = {
       }
     }
   },
+
   /**
    * If any of `_pendingElement`, `_pendingState`, or `_pendingForceUpdate`
    * is set, update the component.
@@ -9902,11 +11422,13 @@ var ReactCompositeComponentMixin = {
         compositeLifeCycleState === CompositeLifeCycle.RECEIVING_PROPS) {
       return;
     }
+
     if (this._pendingElement == null &&
         this._pendingState == null &&
         !this._pendingForceUpdate) {
       return;
     }
+
     var nextContext = this.context;
     var nextProps = this.props;
     var nextElement = this._currentElement;
@@ -9915,18 +11437,23 @@ var ReactCompositeComponentMixin = {
       nextContext = this._processContext(nextElement._context);
       nextProps = this._processProps(nextElement.props);
       this._pendingElement = null;
+
       this._compositeLifeCycleState = CompositeLifeCycle.RECEIVING_PROPS;
       if (this.componentWillReceiveProps) {
         this.componentWillReceiveProps(nextProps, nextContext);
       }
     }
+
     this._compositeLifeCycleState = null;
+
     var nextState = this._pendingState || this.state;
     this._pendingState = null;
+
     var shouldUpdate =
       this._pendingForceUpdate ||
       !this.shouldComponentUpdate ||
       this.shouldComponentUpdate(nextProps, nextState, nextContext);
+
     if ("production" !== process.env.NODE_ENV) {
       if (typeof shouldUpdate === "undefined") {
         console.warn(
@@ -9936,6 +11463,7 @@ var ReactCompositeComponentMixin = {
         );
       }
     }
+
     if (shouldUpdate) {
       this._pendingForceUpdate = false;
       // Will set `this.props`, `this.state` and `this.context`.
@@ -9953,11 +11481,13 @@ var ReactCompositeComponentMixin = {
       this.props = nextProps;
       this.state = nextState;
       this.context = nextContext;
+
       // Owner cannot change because shouldUpdateReactComponent doesn't allow
       // it. TODO: Remove this._owner completely.
       this._owner = nextElement._owner;
     }
   },
+
   /**
    * Merges new props and state, notifies delegate methods of update and
    * performs update.
@@ -9980,20 +11510,25 @@ var ReactCompositeComponentMixin = {
     var prevProps = this.props;
     var prevState = this.state;
     var prevContext = this.context;
+
     if (this.componentWillUpdate) {
       this.componentWillUpdate(nextProps, nextState, nextContext);
     }
+
     this._currentElement = nextElement;
     this.props = nextProps;
     this.state = nextState;
     this.context = nextContext;
+
     // Owner cannot change because shouldUpdateReactComponent doesn't allow
     // it. TODO: Remove this._owner completely.
     this._owner = nextElement._owner;
+
     this.updateComponent(
       transaction,
       prevElement
     );
+
     if (this.componentDidUpdate) {
       transaction.getReactMountReady().enqueue(
         this.componentDidUpdate.bind(this, prevProps, prevState, prevContext),
@@ -10001,6 +11536,7 @@ var ReactCompositeComponentMixin = {
       );
     }
   },
+
   receiveComponent: function(nextElement, transaction) {
     if (nextElement === this._currentElement &&
         nextElement._owner != null) {
@@ -10013,12 +11549,14 @@ var ReactCompositeComponentMixin = {
       // deeply mutated and reused.
       return;
     }
+
     ReactComponent.Mixin.receiveComponent.call(
       this,
       nextElement,
       transaction
     );
   },
+
   /**
    * Updates the component's currently mounted DOM representation.
    *
@@ -10039,6 +11577,7 @@ var ReactCompositeComponentMixin = {
         transaction,
         prevParentElement
       );
+
       var prevComponentInstance = this._renderedComponent;
       var prevElement = prevComponentInstance._currentElement;
       var nextElement = this._renderValidatedComponent();
@@ -10065,6 +11604,7 @@ var ReactCompositeComponentMixin = {
       }
     }
   ),
+
   /**
    * Forces an update. This should only be invoked when it is known with
    * certainty that we are **not** in a DOM transaction.
@@ -10098,6 +11638,7 @@ var ReactCompositeComponentMixin = {
     this._pendingForceUpdate = true;
     ReactUpdates.enqueueUpdate(this, callback);
   },
+
   /**
    * @private
    */
@@ -10132,6 +11673,7 @@ var ReactCompositeComponentMixin = {
       return renderedComponent;
     }
   ),
+
   /**
    * @private
    */
@@ -10147,6 +11689,7 @@ var ReactCompositeComponentMixin = {
       ));
     }
   },
+
   /**
    * Binds a method to the component.
    *
@@ -10191,6 +11734,7 @@ var ReactCompositeComponentMixin = {
     return boundMethod;
   }
 };
+
 var ReactCompositeComponentBase = function() {};
 assign(
   ReactCompositeComponentBase.prototype,
@@ -10199,6 +11743,7 @@ assign(
   ReactPropTransferer.Mixin,
   ReactCompositeComponentMixin
 );
+
 /**
  * Module for creating composite components.
  *
@@ -10208,8 +11753,11 @@ assign(
  * @extends ReactPropTransferer
  */
 var ReactCompositeComponent = {
+
   LifeCycle: CompositeLifeCycle,
+
   Base: ReactCompositeComponentBase,
+
   /**
    * Creates a composite component class given a class specification.
    *
@@ -10225,18 +11773,23 @@ var ReactCompositeComponent = {
     };
     Constructor.prototype = new ReactCompositeComponentBase();
     Constructor.prototype.constructor = Constructor;
+
     injectedMixins.forEach(
       mixSpecIntoComponent.bind(null, Constructor)
     );
+
     mixSpecIntoComponent(Constructor, spec);
+
     // Initialize the defaultProps property after all mixins have been merged
     if (Constructor.getDefaultProps) {
       Constructor.defaultProps = Constructor.getDefaultProps();
     }
+
     ("production" !== process.env.NODE_ENV ? invariant(
       Constructor.prototype.render,
       'createClass(...): Class specification must implement a `render` method.'
     ) : invariant(Constructor.prototype.render));
+
     if ("production" !== process.env.NODE_ENV) {
       if (Constructor.prototype.componentShouldUpdate) {
         monitorCodeUse(
@@ -10251,12 +11804,14 @@ var ReactCompositeComponent = {
          );
       }
     }
+
     // Reduce time spent doing lookups by setting these on the prototype.
     for (var methodName in ReactCompositeComponentInterface) {
       if (!Constructor.prototype[methodName]) {
         Constructor.prototype[methodName] = null;
       }
     }
+
     if ("production" !== process.env.NODE_ENV) {
       return ReactLegacyElement.wrapFactory(
         ReactElementValidator.createFactory(Constructor)
@@ -10266,13 +11821,16 @@ var ReactCompositeComponent = {
       ReactElement.createFactory(Constructor)
     );
   },
+
   injection: {
     injectMixin: function(mixin) {
       injectedMixins.push(mixin);
     }
   }
 };
+
 module.exports = ReactCompositeComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./ReactComponent":35,"./ReactContext":38,"./ReactCurrentOwner":39,"./ReactElement":55,"./ReactElementValidator":56,"./ReactEmptyComponent":57,"./ReactErrorUtils":58,"./ReactLegacyElement":64,"./ReactOwner":70,"./ReactPerf":71,"./ReactPropTransferer":72,"./ReactPropTypeLocationNames":73,"./ReactPropTypeLocations":74,"./ReactUpdates":82,"./instantiateReactComponent":128,"./invariant":129,"./keyMirror":135,"./keyOf":136,"./mapObject":137,"./monitorCodeUse":139,"./shouldUpdateReactComponent":145,"./warning":148,"JkpR2F":3}],38:[function(require,module,exports){
 /**
@@ -10285,8 +11843,11 @@ module.exports = ReactCompositeComponent;
  *
  * @providesModule ReactContext
  */
+
 "use strict";
+
 var assign = require("./Object.assign");
+
 /**
  * Keeps track of the current context.
  *
@@ -10294,11 +11855,13 @@ var assign = require("./Object.assign");
  * and is accessible via `this.context` on ReactCompositeComponents.
  */
 var ReactContext = {
+
   /**
    * @internal
    * @type {object}
    */
   current: {},
+
   /**
    * Temporarily extends the current context while executing scopedCallback.
    *
@@ -10326,8 +11889,11 @@ var ReactContext = {
     }
     return result;
   }
+
 };
+
 module.exports = ReactContext;
+
 },{"./Object.assign":29}],39:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -10339,7 +11905,9 @@ module.exports = ReactContext;
  *
  * @providesModule ReactCurrentOwner
  */
+
 "use strict";
+
 /**
  * Keeps track of the current owner.
  *
@@ -10349,13 +11917,17 @@ module.exports = ReactContext;
  * The depth indicate how many composite components are above this render level.
  */
 var ReactCurrentOwner = {
+
   /**
    * @internal
    * @type {ReactComponent}
    */
   current: null
+
 };
+
 module.exports = ReactCurrentOwner;
+
 },{}],40:[function(require,module,exports){
 (function (process){
 /**
@@ -10369,11 +11941,15 @@ module.exports = ReactCurrentOwner;
  * @providesModule ReactDOM
  * @typechecks static-only
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactElementValidator = require("./ReactElementValidator");
 var ReactLegacyElement = require("./ReactLegacyElement");
+
 var mapObject = require("./mapObject");
+
 /**
  * Create a factory that creates HTML tag elements.
  *
@@ -10390,6 +11966,7 @@ function createDOMFactory(tag) {
     ReactElement.createFactory(tag)
   );
 }
+
 /**
  * Creates a mapping from supported HTML tags to `ReactDOMComponent` classes.
  * This is also accessible via `React.DOM`.
@@ -10509,6 +12086,7 @@ var ReactDOM = mapObject({
   'var': 'var',
   video: 'video',
   wbr: 'wbr',
+
   // SVG
   circle: 'circle',
   defs: 'defs',
@@ -10527,8 +12105,11 @@ var ReactDOM = mapObject({
   svg: 'svg',
   text: 'text',
   tspan: 'tspan'
+
 }, createDOMFactory);
+
 module.exports = ReactDOM;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./ReactElementValidator":56,"./ReactLegacyElement":64,"./mapObject":137,"JkpR2F":3}],41:[function(require,module,exports){
 /**
@@ -10541,15 +12122,20 @@ module.exports = ReactDOM;
  *
  * @providesModule ReactDOMButton
  */
+
 "use strict";
+
 var AutoFocusMixin = require("./AutoFocusMixin");
 var ReactBrowserComponentMixin = require("./ReactBrowserComponentMixin");
 var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
+
 var keyMirror = require("./keyMirror");
+
 // Store a reference to the <button> `ReactDOMComponent`. TODO: use string
 var button = ReactElement.createFactory(ReactDOM.button.type);
+
 var mouseListenerNames = keyMirror({
   onClick: true,
   onDoubleClick: true,
@@ -10562,15 +12148,19 @@ var mouseListenerNames = keyMirror({
   onMouseMoveCapture: true,
   onMouseUpCapture: true
 });
+
 /**
  * Implements a <button> native component that does not receive mouse events
  * when `disabled` is set.
  */
 var ReactDOMButton = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMButton',
+
   mixins: [AutoFocusMixin, ReactBrowserComponentMixin],
+
   render: function() {
     var props = {};
+
     // Copy the props; except the mouse listeners if we're disabled
     for (var key in this.props) {
       if (this.props.hasOwnProperty(key) &&
@@ -10578,10 +12168,14 @@ var ReactDOMButton = ReactCompositeComponent.createClass({
         props[key] = this.props[key];
       }
     }
+
     return button(props, this.props.children);
   }
+
 });
+
 module.exports = ReactDOMButton;
+
 },{"./AutoFocusMixin":4,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55,"./keyMirror":135}],42:[function(require,module,exports){
 (function (process){
 /**
@@ -10595,7 +12189,9 @@ module.exports = ReactDOMButton;
  * @providesModule ReactDOMComponent
  * @typechecks static-only
  */
+
 "use strict";
+
 var CSSPropertyOperations = require("./CSSPropertyOperations");
 var DOMProperty = require("./DOMProperty");
 var DOMPropertyOperations = require("./DOMPropertyOperations");
@@ -10605,19 +12201,25 @@ var ReactBrowserEventEmitter = require("./ReactBrowserEventEmitter");
 var ReactMount = require("./ReactMount");
 var ReactMultiChild = require("./ReactMultiChild");
 var ReactPerf = require("./ReactPerf");
+
 var assign = require("./Object.assign");
 var escapeTextForBrowser = require("./escapeTextForBrowser");
 var invariant = require("./invariant");
 var isEventSupported = require("./isEventSupported");
 var keyOf = require("./keyOf");
 var monitorCodeUse = require("./monitorCodeUse");
+
 var deleteListener = ReactBrowserEventEmitter.deleteListener;
 var listenTo = ReactBrowserEventEmitter.listenTo;
 var registrationNameModules = ReactBrowserEventEmitter.registrationNameModules;
+
 // For quickly matching children type, to test if can be treated as content.
 var CONTENT_TYPES = {'string': true, 'number': true};
+
 var STYLE = keyOf({style: null});
+
 var ELEMENT_NODE_TYPE = 1;
+
 /**
  * @param {?object} props
  */
@@ -10646,6 +12248,7 @@ function assertValidProps(props) {
     'not a string.'
   ) : invariant(props.style == null || typeof props.style === 'object'));
 }
+
 function putListener(id, registrationName, listener, transaction) {
   if ("production" !== process.env.NODE_ENV) {
     // IE8 has no API for event capturing and the `onScroll` event doesn't
@@ -10669,8 +12272,10 @@ function putListener(id, registrationName, listener, transaction) {
     listener
   );
 }
+
 // For HTML, certain tags should omit their close tag. We keep a whitelist for
 // those special cased tags.
+
 var omittedCloseTags = {
   'area': true,
   'base': true,
@@ -10689,18 +12294,22 @@ var omittedCloseTags = {
   'wbr': true
   // NOTE: menuitem's close tag should be omitted, but that causes problems.
 };
+
 // We accept any tag to be rendered but since this gets injected into abitrary
 // HTML, we want to make sure that it's a safe tag.
 // http://www.w3.org/TR/REC-xml/#NT-Name
+
 var VALID_TAG_REGEX = /^[a-zA-Z][a-zA-Z:_\.\-\d]*$/; // Simplified subset
 var validatedTagCache = {};
 var hasOwnProperty = {}.hasOwnProperty;
+
 function validateDangerousTag(tag) {
   if (!hasOwnProperty.call(validatedTagCache, tag)) {
     ("production" !== process.env.NODE_ENV ? invariant(VALID_TAG_REGEX.test(tag), 'Invalid tag: %s', tag) : invariant(VALID_TAG_REGEX.test(tag)));
     validatedTagCache[tag] = true;
   }
 }
+
 /**
  * Creates a new React class that is idempotent and capable of containing other
  * React components. It accepts event listeners and DOM properties that are
@@ -10721,8 +12330,11 @@ function ReactDOMComponent(tag) {
   this._tag = tag;
   this.tagName = tag.toUpperCase();
 }
+
 ReactDOMComponent.displayName = 'ReactDOMComponent';
+
 ReactDOMComponent.Mixin = {
+
   /**
    * Generates root tag markup then recurses. This method has side effects and
    * is not idempotent.
@@ -10752,6 +12364,7 @@ ReactDOMComponent.Mixin = {
       );
     }
   ),
+
   /**
    * Creates markup for the open tag and all attributes.
    *
@@ -10767,6 +12380,7 @@ ReactDOMComponent.Mixin = {
   _createOpenTagMarkupAndPutListeners: function(transaction) {
     var props = this.props;
     var ret = '<' + this._tag;
+
     for (var propKey in props) {
       if (!props.hasOwnProperty(propKey)) {
         continue;
@@ -10791,14 +12405,17 @@ ReactDOMComponent.Mixin = {
         }
       }
     }
+
     // For static pages, no need to put React ID and checksum. Saves lots of
     // bytes.
     if (transaction.renderToStaticMarkup) {
       return ret + '>';
     }
+
     var markupForID = DOMPropertyOperations.createMarkupForID(this._rootNodeID);
     return ret + ' ' + markupForID + '>';
   },
+
   /**
    * Creates markup for the content between the tags.
    *
@@ -10829,6 +12446,7 @@ ReactDOMComponent.Mixin = {
     }
     return '';
   },
+
   receiveComponent: function(nextElement, transaction) {
     if (nextElement === this._currentElement &&
         nextElement._owner != null) {
@@ -10841,12 +12459,14 @@ ReactDOMComponent.Mixin = {
       // deeply mutated and reused.
       return;
     }
+
     ReactComponent.Mixin.receiveComponent.call(
       this,
       nextElement,
       transaction
     );
   },
+
   /**
    * Updates a native DOM component after it has already been allocated and
    * attached to the DOM. Reconciles the root DOM node, then recurses.
@@ -10870,6 +12490,7 @@ ReactDOMComponent.Mixin = {
       this._updateDOMChildren(prevElement.props, transaction);
     }
   ),
+
   /**
    * Reconciles the properties by detecting differences in property values and
    * updating the DOM as necessary. This function is probably the single most
@@ -10964,6 +12585,7 @@ ReactDOMComponent.Mixin = {
       );
     }
   },
+
   /**
    * Reconciles the children with the various properties that affect the
    * children content.
@@ -10973,19 +12595,23 @@ ReactDOMComponent.Mixin = {
    */
   _updateDOMChildren: function(lastProps, transaction) {
     var nextProps = this.props;
+
     var lastContent =
       CONTENT_TYPES[typeof lastProps.children] ? lastProps.children : null;
     var nextContent =
       CONTENT_TYPES[typeof nextProps.children] ? nextProps.children : null;
+
     var lastHtml =
       lastProps.dangerouslySetInnerHTML &&
       lastProps.dangerouslySetInnerHTML.__html;
     var nextHtml =
       nextProps.dangerouslySetInnerHTML &&
       nextProps.dangerouslySetInnerHTML.__html;
+
     // Note the use of `!=` which checks for null or undefined.
     var lastChildren = lastContent != null ? null : lastProps.children;
     var nextChildren = nextContent != null ? null : nextProps.children;
+
     // If we're switching from children to content/html or vice versa, remove
     // the old content
     var lastHasContentOrHtml = lastContent != null || lastHtml != null;
@@ -10995,6 +12621,7 @@ ReactDOMComponent.Mixin = {
     } else if (lastHasContentOrHtml && !nextHasContentOrHtml) {
       this.updateTextContent('');
     }
+
     if (nextContent != null) {
       if (lastContent !== nextContent) {
         this.updateTextContent('' + nextContent);
@@ -11010,6 +12637,7 @@ ReactDOMComponent.Mixin = {
       this.updateChildren(nextChildren, transaction);
     }
   },
+
   /**
    * Destroys all event registrations for this instance. Does not remove from
    * the DOM. That must be done by the parent.
@@ -11021,7 +12649,9 @@ ReactDOMComponent.Mixin = {
     ReactBrowserEventEmitter.deleteAllListeners(this._rootNodeID);
     ReactComponent.Mixin.unmountComponent.call(this);
   }
+
 };
+
 assign(
   ReactDOMComponent.prototype,
   ReactComponent.Mixin,
@@ -11029,7 +12659,9 @@ assign(
   ReactMultiChild.Mixin,
   ReactBrowserComponentMixin
 );
+
 module.exports = ReactDOMComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./CSSPropertyOperations":7,"./DOMProperty":13,"./DOMPropertyOperations":14,"./Object.assign":29,"./ReactBrowserComponentMixin":32,"./ReactBrowserEventEmitter":33,"./ReactComponent":35,"./ReactMount":66,"./ReactMultiChild":67,"./ReactPerf":71,"./escapeTextForBrowser":112,"./invariant":129,"./isEventSupported":130,"./keyOf":136,"./monitorCodeUse":139,"JkpR2F":3}],43:[function(require,module,exports){
 /**
@@ -11042,15 +12674,19 @@ module.exports = ReactDOMComponent;
  *
  * @providesModule ReactDOMForm
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var LocalEventTrapMixin = require("./LocalEventTrapMixin");
 var ReactBrowserComponentMixin = require("./ReactBrowserComponentMixin");
 var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
+
 // Store a reference to the <form> `ReactDOMComponent`. TODO: use string
 var form = ReactElement.createFactory(ReactDOM.form.type);
+
 /**
  * Since onSubmit doesn't bubble OR capture on the top level in IE8, we need
  * to capture it on the <form> element itself. There are lots of hacks we could
@@ -11059,19 +12695,24 @@ var form = ReactElement.createFactory(ReactDOM.form.type);
  */
 var ReactDOMForm = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMForm',
+
   mixins: [ReactBrowserComponentMixin, LocalEventTrapMixin],
+
   render: function() {
     // TODO: Instead of using `ReactDOM` directly, we should use JSX. However,
     // `jshint` fails to parse JSX so in order for linting to work in the open
     // source repo, we need to just use `ReactDOM.form`.
     return form(this.props);
   },
+
   componentDidMount: function() {
     this.trapBubbledEvent(EventConstants.topLevelTypes.topReset, 'reset');
     this.trapBubbledEvent(EventConstants.topLevelTypes.topSubmit, 'submit');
   }
 });
+
 module.exports = ReactDOMForm;
+
 },{"./EventConstants":18,"./LocalEventTrapMixin":27,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55}],44:[function(require,module,exports){
 (function (process){
 /**
@@ -11085,15 +12726,20 @@ module.exports = ReactDOMForm;
  * @providesModule ReactDOMIDOperations
  * @typechecks static-only
  */
+
 /*jslint evil: true */
+
 "use strict";
+
 var CSSPropertyOperations = require("./CSSPropertyOperations");
 var DOMChildrenOperations = require("./DOMChildrenOperations");
 var DOMPropertyOperations = require("./DOMPropertyOperations");
 var ReactMount = require("./ReactMount");
 var ReactPerf = require("./ReactPerf");
+
 var invariant = require("./invariant");
 var setInnerHTML = require("./setInnerHTML");
+
 /**
  * Errors for properties that should not be updated with `updatePropertyById()`.
  *
@@ -11105,11 +12751,13 @@ var INVALID_PROPERTY_ERRORS = {
     '`dangerouslySetInnerHTML` must be set using `updateInnerHTMLByID()`.',
   style: '`style` must be set using `updateStylesByID()`.'
 };
+
 /**
  * Operations used to process updates to DOM nodes. This is made injectable via
  * `ReactComponent.BackendIDOperations`.
  */
 var ReactDOMIDOperations = {
+
   /**
    * Updates a DOM node with new property values. This should only be used to
    * update DOM properties in `DOMProperty`.
@@ -11129,6 +12777,7 @@ var ReactDOMIDOperations = {
         'updatePropertyByID(...): %s',
         INVALID_PROPERTY_ERRORS[name]
       ) : invariant(!INVALID_PROPERTY_ERRORS.hasOwnProperty(name)));
+
       // If we're updating to null or undefined, we should remove the property
       // from the DOM node instead of inadvertantly setting to a string. This
       // brings us in line with the same behavior we have on initial render.
@@ -11139,6 +12788,7 @@ var ReactDOMIDOperations = {
       }
     }
   ),
+
   /**
    * Updates a DOM node to remove a property. This should only be used to remove
    * DOM properties in `DOMProperty`.
@@ -11160,6 +12810,7 @@ var ReactDOMIDOperations = {
       DOMPropertyOperations.deleteValueForProperty(node, name, value);
     }
   ),
+
   /**
    * Updates a DOM node with new style values. If a value is specified as '',
    * the corresponding style property will be unset.
@@ -11176,6 +12827,7 @@ var ReactDOMIDOperations = {
       CSSPropertyOperations.setValueForStyles(node, styles);
     }
   ),
+
   /**
    * Updates a DOM node's innerHTML.
    *
@@ -11191,6 +12843,7 @@ var ReactDOMIDOperations = {
       setInnerHTML(node, html);
     }
   ),
+
   /**
    * Updates a DOM node's text content set by `props.content`.
    *
@@ -11206,6 +12859,7 @@ var ReactDOMIDOperations = {
       DOMChildrenOperations.updateTextContent(node, content);
     }
   ),
+
   /**
    * Replaces a DOM node that exists in the document with markup.
    *
@@ -11222,6 +12876,7 @@ var ReactDOMIDOperations = {
       DOMChildrenOperations.dangerouslyReplaceNodeWithMarkup(node, markup);
     }
   ),
+
   /**
    * Updates a component's children by processing a series of updates.
    *
@@ -11240,7 +12895,9 @@ var ReactDOMIDOperations = {
     }
   )
 };
+
 module.exports = ReactDOMIDOperations;
+
 }).call(this,require("JkpR2F"))
 },{"./CSSPropertyOperations":7,"./DOMChildrenOperations":12,"./DOMPropertyOperations":14,"./ReactMount":66,"./ReactPerf":71,"./invariant":129,"./setInnerHTML":143,"JkpR2F":3}],45:[function(require,module,exports){
 /**
@@ -11253,15 +12910,19 @@ module.exports = ReactDOMIDOperations;
  *
  * @providesModule ReactDOMImg
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var LocalEventTrapMixin = require("./LocalEventTrapMixin");
 var ReactBrowserComponentMixin = require("./ReactBrowserComponentMixin");
 var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
+
 // Store a reference to the <img> `ReactDOMComponent`. TODO: use string
 var img = ReactElement.createFactory(ReactDOM.img.type);
+
 /**
  * Since onLoad doesn't bubble OR capture on the top level in IE8, we need to
  * capture it on the <img> element itself. There are lots of hacks we could do
@@ -11271,16 +12932,21 @@ var img = ReactElement.createFactory(ReactDOM.img.type);
 var ReactDOMImg = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMImg',
   tagName: 'IMG',
+
   mixins: [ReactBrowserComponentMixin, LocalEventTrapMixin],
+
   render: function() {
     return img(this.props);
   },
+
   componentDidMount: function() {
     this.trapBubbledEvent(EventConstants.topLevelTypes.topLoad, 'load');
     this.trapBubbledEvent(EventConstants.topLevelTypes.topError, 'error');
   }
 });
+
 module.exports = ReactDOMImg;
+
 },{"./EventConstants":18,"./LocalEventTrapMixin":27,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55}],46:[function(require,module,exports){
 (function (process){
 /**
@@ -11293,7 +12959,9 @@ module.exports = ReactDOMImg;
  *
  * @providesModule ReactDOMInput
  */
+
 "use strict";
+
 var AutoFocusMixin = require("./AutoFocusMixin");
 var DOMPropertyOperations = require("./DOMPropertyOperations");
 var LinkedValueUtils = require("./LinkedValueUtils");
@@ -11303,17 +12971,22 @@ var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
 var ReactMount = require("./ReactMount");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
+
 // Store a reference to the <input> `ReactDOMComponent`. TODO: use string
 var input = ReactElement.createFactory(ReactDOM.input.type);
+
 var instancesByReactID = {};
+
 function forceUpdateIfMounted() {
   /*jshint validthis:true */
   if (this.isMounted()) {
     this.forceUpdate();
   }
 }
+
 /**
  * Implements an <input> native component that allows setting these optional
  * props: `checked`, `value`, `defaultChecked`, and `defaultValue`.
@@ -11332,7 +13005,9 @@ function forceUpdateIfMounted() {
  */
 var ReactDOMInput = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMInput',
+
   mixins: [AutoFocusMixin, LinkedValueUtils.Mixin, ReactBrowserComponentMixin],
+
   getInitialState: function() {
     var defaultValue = this.props.defaultValue;
     return {
@@ -11340,27 +13015,36 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
       initialValue: defaultValue != null ? defaultValue : null
     };
   },
+
   render: function() {
     // Clone `this.props` so we don't mutate the input.
     var props = assign({}, this.props);
+
     props.defaultChecked = null;
     props.defaultValue = null;
+
     var value = LinkedValueUtils.getValue(this);
     props.value = value != null ? value : this.state.initialValue;
+
     var checked = LinkedValueUtils.getChecked(this);
     props.checked = checked != null ? checked : this.state.initialChecked;
+
     props.onChange = this._handleChange;
+
     return input(props, this.props.children);
   },
+
   componentDidMount: function() {
     var id = ReactMount.getID(this.getDOMNode());
     instancesByReactID[id] = this;
   },
+
   componentWillUnmount: function() {
     var rootNode = this.getDOMNode();
     var id = ReactMount.getID(rootNode);
     delete instancesByReactID[id];
   },
+
   componentDidUpdate: function(prevProps, prevState, prevContext) {
     var rootNode = this.getDOMNode();
     if (this.props.checked != null) {
@@ -11370,6 +13054,7 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
         this.props.checked || false
       );
     }
+
     var value = LinkedValueUtils.getValue(this);
     if (value != null) {
       // Cast `value` to a string to ensure the value is set correctly. While
@@ -11377,6 +13062,7 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
       DOMPropertyOperations.setValueForProperty(rootNode, 'value', '' + value);
     }
   },
+
   _handleChange: function(event) {
     var returnValue;
     var onChange = LinkedValueUtils.getOnChange(this);
@@ -11387,13 +13073,16 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
     // is important when using controlled components within layers:
     // https://github.com/facebook/react/issues/1698
     ReactUpdates.asap(forceUpdateIfMounted, this);
+
     var name = this.props.name;
     if (this.props.type === 'radio' && name != null) {
       var rootNode = this.getDOMNode();
       var queryRoot = rootNode;
+
       while (queryRoot.parentNode) {
         queryRoot = queryRoot.parentNode;
       }
+
       // If `rootNode.form` was non-null, then we could try `form.elements`,
       // but that sometimes behaves strangely in IE8. We could also try using
       // `form.getElementsByName`, but that will only return direct children
@@ -11402,6 +13091,7 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
       // `querySelectorAll` to ensure we don't miss anything.
       var group = queryRoot.querySelectorAll(
         'input[name=' + JSON.stringify('' + name) + '][type="radio"]');
+
       for (var i = 0, groupLen = group.length; i < groupLen; i++) {
         var otherNode = group[i];
         if (otherNode === rootNode ||
@@ -11426,10 +13116,14 @@ var ReactDOMInput = ReactCompositeComponent.createClass({
         ReactUpdates.asap(forceUpdateIfMounted, otherInstance);
       }
     }
+
     return returnValue;
   }
+
 });
+
 module.exports = ReactDOMInput;
+
 }).call(this,require("JkpR2F"))
 },{"./AutoFocusMixin":4,"./DOMPropertyOperations":14,"./LinkedValueUtils":26,"./Object.assign":29,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55,"./ReactMount":66,"./ReactUpdates":82,"./invariant":129,"JkpR2F":3}],47:[function(require,module,exports){
 (function (process){
@@ -11443,20 +13137,27 @@ module.exports = ReactDOMInput;
  *
  * @providesModule ReactDOMOption
  */
+
 "use strict";
+
 var ReactBrowserComponentMixin = require("./ReactBrowserComponentMixin");
 var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
+
 var warning = require("./warning");
+
 // Store a reference to the <option> `ReactDOMComponent`. TODO: use string
 var option = ReactElement.createFactory(ReactDOM.option.type);
+
 /**
  * Implements an <option> native component that warns when `selected` is set.
  */
 var ReactDOMOption = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMOption',
+
   mixins: [ReactBrowserComponentMixin],
+
   componentWillMount: function() {
     // TODO (yungsters): Remove support for `selected` in <option>.
     if ("production" !== process.env.NODE_ENV) {
@@ -11467,11 +13168,15 @@ var ReactDOMOption = ReactCompositeComponent.createClass({
       ) : null);
     }
   },
+
   render: function() {
     return option(this.props, this.props.children);
   }
+
 });
+
 module.exports = ReactDOMOption;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55,"./warning":148,"JkpR2F":3}],48:[function(require,module,exports){
 /**
@@ -11484,7 +13189,9 @@ module.exports = ReactDOMOption;
  *
  * @providesModule ReactDOMSelect
  */
+
 "use strict";
+
 var AutoFocusMixin = require("./AutoFocusMixin");
 var LinkedValueUtils = require("./LinkedValueUtils");
 var ReactBrowserComponentMixin = require("./ReactBrowserComponentMixin");
@@ -11492,9 +13199,12 @@ var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
+
 // Store a reference to the <select> `ReactDOMComponent`. TODO: use string
 var select = ReactElement.createFactory(ReactDOM.select.type);
+
 function updateWithPendingValueIfMounted() {
   /*jshint validthis:true */
   if (this.isMounted()) {
@@ -11502,6 +13212,7 @@ function updateWithPendingValueIfMounted() {
     this._pendingValue = 0;
   }
 }
+
 /**
  * Validation function for `value` and `defaultValue`.
  * @private
@@ -11526,6 +13237,7 @@ function selectValueType(props, propName, componentName) {
     }
   }
 }
+
 /**
  * If `value` is supplied, updates <option> elements on mount and update.
  * @param {ReactComponent} component Instance of ReactDOMSelect
@@ -11550,11 +13262,13 @@ function updateOptions(component, propValue) {
     var selected = multiple ?
       selectedValue.hasOwnProperty(options[i].value) :
       options[i].value === selectedValue;
+
     if (selected !== options[i].selected) {
       options[i].selected = selected;
     }
   }
 }
+
 /**
  * Implements a <select> native component that allows optionally setting the
  * props `value` and `defaultValue`. If `multiple` is false, the prop must be a
@@ -11572,17 +13286,22 @@ function updateOptions(component, propValue) {
  */
 var ReactDOMSelect = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMSelect',
+
   mixins: [AutoFocusMixin, LinkedValueUtils.Mixin, ReactBrowserComponentMixin],
+
   propTypes: {
     defaultValue: selectValueType,
     value: selectValueType
   },
+
   getInitialState: function() {
     return {value: this.props.defaultValue || (this.props.multiple ? [] : '')};
   },
+
   componentWillMount: function() {
     this._pendingValue = null;
   },
+
   componentWillReceiveProps: function(nextProps) {
     if (!this.props.multiple && nextProps.multiple) {
       this.setState({value: [this.state.value]});
@@ -11590,16 +13309,21 @@ var ReactDOMSelect = ReactCompositeComponent.createClass({
       this.setState({value: this.state.value[0]});
     }
   },
+
   render: function() {
     // Clone `this.props` so we don't mutate the input.
     var props = assign({}, this.props);
+
     props.onChange = this._handleChange;
     props.value = null;
+
     return select(props, this.props.children);
   },
+
   componentDidMount: function() {
     updateOptions(this, LinkedValueUtils.getValue(this));
   },
+
   componentDidUpdate: function(prevProps) {
     var value = LinkedValueUtils.getValue(this);
     var prevMultiple = !!prevProps.multiple;
@@ -11608,12 +13332,14 @@ var ReactDOMSelect = ReactCompositeComponent.createClass({
       updateOptions(this, value);
     }
   },
+
   _handleChange: function(event) {
     var returnValue;
     var onChange = LinkedValueUtils.getOnChange(this);
     if (onChange) {
       returnValue = onChange.call(this, event);
     }
+
     var selectedValue;
     if (this.props.multiple) {
       selectedValue = [];
@@ -11626,12 +13352,16 @@ var ReactDOMSelect = ReactCompositeComponent.createClass({
     } else {
       selectedValue = event.target.value;
     }
+
     this._pendingValue = selectedValue;
     ReactUpdates.asap(updateWithPendingValueIfMounted, this);
     return returnValue;
   }
+
 });
+
 module.exports = ReactDOMSelect;
+
 },{"./AutoFocusMixin":4,"./LinkedValueUtils":26,"./Object.assign":29,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55,"./ReactUpdates":82}],49:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -11643,10 +13373,14 @@ module.exports = ReactDOMSelect;
  *
  * @providesModule ReactDOMSelection
  */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var getNodeForCharacterOffset = require("./getNodeForCharacterOffset");
 var getTextContentAccessor = require("./getTextContentAccessor");
+
 /**
  * While `isCollapsed` is available on the Selection object and `collapsed`
  * is available on the Range object, IE11 sometimes gets them wrong.
@@ -11655,6 +13389,7 @@ var getTextContentAccessor = require("./getTextContentAccessor");
 function isCollapsed(anchorNode, anchorOffset, focusNode, focusOffset) {
   return anchorNode === focusNode && anchorOffset === focusOffset;
 }
+
 /**
  * Get the appropriate anchor and focus node/offset pairs for IE.
  *
@@ -11673,31 +13408,39 @@ function getIEOffsets(node) {
   var selection = document.selection;
   var selectedRange = selection.createRange();
   var selectedLength = selectedRange.text.length;
+
   // Duplicate selection so we can move range without breaking user selection.
   var fromStart = selectedRange.duplicate();
   fromStart.moveToElementText(node);
   fromStart.setEndPoint('EndToStart', selectedRange);
+
   var startOffset = fromStart.text.length;
   var endOffset = startOffset + selectedLength;
+
   return {
     start: startOffset,
     end: endOffset
   };
 }
+
 /**
  * @param {DOMElement} node
  * @return {?object}
  */
 function getModernOffsets(node) {
   var selection = window.getSelection && window.getSelection();
+
   if (!selection || selection.rangeCount === 0) {
     return null;
   }
+
   var anchorNode = selection.anchorNode;
   var anchorOffset = selection.anchorOffset;
   var focusNode = selection.focusNode;
   var focusOffset = selection.focusOffset;
+
   var currentRange = selection.getRangeAt(0);
+
   // If the node and offset values are the same, the selection is collapsed.
   // `Selection.isCollapsed` is available natively, but IE sometimes gets
   // this value wrong.
@@ -11707,28 +13450,35 @@ function getModernOffsets(node) {
     selection.focusNode,
     selection.focusOffset
   );
+
   var rangeLength = isSelectionCollapsed ? 0 : currentRange.toString().length;
+
   var tempRange = currentRange.cloneRange();
   tempRange.selectNodeContents(node);
   tempRange.setEnd(currentRange.startContainer, currentRange.startOffset);
+
   var isTempRangeCollapsed = isCollapsed(
     tempRange.startContainer,
     tempRange.startOffset,
     tempRange.endContainer,
     tempRange.endOffset
   );
+
   var start = isTempRangeCollapsed ? 0 : tempRange.toString().length;
   var end = start + rangeLength;
+
   // Detect whether the selection is backward.
   var detectionRange = document.createRange();
   detectionRange.setStart(anchorNode, anchorOffset);
   detectionRange.setEnd(focusNode, focusOffset);
   var isBackward = detectionRange.collapsed;
+
   return {
     start: isBackward ? end : start,
     end: isBackward ? start : end
   };
 }
+
 /**
  * @param {DOMElement|DOMTextNode} node
  * @param {object} offsets
@@ -11736,6 +13486,7 @@ function getModernOffsets(node) {
 function setIEOffsets(node, offsets) {
   var range = document.selection.createRange().duplicate();
   var start, end;
+
   if (typeof offsets.end === 'undefined') {
     start = offsets.start;
     end = start;
@@ -11746,12 +13497,14 @@ function setIEOffsets(node, offsets) {
     start = offsets.start;
     end = offsets.end;
   }
+
   range.moveToElementText(node);
   range.moveStart('character', start);
   range.setEndPoint('EndToStart', range);
   range.moveEnd('character', end - start);
   range.select();
 }
+
 /**
  * In modern non-IE browsers, we can support both forward and backward
  * selections.
@@ -11768,11 +13521,13 @@ function setModernOffsets(node, offsets) {
   if (!window.getSelection) {
     return;
   }
+
   var selection = window.getSelection();
   var length = node[getTextContentAccessor()].length;
   var start = Math.min(offsets.start, length);
   var end = typeof offsets.end === 'undefined' ?
             start : Math.min(offsets.end, length);
+
   // IE 11 uses modern selection, but doesn't support the extend method.
   // Flip backward selections, so we can set with a single range.
   if (!selection.extend && start > end) {
@@ -11780,12 +13535,15 @@ function setModernOffsets(node, offsets) {
     end = start;
     start = temp;
   }
+
   var startMarker = getNodeForCharacterOffset(node, start);
   var endMarker = getNodeForCharacterOffset(node, end);
+
   if (startMarker && endMarker) {
     var range = document.createRange();
     range.setStart(startMarker.node, startMarker.offset);
     selection.removeAllRanges();
+
     if (start > end) {
       selection.addRange(range);
       selection.extend(endMarker.node, endMarker.offset);
@@ -11795,19 +13553,24 @@ function setModernOffsets(node, offsets) {
     }
   }
 }
+
 var useIEOffsets = ExecutionEnvironment.canUseDOM && document.selection;
+
 var ReactDOMSelection = {
   /**
    * @param {DOMElement} node
    */
   getOffsets: useIEOffsets ? getIEOffsets : getModernOffsets,
+
   /**
    * @param {DOMElement|DOMTextNode} node
    * @param {object} offsets
    */
   setOffsets: useIEOffsets ? setIEOffsets : setModernOffsets
 };
+
 module.exports = ReactDOMSelection;
+
 },{"./ExecutionEnvironment":24,"./getNodeForCharacterOffset":122,"./getTextContentAccessor":124}],50:[function(require,module,exports){
 (function (process){
 /**
@@ -11820,7 +13583,9 @@ module.exports = ReactDOMSelection;
  *
  * @providesModule ReactDOMTextarea
  */
+
 "use strict";
+
 var AutoFocusMixin = require("./AutoFocusMixin");
 var DOMPropertyOperations = require("./DOMPropertyOperations");
 var LinkedValueUtils = require("./LinkedValueUtils");
@@ -11829,17 +13594,22 @@ var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
 var ReactDOM = require("./ReactDOM");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
+
 var warning = require("./warning");
+
 // Store a reference to the <textarea> `ReactDOMComponent`. TODO: use string
 var textarea = ReactElement.createFactory(ReactDOM.textarea.type);
+
 function forceUpdateIfMounted() {
   /*jshint validthis:true */
   if (this.isMounted()) {
     this.forceUpdate();
   }
 }
+
 /**
  * Implements a <textarea> native component that allows setting `value`, and
  * `defaultValue`. This differs from the traditional DOM API because value is
@@ -11857,7 +13627,9 @@ function forceUpdateIfMounted() {
  */
 var ReactDOMTextarea = ReactCompositeComponent.createClass({
   displayName: 'ReactDOMTextarea',
+
   mixins: [AutoFocusMixin, LinkedValueUtils.Mixin, ReactBrowserComponentMixin],
+
   getInitialState: function() {
     var defaultValue = this.props.defaultValue;
     // TODO (yungsters): Remove support for children content in <textarea>.
@@ -11881,6 +13653,7 @@ var ReactDOMTextarea = ReactCompositeComponent.createClass({
         ) : invariant(children.length <= 1));
         children = children[0];
       }
+
       defaultValue = '' + children;
     }
     if (defaultValue == null) {
@@ -11895,20 +13668,25 @@ var ReactDOMTextarea = ReactCompositeComponent.createClass({
       initialValue: '' + (value != null ? value : defaultValue)
     };
   },
+
   render: function() {
     // Clone `this.props` so we don't mutate the input.
     var props = assign({}, this.props);
+
     ("production" !== process.env.NODE_ENV ? invariant(
       props.dangerouslySetInnerHTML == null,
       '`dangerouslySetInnerHTML` does not make sense on <textarea>.'
     ) : invariant(props.dangerouslySetInnerHTML == null));
+
     props.defaultValue = null;
     props.value = null;
     props.onChange = this._handleChange;
+
     // Always set children to the same thing. In IE9, the selection range will
     // get reset if `textContent` is mutated.
     return textarea(props, this.state.initialValue);
   },
+
   componentDidUpdate: function(prevProps, prevState, prevContext) {
     var value = LinkedValueUtils.getValue(this);
     if (value != null) {
@@ -11918,6 +13696,7 @@ var ReactDOMTextarea = ReactCompositeComponent.createClass({
       DOMPropertyOperations.setValueForProperty(rootNode, 'value', '' + value);
     }
   },
+
   _handleChange: function(event) {
     var returnValue;
     var onChange = LinkedValueUtils.getOnChange(this);
@@ -11927,8 +13706,11 @@ var ReactDOMTextarea = ReactCompositeComponent.createClass({
     ReactUpdates.asap(forceUpdateIfMounted, this);
     return returnValue;
   }
+
 });
+
 module.exports = ReactDOMTextarea;
+
 }).call(this,require("JkpR2F"))
 },{"./AutoFocusMixin":4,"./DOMPropertyOperations":14,"./LinkedValueUtils":26,"./Object.assign":29,"./ReactBrowserComponentMixin":32,"./ReactCompositeComponent":37,"./ReactDOM":40,"./ReactElement":55,"./ReactUpdates":82,"./invariant":129,"./warning":148,"JkpR2F":3}],51:[function(require,module,exports){
 /**
@@ -11941,25 +13723,33 @@ module.exports = ReactDOMTextarea;
  *
  * @providesModule ReactDefaultBatchingStrategy
  */
+
 "use strict";
+
 var ReactUpdates = require("./ReactUpdates");
 var Transaction = require("./Transaction");
+
 var assign = require("./Object.assign");
 var emptyFunction = require("./emptyFunction");
+
 var RESET_BATCHED_UPDATES = {
   initialize: emptyFunction,
   close: function() {
     ReactDefaultBatchingStrategy.isBatchingUpdates = false;
   }
 };
+
 var FLUSH_BATCHED_UPDATES = {
   initialize: emptyFunction,
   close: ReactUpdates.flushBatchedUpdates.bind(ReactUpdates)
 };
+
 var TRANSACTION_WRAPPERS = [FLUSH_BATCHED_UPDATES, RESET_BATCHED_UPDATES];
+
 function ReactDefaultBatchingStrategyTransaction() {
   this.reinitializeTransaction();
 }
+
 assign(
   ReactDefaultBatchingStrategyTransaction.prototype,
   Transaction.Mixin,
@@ -11969,16 +13759,21 @@ assign(
     }
   }
 );
+
 var transaction = new ReactDefaultBatchingStrategyTransaction();
+
 var ReactDefaultBatchingStrategy = {
   isBatchingUpdates: false,
+
   /**
    * Call the provided function in a context within which calls to `setState`
    * and friends are batched such that components aren't updated unnecessarily.
    */
   batchedUpdates: function(callback, a, b) {
     var alreadyBatchingUpdates = ReactDefaultBatchingStrategy.isBatchingUpdates;
+
     ReactDefaultBatchingStrategy.isBatchingUpdates = true;
+
     // The code is written this way to avoid extra allocations
     if (alreadyBatchingUpdates) {
       callback(a, b);
@@ -11987,7 +13782,9 @@ var ReactDefaultBatchingStrategy = {
     }
   }
 };
+
 module.exports = ReactDefaultBatchingStrategy;
+
 },{"./Object.assign":29,"./ReactUpdates":82,"./Transaction":98,"./emptyFunction":110}],52:[function(require,module,exports){
 (function (process){
 /**
@@ -12000,7 +13797,9 @@ module.exports = ReactDefaultBatchingStrategy;
  *
  * @providesModule ReactDefaultInjection
  */
+
 "use strict";
+
 var BeforeInputEventPlugin = require("./BeforeInputEventPlugin");
 var ChangeEventPlugin = require("./ChangeEventPlugin");
 var ClientReactRootIndex = require("./ClientReactRootIndex");
@@ -12030,17 +13829,21 @@ var SelectEventPlugin = require("./SelectEventPlugin");
 var ServerReactRootIndex = require("./ServerReactRootIndex");
 var SimpleEventPlugin = require("./SimpleEventPlugin");
 var SVGDOMPropertyConfig = require("./SVGDOMPropertyConfig");
+
 var createFullPageComponent = require("./createFullPageComponent");
+
 function inject() {
   ReactInjection.EventEmitter.injectReactEventListener(
     ReactEventListener
   );
+
   /**
    * Inject modules for resolving DOM hierarchy and plugin ordering.
    */
   ReactInjection.EventPluginHub.injectEventPluginOrder(DefaultEventPluginOrder);
   ReactInjection.EventPluginHub.injectInstanceHandle(ReactInstanceHandles);
   ReactInjection.EventPluginHub.injectMount(ReactMount);
+
   /**
    * Some important event plugins included by default (without having to require
    * them).
@@ -12054,9 +13857,11 @@ function inject() {
     SelectEventPlugin: SelectEventPlugin,
     BeforeInputEventPlugin: BeforeInputEventPlugin
   });
+
   ReactInjection.NativeComponent.injectGenericComponentClass(
     ReactDOMComponent
   );
+
   ReactInjection.NativeComponent.injectComponentClasses({
     'button': ReactDOMButton,
     'form': ReactDOMForm,
@@ -12065,28 +13870,36 @@ function inject() {
     'option': ReactDOMOption,
     'select': ReactDOMSelect,
     'textarea': ReactDOMTextarea,
+
     'html': createFullPageComponent('html'),
     'head': createFullPageComponent('head'),
     'body': createFullPageComponent('body')
   });
+
   // This needs to happen after createFullPageComponent() otherwise the mixin
   // gets double injected.
   ReactInjection.CompositeComponent.injectMixin(ReactBrowserComponentMixin);
+
   ReactInjection.DOMProperty.injectDOMPropertyConfig(HTMLDOMPropertyConfig);
   ReactInjection.DOMProperty.injectDOMPropertyConfig(SVGDOMPropertyConfig);
+
   ReactInjection.EmptyComponent.injectEmptyComponent('noscript');
+
   ReactInjection.Updates.injectReconcileTransaction(
     ReactComponentBrowserEnvironment.ReactReconcileTransaction
   );
   ReactInjection.Updates.injectBatchingStrategy(
     ReactDefaultBatchingStrategy
   );
+
   ReactInjection.RootIndex.injectCreateReactRootIndex(
     ExecutionEnvironment.canUseDOM ?
       ClientReactRootIndex.createReactRootIndex :
       ServerReactRootIndex.createReactRootIndex
   );
+
   ReactInjection.Component.injectEnvironment(ReactComponentBrowserEnvironment);
+
   if ("production" !== process.env.NODE_ENV) {
     var url = (ExecutionEnvironment.canUseDOM && window.location.href) || '';
     if ((/[?&]react_perf\b/).test(url)) {
@@ -12095,9 +13908,11 @@ function inject() {
     }
   }
 }
+
 module.exports = {
   inject: inject
 };
+
 }).call(this,require("JkpR2F"))
 },{"./BeforeInputEventPlugin":5,"./ChangeEventPlugin":9,"./ClientReactRootIndex":10,"./CompositionEventPlugin":11,"./DefaultEventPluginOrder":16,"./EnterLeaveEventPlugin":17,"./ExecutionEnvironment":24,"./HTMLDOMPropertyConfig":25,"./MobileSafariClickEventPlugin":28,"./ReactBrowserComponentMixin":32,"./ReactComponentBrowserEnvironment":36,"./ReactDOMButton":41,"./ReactDOMComponent":42,"./ReactDOMForm":43,"./ReactDOMImg":45,"./ReactDOMInput":46,"./ReactDOMOption":47,"./ReactDOMSelect":48,"./ReactDOMTextarea":50,"./ReactDefaultBatchingStrategy":51,"./ReactDefaultPerf":53,"./ReactEventListener":60,"./ReactInjection":61,"./ReactInstanceHandles":63,"./ReactMount":66,"./SVGDOMPropertyConfig":83,"./SelectEventPlugin":84,"./ServerReactRootIndex":85,"./SimpleEventPlugin":86,"./createFullPageComponent":106,"JkpR2F":3}],53:[function(require,module,exports){
 /**
@@ -12111,35 +13926,46 @@ module.exports = {
  * @providesModule ReactDefaultPerf
  * @typechecks static-only
  */
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
 var ReactDefaultPerfAnalysis = require("./ReactDefaultPerfAnalysis");
 var ReactMount = require("./ReactMount");
 var ReactPerf = require("./ReactPerf");
+
 var performanceNow = require("./performanceNow");
+
 function roundFloat(val) {
   return Math.floor(val * 100) / 100;
 }
+
 function addValue(obj, key, val) {
   obj[key] = (obj[key] || 0) + val;
 }
+
 var ReactDefaultPerf = {
   _allMeasurements: [], // last item in the list is the current one
   _mountStack: [0],
   _injected: false,
+
   start: function() {
     if (!ReactDefaultPerf._injected) {
       ReactPerf.injection.injectMeasure(ReactDefaultPerf.measure);
     }
+
     ReactDefaultPerf._allMeasurements.length = 0;
     ReactPerf.enableMeasure = true;
   },
+
   stop: function() {
     ReactPerf.enableMeasure = false;
   },
+
   getLastMeasurements: function() {
     return ReactDefaultPerf._allMeasurements;
   },
+
   printExclusive: function(measurements) {
     measurements = measurements || ReactDefaultPerf._allMeasurements;
     var summary = ReactDefaultPerfAnalysis.getExclusiveSummary(measurements);
@@ -12157,6 +13983,7 @@ var ReactDefaultPerf = {
     // TODO: ReactDefaultPerfAnalysis.getTotalTime() does not return the correct
     // number.
   },
+
   printInclusive: function(measurements) {
     measurements = measurements || ReactDefaultPerf._allMeasurements;
     var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(measurements);
@@ -12172,6 +13999,7 @@ var ReactDefaultPerf = {
       ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
     );
   },
+
   getMeasurementsSummaryMap: function(measurements) {
     var summary = ReactDefaultPerfAnalysis.getInclusiveSummary(
       measurements,
@@ -12185,6 +14013,7 @@ var ReactDefaultPerf = {
       };
     });
   },
+
   printWasted: function(measurements) {
     measurements = measurements || ReactDefaultPerf._allMeasurements;
     console.table(ReactDefaultPerf.getMeasurementsSummaryMap(measurements));
@@ -12193,6 +14022,7 @@ var ReactDefaultPerf = {
       ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
     );
   },
+
   printDOM: function(measurements) {
     measurements = measurements || ReactDefaultPerf._allMeasurements;
     var summary = ReactDefaultPerfAnalysis.getDOMSummary(measurements);
@@ -12208,6 +14038,7 @@ var ReactDefaultPerf = {
       ReactDefaultPerfAnalysis.getTotalTime(measurements).toFixed(2) + ' ms'
     );
   },
+
   _recordWrite: function(id, fnName, totalTime, args) {
     // TODO: totalTime isn't that useful since it doesn't count paints/reflows
     var writes =
@@ -12221,11 +14052,13 @@ var ReactDefaultPerf = {
       args: args
     });
   },
+
   measure: function(moduleName, fnName, func) {
     return function() {for (var args=[],$__0=0,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
       var totalTime;
       var rv;
       var start;
+
       if (fnName === '_renderNewRootComponent' ||
           fnName === 'flushBatchedUpdates') {
         // A "measurement" is a set of metrics recorded for each flush. We want
@@ -12252,6 +14085,7 @@ var ReactDefaultPerf = {
         start = performanceNow();
         rv = func.apply(this, args);
         totalTime = performanceNow() - start;
+
         if (fnName === 'mountImageIntoNode') {
           var mountID = ReactMount.getID(args[1]);
           ReactDefaultPerf._recordWrite(mountID, fnName, totalTime, args[0]);
@@ -12292,23 +14126,28 @@ var ReactDefaultPerf = {
         fnName === 'mountComponent' ||
         fnName === 'updateComponent' || // TODO: receiveComponent()?
         fnName === '_renderValidatedComponent')) {
+
         var rootNodeID = fnName === 'mountComponent' ?
           args[0] :
           this._rootNodeID;
         var isRender = fnName === '_renderValidatedComponent';
         var isMount = fnName === 'mountComponent';
+
         var mountStack = ReactDefaultPerf._mountStack;
         var entry = ReactDefaultPerf._allMeasurements[
           ReactDefaultPerf._allMeasurements.length - 1
         ];
+
         if (isRender) {
           addValue(entry.counts, rootNodeID, 1);
         } else if (isMount) {
           mountStack.push(0);
         }
+
         start = performanceNow();
         rv = func.apply(this, args);
         totalTime = performanceNow() - start;
+
         if (isRender) {
           addValue(entry.render, rootNodeID, totalTime);
         } else if (isMount) {
@@ -12319,10 +14158,12 @@ var ReactDefaultPerf = {
         } else {
           addValue(entry.inclusive, rootNodeID, totalTime);
         }
+
         entry.displayNames[rootNodeID] = {
           current: this.constructor.displayName,
           owner: this._owner ? this._owner.constructor.displayName : '<root>'
         };
+
         return rv;
       } else {
         return func.apply(this, args);
@@ -12330,7 +14171,9 @@ var ReactDefaultPerf = {
     };
   }
 };
+
 module.exports = ReactDefaultPerf;
+
 },{"./DOMProperty":13,"./ReactDefaultPerfAnalysis":54,"./ReactMount":66,"./ReactPerf":71,"./performanceNow":142}],54:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -12342,7 +14185,9 @@ module.exports = ReactDefaultPerf;
  *
  * @providesModule ReactDefaultPerfAnalysis
  */
+
 var assign = require("./Object.assign");
+
 // Don't try to save users less than 1.2ms (a number I made up)
 var DONT_CARE_THRESHOLD = 1.2;
 var DOM_OPERATION_TYPES = {
@@ -12357,6 +14202,7 @@ var DOM_OPERATION_TYPES = {
   'updateInnerHTMLByID': 'set innerHTML',
   'dangerouslyReplaceNodeWithMarkupByID': 'replace'
 };
+
 function getTotalTime(measurements) {
   // TODO: return number of DOM ops? could be misleading.
   // TODO: measure dropped frames after reconcile?
@@ -12369,11 +14215,13 @@ function getTotalTime(measurements) {
   }
   return totalTime;
 }
+
 function getDOMSummary(measurements) {
   var items = [];
   for (var i = 0; i < measurements.length; i++) {
     var measurement = measurements[i];
     var id;
+
     for (id in measurement.writes) {
       measurement.writes[id].forEach(function(write) {
         items.push({
@@ -12386,9 +14234,11 @@ function getDOMSummary(measurements) {
   }
   return items;
 }
+
 function getExclusiveSummary(measurements) {
   var candidates = {};
   var displayName;
+
   for (var i = 0; i < measurements.length; i++) {
     var measurement = measurements[i];
     var allIDs = assign(
@@ -12396,8 +14246,10 @@ function getExclusiveSummary(measurements) {
       measurement.exclusive,
       measurement.inclusive
     );
+
     for (var id in allIDs) {
       displayName = measurement.displayNames[id].current;
+
       candidates[displayName] = candidates[displayName] || {
         componentName: displayName,
         inclusive: 0,
@@ -12419,6 +14271,7 @@ function getExclusiveSummary(measurements) {
       }
     }
   }
+
   // Now make a sorted array with the results.
   var arr = [];
   for (displayName in candidates) {
@@ -12426,14 +14279,18 @@ function getExclusiveSummary(measurements) {
       arr.push(candidates[displayName]);
     }
   }
+
   arr.sort(function(a, b) {
     return b.exclusive - a.exclusive;
   });
+
   return arr;
 }
+
 function getInclusiveSummary(measurements, onlyClean) {
   var candidates = {};
   var inclusiveKey;
+
   for (var i = 0; i < measurements.length; i++) {
     var measurement = measurements[i];
     var allIDs = assign(
@@ -12442,23 +14299,29 @@ function getInclusiveSummary(measurements, onlyClean) {
       measurement.inclusive
     );
     var cleanComponents;
+
     if (onlyClean) {
       cleanComponents = getUnchangedComponents(measurement);
     }
+
     for (var id in allIDs) {
       if (onlyClean && !cleanComponents[id]) {
         continue;
       }
+
       var displayName = measurement.displayNames[id];
+
       // Inclusive time is not useful for many components without knowing where
       // they are instantiated. So we aggregate inclusive time with both the
       // owner and current displayName as the key.
       inclusiveKey = displayName.owner + ' > ' + displayName.current;
+
       candidates[inclusiveKey] = candidates[inclusiveKey] || {
         componentName: inclusiveKey,
         time: 0,
         count: 0
       };
+
       if (measurement.inclusive[id]) {
         candidates[inclusiveKey].time += measurement.inclusive[id];
       }
@@ -12467,6 +14330,7 @@ function getInclusiveSummary(measurements, onlyClean) {
       }
     }
   }
+
   // Now make a sorted array with the results.
   var arr = [];
   for (inclusiveKey in candidates) {
@@ -12474,11 +14338,14 @@ function getInclusiveSummary(measurements, onlyClean) {
       arr.push(candidates[inclusiveKey]);
     }
   }
+
   arr.sort(function(a, b) {
     return b.time - a.time;
   });
+
   return arr;
 }
+
 function getUnchangedComponents(measurement) {
   // For a given reconcile, look at which components did not actually
   // render anything to the DOM and return a mapping of their ID to
@@ -12486,6 +14353,7 @@ function getUnchangedComponents(measurement) {
   var cleanComponents = {};
   var dirtyLeafIDs = Object.keys(measurement.writes);
   var allIDs = assign({}, measurement.exclusive, measurement.inclusive);
+
   for (var id in allIDs) {
     var isDirty = false;
     // For each component that rendered, see if a component that triggered
@@ -12502,13 +14370,16 @@ function getUnchangedComponents(measurement) {
   }
   return cleanComponents;
 }
+
 var ReactDefaultPerfAnalysis = {
   getExclusiveSummary: getExclusiveSummary,
   getInclusiveSummary: getInclusiveSummary,
   getDOMSummary: getDOMSummary,
   getTotalTime: getTotalTime
 };
+
 module.exports = ReactDefaultPerfAnalysis;
+
 },{"./Object.assign":29}],55:[function(require,module,exports){
 (function (process){
 /**
@@ -12521,14 +14392,19 @@ module.exports = ReactDefaultPerfAnalysis;
  *
  * @providesModule ReactElement
  */
+
 "use strict";
+
 var ReactContext = require("./ReactContext");
 var ReactCurrentOwner = require("./ReactCurrentOwner");
+
 var warning = require("./warning");
+
 var RESERVED_PROPS = {
   key: true,
   ref: true
 };
+
 /**
  * Warn for mutations.
  *
@@ -12538,14 +14414,17 @@ var RESERVED_PROPS = {
  */
 function defineWarningProperty(object, key) {
   Object.defineProperty(object, key, {
+
     configurable: false,
     enumerable: true,
+
     get: function() {
       if (!this._store) {
         return null;
       }
       return this._store[key];
     },
+
     set: function(value) {
       ("production" !== process.env.NODE_ENV ? warning(
         false,
@@ -12554,12 +14433,15 @@ function defineWarningProperty(object, key) {
       ) : null);
       this._store[key] = value;
     }
+
   });
 }
+
 /**
  * This is updated to true if the membrane is successfully created.
  */
 var useMutationMembrane = false;
+
 /**
  * Warn for mutations.
  *
@@ -12579,6 +14461,7 @@ function defineMutationMembrane(prototype) {
     // IE will fail on defineProperty
   }
 }
+
 /**
  * Base constructor for all React elements. This is only used to make this
  * work with a dynamic instanceof check. Nothing should live on this prototype.
@@ -12594,17 +14477,21 @@ var ReactElement = function(type, key, ref, owner, context, props) {
   this.type = type;
   this.key = key;
   this.ref = ref;
+
   // Record the component responsible for creating this element.
   this._owner = owner;
+
   // TODO: Deprecate withContext, and then the context becomes accessible
   // through the owner.
   this._context = context;
+
   if ("production" !== process.env.NODE_ENV) {
     // The validation flag and props are currently mutative. We put them on
     // an external backing store so that we can freeze the whole object.
     // This can be replaced with a WeakMap once they are implemented in
     // commonly used development environments.
     this._store = { validated: false, props: props };
+
     // We're not allowed to set props directly on the object so we early
     // return and rely on the prototype membrane to forward to the backing
     // store.
@@ -12613,22 +14500,29 @@ var ReactElement = function(type, key, ref, owner, context, props) {
       return;
     }
   }
+
   this.props = props;
 };
+
 // We intentionally don't expose the function on the constructor property.
 // ReactElement should be indistinguishable from a plain object.
 ReactElement.prototype = {
   _isReactElement: true
 };
+
 if ("production" !== process.env.NODE_ENV) {
   defineMutationMembrane(ReactElement.prototype);
 }
+
 ReactElement.createElement = function(type, config, children) {
   var propName;
+
   // Reserved names are extracted
   var props = {};
+
   var key = null;
   var ref = null;
+
   if (config != null) {
     ref = config.ref === undefined ? null : config.ref;
     if ("production" !== process.env.NODE_ENV) {
@@ -12649,6 +14543,7 @@ ReactElement.createElement = function(type, config, children) {
       }
     }
   }
+
   // Children can be more than one argument, and those are transferred onto
   // the newly allocated props object.
   var childrenLength = arguments.length - 2;
@@ -12661,6 +14556,7 @@ ReactElement.createElement = function(type, config, children) {
     }
     props.children = childArray;
   }
+
   // Resolve default props
   if (type && type.defaultProps) {
     var defaultProps = type.defaultProps;
@@ -12670,6 +14566,7 @@ ReactElement.createElement = function(type, config, children) {
       }
     }
   }
+
   return new ReactElement(
     type,
     key,
@@ -12679,6 +14576,7 @@ ReactElement.createElement = function(type, config, children) {
     props
   );
 };
+
 ReactElement.createFactory = function(type) {
   var factory = ReactElement.createElement.bind(null, type);
   // Expose the type on the factory and the prototype so that it can be
@@ -12688,6 +14586,7 @@ ReactElement.createFactory = function(type) {
   factory.type = type;
   return factory;
 };
+
 ReactElement.cloneAndReplaceProps = function(oldElement, newProps) {
   var newElement = new ReactElement(
     oldElement.type,
@@ -12697,12 +14596,14 @@ ReactElement.cloneAndReplaceProps = function(oldElement, newProps) {
     oldElement._context,
     newProps
   );
+
   if ("production" !== process.env.NODE_ENV) {
     // If the key on the original is valid, then the clone is valid
     newElement._store.validated = oldElement._store.validated;
   }
   return newElement;
 };
+
 /**
  * @param {?object} object
  * @return {boolean} True if `object` is a valid component.
@@ -12721,7 +14622,9 @@ ReactElement.isValidElement = function(object) {
   // }
   return isElement;
 };
+
 module.exports = ReactElement;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactContext":38,"./ReactCurrentOwner":39,"./warning":148,"JkpR2F":3}],56:[function(require,module,exports){
 (function (process){
@@ -12735,18 +14638,23 @@ module.exports = ReactElement;
  *
  * @providesModule ReactElementValidator
  */
+
 /**
  * ReactElementValidator provides a wrapper around a element factory
  * which validates the props passed to the element. This is intended to be
  * used only in DEV and could be replaced by a static type checker for languages
  * that support it.
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactPropTypeLocations = require("./ReactPropTypeLocations");
 var ReactCurrentOwner = require("./ReactCurrentOwner");
+
 var monitorCodeUse = require("./monitorCodeUse");
 var warning = require("./warning");
+
 /**
  * Warn if there's no key explicitly set on dynamic arrays of children or
  * object keys are not valid. This allows us to keep track of children between
@@ -12757,8 +14665,11 @@ var ownerHasKeyUseWarning = {
   'react_numeric_key_warning': {}
 };
 var ownerHasMonitoredObjectMap = {};
+
 var loggedTypeFailures = {};
+
 var NUMERIC_PROPERTY_REGEX = /^\d+$/;
+
 /**
  * Gets the current owner's displayName for use in warnings.
  *
@@ -12769,6 +14680,7 @@ function getCurrentOwnerDisplayName() {
   var current = ReactCurrentOwner.current;
   return current && current.constructor.displayName || undefined;
 }
+
 /**
  * Warn if the component doesn't have an explicit key assigned to it.
  * This component is in an array. The array could grow and shrink or be
@@ -12784,6 +14696,7 @@ function validateExplicitKey(component, parentType) {
     return;
   }
   component._store.validated = true;
+
   warnAndMonitorForKeyUse(
     'react_key_warning',
     'Each child in an array should have a unique "key" prop.',
@@ -12791,6 +14704,7 @@ function validateExplicitKey(component, parentType) {
     parentType
   );
 }
+
 /**
  * Warn if the key is being defined as an object property but has an incorrect
  * value.
@@ -12811,6 +14725,7 @@ function validatePropertyKey(name, component, parentType) {
     parentType
   );
 }
+
 /**
  * Shared warning and monitoring code for the key warnings.
  *
@@ -12823,15 +14738,18 @@ function validatePropertyKey(name, component, parentType) {
 function warnAndMonitorForKeyUse(warningID, message, component, parentType) {
   var ownerName = getCurrentOwnerDisplayName();
   var parentName = parentType.displayName;
+
   var useName = ownerName || parentName;
   var memoizer = ownerHasKeyUseWarning[warningID];
   if (memoizer.hasOwnProperty(useName)) {
     return;
   }
   memoizer[useName] = true;
+
   message += ownerName ?
     (" Check the render method of " + ownerName + ".") :
     (" Check the renderComponent call using <" + parentName + ">.");
+
   // Usually the current owner is the offender, but if it accepts children as a
   // property, it may be the creator of the child that's responsible for
   // assigning it a key.
@@ -12839,8 +14757,10 @@ function warnAndMonitorForKeyUse(warningID, message, component, parentType) {
   if (component._owner && component._owner !== ReactCurrentOwner.current) {
     // Name of the component that originally created this child.
     childOwnerName = component._owner.constructor.displayName;
+
     message += (" It was passed a child from " + childOwnerName + ".");
   }
+
   message += ' See http://fb.me/react-warning-keys for more information.';
   monitorCodeUse(warningID, {
     component: useName,
@@ -12848,6 +14768,7 @@ function warnAndMonitorForKeyUse(warningID, message, component, parentType) {
   });
   console.warn(message);
 }
+
 /**
  * Log that we're using an object map. We're considering deprecating this
  * feature and replace it with proper Map and ImmutableMap data structures.
@@ -12862,6 +14783,7 @@ function monitorUseOfObjectMap() {
   ownerHasMonitoredObjectMap[currentName] = true;
   monitorCodeUse('react_object_map_children');
 }
+
 /**
  * Ensure that every component either is passed in a static location, in an
  * array with an explicit keys property defined, or in an object literal
@@ -12890,6 +14812,7 @@ function validateChildKeys(component, parentType) {
     }
   }
 }
+
 /**
  * Assert that the props are valid
  *
@@ -12924,7 +14847,9 @@ function checkPropTypes(componentName, propTypes, props, location) {
     }
   }
 }
+
 var ReactElementValidator = {
+
   createElement: function(type, props, children) {
     // We warn in this case but don't throw. We expect the element creation to
     // succeed and there will likely be errors in render.
@@ -12934,15 +14859,19 @@ var ReactElementValidator = {
         'be a string (for DOM elements) or a ReactClass (for composite ' +
         'components).'
     ) : null);
+
     var element = ReactElement.createElement.apply(this, arguments);
+
     // The result can be nullish if a mock or a custom function is used.
     // TODO: Drop this when these are no longer allowed as the type argument.
     if (element == null) {
       return element;
     }
+
     for (var i = 2; i < arguments.length; i++) {
       validateChildKeys(arguments[i], type);
     }
+
     if (type) {
       var name = type.displayName;
       if (type.propTypes) {
@@ -12964,6 +14893,7 @@ var ReactElementValidator = {
     }
     return element;
   },
+
   createFactory: function(type) {
     var validatedFactory = ReactElementValidator.createElement.bind(
       null,
@@ -12972,8 +14902,11 @@ var ReactElementValidator = {
     validatedFactory.type = type;
     return validatedFactory;
   }
+
 };
+
 module.exports = ReactElementValidator;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactCurrentOwner":39,"./ReactElement":55,"./ReactPropTypeLocations":74,"./monitorCodeUse":139,"./warning":148,"JkpR2F":3}],57:[function(require,module,exports){
 (function (process){
@@ -12987,18 +14920,24 @@ module.exports = ReactElementValidator;
  *
  * @providesModule ReactEmptyComponent
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
+
 var invariant = require("./invariant");
+
 var component;
 // This registry keeps track of the React IDs of the components that rendered to
 // `null` (in reality a placeholder such as `noscript`)
 var nullComponentIdsRegistry = {};
+
 var ReactEmptyComponentInjection = {
   injectEmptyComponent: function(emptyComponent) {
     component = ReactElement.createFactory(emptyComponent);
   }
 };
+
 /**
  * @return {ReactComponent} component The injected empty component.
  */
@@ -13010,6 +14949,7 @@ function getEmptyComponent() {
   ) : invariant(component));
   return component();
 }
+
 /**
  * Mark the component as having rendered to null.
  * @param {string} id Component's `_rootNodeID`.
@@ -13017,6 +14957,7 @@ function getEmptyComponent() {
 function registerNullComponentID(id) {
   nullComponentIdsRegistry[id] = true;
 }
+
 /**
  * Unmark the component as having rendered to null: it renders to something now.
  * @param {string} id Component's `_rootNodeID`.
@@ -13024,6 +14965,7 @@ function registerNullComponentID(id) {
 function deregisterNullComponentID(id) {
   delete nullComponentIdsRegistry[id];
 }
+
 /**
  * @param {string} id Component's `_rootNodeID`.
  * @return {boolean} True if the component is rendered to null.
@@ -13031,6 +14973,7 @@ function deregisterNullComponentID(id) {
 function isNullComponentID(id) {
   return nullComponentIdsRegistry[id];
 }
+
 var ReactEmptyComponent = {
   deregisterNullComponentID: deregisterNullComponentID,
   getEmptyComponent: getEmptyComponent,
@@ -13038,7 +14981,9 @@ var ReactEmptyComponent = {
   isNullComponentID: isNullComponentID,
   registerNullComponentID: registerNullComponentID
 };
+
 module.exports = ReactEmptyComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./invariant":129,"JkpR2F":3}],58:[function(require,module,exports){
 /**
@@ -13052,7 +14997,9 @@ module.exports = ReactEmptyComponent;
  * @providesModule ReactErrorUtils
  * @typechecks
  */
+
 "use strict";
+
 var ReactErrorUtils = {
   /**
    * Creates a guarded version of a function. This is supposed to make debugging
@@ -13067,7 +15014,9 @@ var ReactErrorUtils = {
     return func;
   }
 };
+
 module.exports = ReactErrorUtils;
+
 },{}],59:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -13079,13 +15028,18 @@ module.exports = ReactErrorUtils;
  *
  * @providesModule ReactEventEmitterMixin
  */
+
 "use strict";
+
 var EventPluginHub = require("./EventPluginHub");
+
 function runEventQueueInBatch(events) {
   EventPluginHub.enqueueEvents(events);
   EventPluginHub.processEventQueue();
 }
+
 var ReactEventEmitterMixin = {
+
   /**
    * Streams a fired top-level event to `EventPluginHub` where plugins have the
    * opportunity to create `ReactEvent`s to be dispatched.
@@ -13106,10 +15060,13 @@ var ReactEventEmitterMixin = {
       topLevelTargetID,
       nativeEvent
     );
+
     runEventQueueInBatch(events);
   }
 };
+
 module.exports = ReactEventEmitterMixin;
+
 },{"./EventPluginHub":20}],60:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -13122,16 +15079,20 @@ module.exports = ReactEventEmitterMixin;
  * @providesModule ReactEventListener
  * @typechecks static-only
  */
+
 "use strict";
+
 var EventListener = require("./EventListener");
 var ExecutionEnvironment = require("./ExecutionEnvironment");
 var PooledClass = require("./PooledClass");
 var ReactInstanceHandles = require("./ReactInstanceHandles");
 var ReactMount = require("./ReactMount");
 var ReactUpdates = require("./ReactUpdates");
+
 var assign = require("./Object.assign");
 var getEventTarget = require("./getEventTarget");
 var getUnboundedScrollPosition = require("./getUnboundedScrollPosition");
+
 /**
  * Finds the parent React component of `node`.
  *
@@ -13149,6 +15110,7 @@ function findParent(node) {
   var parent = ReactMount.getFirstReactDOM(container);
   return parent;
 }
+
 // Used to store ancestor hierarchy in top level callback
 function TopLevelCallbackBookKeeping(topLevelType, nativeEvent) {
   this.topLevelType = topLevelType;
@@ -13166,10 +15128,12 @@ PooledClass.addPoolingTo(
   TopLevelCallbackBookKeeping,
   PooledClass.twoArgumentPooler
 );
+
 function handleTopLevelImpl(bookKeeping) {
   var topLevelTarget = ReactMount.getFirstReactDOM(
     getEventTarget(bookKeeping.nativeEvent)
   ) || window;
+
   // Loop through the hierarchy, in case there's any nested components.
   // It's important that we build the array of ancestors before calling any
   // event handlers, because event handlers can modify the DOM, leading to
@@ -13179,6 +15143,7 @@ function handleTopLevelImpl(bookKeeping) {
     bookKeeping.ancestors.push(ancestor);
     ancestor = findParent(ancestor);
   }
+
   for (var i = 0, l = bookKeeping.ancestors.length; i < l; i++) {
     topLevelTarget = bookKeeping.ancestors[i];
     var topLevelTargetID = ReactMount.getID(topLevelTarget) || '';
@@ -13190,23 +15155,31 @@ function handleTopLevelImpl(bookKeeping) {
     );
   }
 }
+
 function scrollValueMonitor(cb) {
   var scrollPosition = getUnboundedScrollPosition(window);
   cb(scrollPosition);
 }
+
 var ReactEventListener = {
   _enabled: true,
   _handleTopLevel: null,
+
   WINDOW_HANDLE: ExecutionEnvironment.canUseDOM ? window : null,
+
   setHandleTopLevel: function(handleTopLevel) {
     ReactEventListener._handleTopLevel = handleTopLevel;
   },
+
   setEnabled: function(enabled) {
     ReactEventListener._enabled = !!enabled;
   },
+
   isEnabled: function() {
     return ReactEventListener._enabled;
   },
+
+
   /**
    * Traps top-level events by using event bubbling.
    *
@@ -13228,6 +15201,7 @@ var ReactEventListener = {
       ReactEventListener.dispatchEvent.bind(null, topLevelType)
     );
   },
+
   /**
    * Traps a top-level event by using event capturing.
    *
@@ -13249,15 +15223,18 @@ var ReactEventListener = {
       ReactEventListener.dispatchEvent.bind(null, topLevelType)
     );
   },
+
   monitorScrollValue: function(refresh) {
     var callback = scrollValueMonitor.bind(null, refresh);
     EventListener.listen(window, 'scroll', callback);
     EventListener.listen(window, 'resize', callback);
   },
+
   dispatchEvent: function(topLevelType, nativeEvent) {
     if (!ReactEventListener._enabled) {
       return;
     }
+
     var bookKeeping = TopLevelCallbackBookKeeping.getPooled(
       topLevelType,
       nativeEvent
@@ -13271,7 +15248,9 @@ var ReactEventListener = {
     }
   }
 };
+
 module.exports = ReactEventListener;
+
 },{"./EventListener":19,"./ExecutionEnvironment":24,"./Object.assign":29,"./PooledClass":30,"./ReactInstanceHandles":63,"./ReactMount":66,"./ReactUpdates":82,"./getEventTarget":120,"./getUnboundedScrollPosition":125}],61:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -13283,7 +15262,9 @@ module.exports = ReactEventListener;
  *
  * @providesModule ReactInjection
  */
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
 var EventPluginHub = require("./EventPluginHub");
 var ReactComponent = require("./ReactComponent");
@@ -13294,6 +15275,7 @@ var ReactNativeComponent = require("./ReactNativeComponent");
 var ReactPerf = require("./ReactPerf");
 var ReactRootIndex = require("./ReactRootIndex");
 var ReactUpdates = require("./ReactUpdates");
+
 var ReactInjection = {
   Component: ReactComponent.injection,
   CompositeComponent: ReactCompositeComponent.injection,
@@ -13306,7 +15288,9 @@ var ReactInjection = {
   RootIndex: ReactRootIndex.injection,
   Updates: ReactUpdates.injection
 };
+
 module.exports = ReactInjection;
+
 },{"./DOMProperty":13,"./EventPluginHub":20,"./ReactBrowserEventEmitter":33,"./ReactComponent":35,"./ReactCompositeComponent":37,"./ReactEmptyComponent":57,"./ReactNativeComponent":69,"./ReactPerf":71,"./ReactRootIndex":78,"./ReactUpdates":82}],62:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -13318,14 +15302,19 @@ module.exports = ReactInjection;
  *
  * @providesModule ReactInputSelection
  */
+
 "use strict";
+
 var ReactDOMSelection = require("./ReactDOMSelection");
+
 var containsNode = require("./containsNode");
 var focusNode = require("./focusNode");
 var getActiveElement = require("./getActiveElement");
+
 function isInDocument(node) {
   return containsNode(document.documentElement, node);
 }
+
 /**
  * @ReactInputSelection: React input selection module. Based on Selection.js,
  * but modified to be suitable for react and has a couple of bug fixes (doesn't
@@ -13333,6 +15322,7 @@ function isInDocument(node) {
  * Input selection module for React.
  */
 var ReactInputSelection = {
+
   hasSelectionCapabilities: function(elem) {
     return elem && (
       (elem.nodeName === 'INPUT' && elem.type === 'text') ||
@@ -13340,6 +15330,7 @@ var ReactInputSelection = {
       elem.contentEditable === 'true'
     );
   },
+
   getSelectionInformation: function() {
     var focusedElem = getActiveElement();
     return {
@@ -13350,6 +15341,7 @@ var ReactInputSelection = {
           null
     };
   },
+
   /**
    * @restoreSelection: If any selection information was potentially lost,
    * restore it. This is useful when performing operations that could remove dom
@@ -13370,6 +15362,7 @@ var ReactInputSelection = {
       focusNode(priorFocusedElem);
     }
   },
+
   /**
    * @getSelection: Gets the selection bounds of a focused textarea, input or
    * contentEditable node.
@@ -13378,6 +15371,7 @@ var ReactInputSelection = {
    */
   getSelection: function(input) {
     var selection;
+
     if ('selectionStart' in input) {
       // Modern browser with input or textarea.
       selection = {
@@ -13399,8 +15393,10 @@ var ReactInputSelection = {
       // Content editable or old IE textarea.
       selection = ReactDOMSelection.getOffsets(input);
     }
+
     return selection || {start: 0, end: 0};
   },
+
   /**
    * @setSelection: Sets the selection bounds of a textarea or input and focuses
    * the input.
@@ -13413,6 +15409,7 @@ var ReactInputSelection = {
     if (typeof end === 'undefined') {
       end = start;
     }
+
     if ('selectionStart' in input) {
       input.selectionStart = start;
       input.selectionEnd = Math.min(end, input.value.length);
@@ -13427,7 +15424,9 @@ var ReactInputSelection = {
     }
   }
 };
+
 module.exports = ReactInputSelection;
+
 },{"./ReactDOMSelection":49,"./containsNode":104,"./focusNode":114,"./getActiveElement":116}],63:[function(require,module,exports){
 (function (process){
 /**
@@ -13441,15 +15440,21 @@ module.exports = ReactInputSelection;
  * @providesModule ReactInstanceHandles
  * @typechecks static-only
  */
+
 "use strict";
+
 var ReactRootIndex = require("./ReactRootIndex");
+
 var invariant = require("./invariant");
+
 var SEPARATOR = '.';
 var SEPARATOR_LENGTH = SEPARATOR.length;
+
 /**
  * Maximum depth of traversals before we consider the possibility of a bad ID.
  */
 var MAX_TREE_DEPTH = 100;
+
 /**
  * Creates a DOM ID prefix to use when mounting React components.
  *
@@ -13460,6 +15465,7 @@ var MAX_TREE_DEPTH = 100;
 function getReactRootIDString(index) {
   return SEPARATOR + index.toString(36);
 }
+
 /**
  * Checks if a character in the supplied ID is a separator or the end.
  *
@@ -13471,6 +15477,7 @@ function getReactRootIDString(index) {
 function isBoundary(id, index) {
   return id.charAt(index) === SEPARATOR || index === id.length;
 }
+
 /**
  * Checks if the supplied string is a valid React DOM ID.
  *
@@ -13483,6 +15490,7 @@ function isValidID(id) {
     id.charAt(0) === SEPARATOR && id.charAt(id.length - 1) !== SEPARATOR
   );
 }
+
 /**
  * Checks if the first ID is an ancestor of or equal to the second ID.
  *
@@ -13497,6 +15505,7 @@ function isAncestorIDOf(ancestorID, descendantID) {
     isBoundary(descendantID, ancestorID.length)
   );
 }
+
 /**
  * Gets the parent ID of the supplied React DOM ID, `id`.
  *
@@ -13507,6 +15516,7 @@ function isAncestorIDOf(ancestorID, descendantID) {
 function getParentID(id) {
   return id ? id.substr(0, id.lastIndexOf(SEPARATOR)) : '';
 }
+
 /**
  * Gets the next DOM ID on the tree path from the supplied `ancestorID` to the
  * supplied `destinationID`. If they are equal, the ID is returned.
@@ -13543,6 +15553,7 @@ function getNextDescendantID(ancestorID, destinationID) {
   }
   return destinationID.substr(0, i);
 }
+
 /**
  * Gets the nearest common ancestor ID of two IDs.
  *
@@ -13578,6 +15589,7 @@ function getFirstCommonAncestorID(oneID, twoID) {
   ) : invariant(isValidID(longestCommonID)));
   return longestCommonID;
 }
+
 /**
  * Traverses the parent path between two IDs (either up or down). The IDs must
  * not be the same, and there must exist a parent path between them. If the
@@ -13626,6 +15638,7 @@ function traverseParentPath(start, stop, cb, arg, skipFirst, skipLast) {
     ) : invariant(depth++ < MAX_TREE_DEPTH));
   }
 }
+
 /**
  * Manages the IDs assigned to DOM representations of React components. This
  * uses a specific scheme in order to traverse the DOM efficiently (e.g. in
@@ -13634,6 +15647,7 @@ function traverseParentPath(start, stop, cb, arg, skipFirst, skipLast) {
  * @internal
  */
 var ReactInstanceHandles = {
+
   /**
    * Constructs a React root ID
    * @return {string} A React root ID.
@@ -13641,6 +15655,7 @@ var ReactInstanceHandles = {
   createReactRootID: function() {
     return getReactRootIDString(ReactRootIndex.createReactRootIndex());
   },
+
   /**
    * Constructs a React ID by joining a root ID with a name.
    *
@@ -13652,6 +15667,7 @@ var ReactInstanceHandles = {
   createReactID: function(rootID, name) {
     return rootID + name;
   },
+
   /**
    * Gets the DOM ID of the React component that is the root of the tree that
    * contains the React component with the supplied DOM ID.
@@ -13667,6 +15683,7 @@ var ReactInstanceHandles = {
     }
     return null;
   },
+
   /**
    * Traverses the ID hierarchy and invokes the supplied `cb` on any IDs that
    * should would receive a `mouseEnter` or `mouseLeave` event.
@@ -13690,6 +15707,7 @@ var ReactInstanceHandles = {
       traverseParentPath(ancestorID, enterID, cb, downArg, true, false);
     }
   },
+
   /**
    * Simulates the traversal of a two-phase, capture/bubble event dispatch.
    *
@@ -13706,6 +15724,7 @@ var ReactInstanceHandles = {
       traverseParentPath(targetID, '', cb, arg, false, true);
     }
   },
+
   /**
    * Traverse a node ID, calling the supplied `cb` for each ancestor ID. For
    * example, passing `.0.$row-0.1` would result in `cb` getting called
@@ -13721,20 +15740,27 @@ var ReactInstanceHandles = {
   traverseAncestors: function(targetID, cb, arg) {
     traverseParentPath('', targetID, cb, arg, true, false);
   },
+
   /**
    * Exposed for unit testing.
    * @private
    */
   _getFirstCommonAncestorID: getFirstCommonAncestorID,
+
   /**
    * Exposed for unit testing.
    * @private
    */
   _getNextDescendantID: getNextDescendantID,
+
   isAncestorIDOf: isAncestorIDOf,
+
   SEPARATOR: SEPARATOR
+
 };
+
 module.exports = ReactInstanceHandles;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactRootIndex":78,"./invariant":129,"JkpR2F":3}],64:[function(require,module,exports){
 (function (process){
@@ -13748,11 +15774,15 @@ module.exports = ReactInstanceHandles;
  *
  * @providesModule ReactLegacyElement
  */
+
 "use strict";
+
 var ReactCurrentOwner = require("./ReactCurrentOwner");
+
 var invariant = require("./invariant");
 var monitorCodeUse = require("./monitorCodeUse");
 var warning = require("./warning");
+
 var legacyFactoryLogs = {};
 function warnForLegacyFactoryCall() {
   if (!ReactLegacyElementFactory._isLegacyCallWarningEnabled) {
@@ -13774,6 +15804,7 @@ function warnForLegacyFactoryCall() {
   ) : null);
   monitorCodeUse('react_legacy_factory_call', { version: 3, name: name });
 }
+
 function warnForPlainFunctionType(type) {
   var isReactClass =
     type.prototype &&
@@ -13804,6 +15835,7 @@ function warnForPlainFunctionType(type) {
     ) : null);
   }
 }
+
 function warnForNonLegacyFactory(type) {
   ("production" !== process.env.NODE_ENV ? warning(
     false,
@@ -13811,6 +15843,7 @@ function warnForNonLegacyFactory(type) {
     'Use the string "' + type.type + '" instead.'
   ) : null);
 }
+
 /**
  * Transfer static properties from the source to the target. Functions are
  * rebound to have this reflect the original source.
@@ -13838,17 +15871,21 @@ function proxyStaticMethods(target, source) {
     }
   }
 }
+
 // We use an object instead of a boolean because booleans are ignored by our
 // mocking libraries when these factories gets mocked.
 var LEGACY_MARKER = {};
 var NON_LEGACY_MARKER = {};
+
 var ReactLegacyElementFactory = {};
+
 ReactLegacyElementFactory.wrapCreateFactory = function(createFactory) {
   var legacyCreateFactory = function(type) {
     if (typeof type !== 'function') {
       // Non-function types cannot be legacy factories
       return createFactory(type);
     }
+
     if (type.isReactNonLegacyFactory) {
       // This is probably a factory created by ReactDOM we unwrap it to get to
       // the underlying string type. It shouldn't have been passed here so we
@@ -13858,27 +15895,33 @@ ReactLegacyElementFactory.wrapCreateFactory = function(createFactory) {
       }
       return createFactory(type.type);
     }
+
     if (type.isReactLegacyFactory) {
       // This is probably a legacy factory created by ReactCompositeComponent.
       // We unwrap it to get to the underlying class.
       return createFactory(type.type);
     }
+
     if ("production" !== process.env.NODE_ENV) {
       warnForPlainFunctionType(type);
     }
+
     // Unless it's a legacy factory, then this is probably a plain function,
     // that is expecting to be invoked by JSX. We can just return it as is.
     return type;
   };
   return legacyCreateFactory;
 };
+
 ReactLegacyElementFactory.wrapCreateElement = function(createElement) {
   var legacyCreateElement = function(type, props, children) {
     if (typeof type !== 'function') {
       // Non-function types cannot be legacy factories
       return createElement.apply(this, arguments);
     }
+
     var args;
+
     if (type.isReactNonLegacyFactory) {
       // This is probably a factory created by ReactDOM we unwrap it to get to
       // the underlying string type. It shouldn't have been passed here so we
@@ -13890,6 +15933,7 @@ ReactLegacyElementFactory.wrapCreateElement = function(createElement) {
       args[0] = type.type;
       return createElement.apply(this, args);
     }
+
     if (type.isReactLegacyFactory) {
       // This is probably a legacy factory created by ReactCompositeComponent.
       // We unwrap it to get to the underlying class.
@@ -13903,15 +15947,18 @@ ReactLegacyElementFactory.wrapCreateElement = function(createElement) {
       args[0] = type.type;
       return createElement.apply(this, args);
     }
+
     if ("production" !== process.env.NODE_ENV) {
       warnForPlainFunctionType(type);
     }
+
     // This is being called with a plain function we should invoke it
     // immediately as if this was used with legacy JSX.
     return type.apply(null, Array.prototype.slice.call(arguments, 1));
   };
   return legacyCreateElement;
 };
+
 ReactLegacyElementFactory.wrapFactory = function(factory) {
   ("production" !== process.env.NODE_ENV ? invariant(
     typeof factory === 'function',
@@ -13929,6 +15976,7 @@ ReactLegacyElementFactory.wrapFactory = function(factory) {
   legacyElementFactory.type = factory.type;
   return legacyElementFactory;
 };
+
 // This is used to mark a factory that will remain. E.g. we're allowed to call
 // it as a function. However, you're not suppose to pass it to createElement
 // or createFactory, so it will warn you if you do.
@@ -13936,6 +15984,7 @@ ReactLegacyElementFactory.markNonLegacyFactory = function(factory) {
   factory.isReactNonLegacyFactory = NON_LEGACY_MARKER;
   return factory;
 };
+
 // Checks if a factory function is actually a legacy factory pretending to
 // be a class.
 ReactLegacyElementFactory.isValidFactory = function(factory) {
@@ -13943,6 +15992,7 @@ ReactLegacyElementFactory.isValidFactory = function(factory) {
   return typeof factory === 'function' &&
     factory.isReactLegacyFactory === LEGACY_MARKER;
 };
+
 ReactLegacyElementFactory.isValidClass = function(factory) {
   if ("production" !== process.env.NODE_ENV) {
     ("production" !== process.env.NODE_ENV ? warning(
@@ -13953,8 +16003,11 @@ ReactLegacyElementFactory.isValidClass = function(factory) {
   }
   return ReactLegacyElementFactory.isValidFactory(factory);
 };
+
 ReactLegacyElementFactory._isLegacyCallWarningEnabled = true;
+
 module.exports = ReactLegacyElementFactory;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactCurrentOwner":39,"./invariant":129,"./monitorCodeUse":139,"./warning":148,"JkpR2F":3}],65:[function(require,module,exports){
 /**
@@ -13967,10 +16020,14 @@ module.exports = ReactLegacyElementFactory;
  *
  * @providesModule ReactMarkupChecksum
  */
+
 "use strict";
+
 var adler32 = require("./adler32");
+
 var ReactMarkupChecksum = {
   CHECKSUM_ATTR_NAME: 'data-react-checksum',
+
   /**
    * @param {string} markup Markup string
    * @return {string} Markup string with checksum attribute attached
@@ -13982,6 +16039,7 @@ var ReactMarkupChecksum = {
       ' ' + ReactMarkupChecksum.CHECKSUM_ATTR_NAME + '="' + checksum + '">'
     );
   },
+
   /**
    * @param {string} markup to use
    * @param {DOMElement} element root React element
@@ -13996,7 +16054,9 @@ var ReactMarkupChecksum = {
     return markupChecksum === existingChecksum;
   }
 };
+
 module.exports = ReactMarkupChecksum;
+
 },{"./adler32":101}],66:[function(require,module,exports){
 (function (process){
 /**
@@ -14009,7 +16069,9 @@ module.exports = ReactMarkupChecksum;
  *
  * @providesModule ReactMount
  */
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
 var ReactBrowserEventEmitter = require("./ReactBrowserEventEmitter");
 var ReactCurrentOwner = require("./ReactCurrentOwner");
@@ -14017,6 +16079,7 @@ var ReactElement = require("./ReactElement");
 var ReactLegacyElement = require("./ReactLegacyElement");
 var ReactInstanceHandles = require("./ReactInstanceHandles");
 var ReactPerf = require("./ReactPerf");
+
 var containsNode = require("./containsNode");
 var deprecated = require("./deprecated");
 var getReactRootElementInContainer = require("./getReactRootElementInContainer");
@@ -14024,24 +16087,33 @@ var instantiateReactComponent = require("./instantiateReactComponent");
 var invariant = require("./invariant");
 var shouldUpdateReactComponent = require("./shouldUpdateReactComponent");
 var warning = require("./warning");
+
 var createElement = ReactLegacyElement.wrapCreateElement(
   ReactElement.createElement
 );
+
 var SEPARATOR = ReactInstanceHandles.SEPARATOR;
+
 var ATTR_NAME = DOMProperty.ID_ATTRIBUTE_NAME;
 var nodeCache = {};
+
 var ELEMENT_NODE_TYPE = 1;
 var DOC_NODE_TYPE = 9;
+
 /** Mapping from reactRootID to React component instance. */
 var instancesByReactRootID = {};
+
 /** Mapping from reactRootID to `container` nodes. */
 var containersByReactRootID = {};
+
 if ("production" !== process.env.NODE_ENV) {
   /** __DEV__-only mapping from reactRootID to root elements. */
   var rootElementsByReactRootID = {};
 }
+
 // Used to store breadth-first search state in findComponentRoot.
 var findComponentRootReusableArray = [];
+
 /**
  * @param {DOMElement} container DOM element that may contain a React component.
  * @return {?string} A "reactRoot" ID, if a React component is rendered.
@@ -14050,6 +16122,7 @@ function getReactRootID(container) {
   var rootElement = getReactRootElementInContainer(container);
   return rootElement && ReactMount.getID(rootElement);
 }
+
 /**
  * Accessing node[ATTR_NAME] or calling getAttribute(ATTR_NAME) on a form
  * element can return its control whose name or ID equals ATTR_NAME. All
@@ -14071,20 +16144,24 @@ function getID(node) {
           'ReactMount: Two valid but unequal nodes with the same `%s`: %s',
           ATTR_NAME, id
         ) : invariant(!isValid(cached, id)));
+
         nodeCache[id] = node;
       }
     } else {
       nodeCache[id] = node;
     }
   }
+
   return id;
 }
+
 function internalGetID(node) {
   // If node is something like a window, document, or text node, none of
   // which support attributes or a .getAttribute method, gracefully return
   // the empty string, as if the attribute were missing.
   return node && node.getAttribute && node.getAttribute(ATTR_NAME) || '';
 }
+
 /**
  * Sets the React-specific ID of the given node.
  *
@@ -14099,6 +16176,7 @@ function setID(node, id) {
   node.setAttribute(ATTR_NAME, id);
   nodeCache[id] = node;
 }
+
 /**
  * Finds the node with the supplied React-generated DOM ID.
  *
@@ -14112,6 +16190,7 @@ function getNode(id) {
   }
   return nodeCache[id];
 }
+
 /**
  * A node is "valid" if it is contained by a currently mounted container.
  *
@@ -14129,13 +16208,16 @@ function isValid(node, id) {
       'ReactMount: Unexpected modification of `%s`',
       ATTR_NAME
     ) : invariant(internalGetID(node) === id));
+
     var container = ReactMount.findReactContainerForID(id);
     if (container && containsNode(container, node)) {
       return true;
     }
   }
+
   return false;
 }
+
 /**
  * Causes the cache to forget about one React-specific ID.
  *
@@ -14144,6 +16226,7 @@ function isValid(node, id) {
 function purgeID(id) {
   delete nodeCache[id];
 }
+
 var deepestNodeSoFar = null;
 function findDeepestCachedAncestorImpl(ancestorID) {
   var ancestor = nodeCache[ancestorID];
@@ -14155,6 +16238,7 @@ function findDeepestCachedAncestorImpl(ancestorID) {
     return false;
   }
 }
+
 /**
  * Return the deepest cached node whose ID is a prefix of `targetID`.
  */
@@ -14164,10 +16248,12 @@ function findDeepestCachedAncestor(targetID) {
     targetID,
     findDeepestCachedAncestorImpl
   );
+
   var foundNode = deepestNodeSoFar;
   deepestNodeSoFar = null;
   return foundNode;
 }
+
 /**
  * Mounting is the process of initializing a React component by creatings its
  * representative DOM elements and inserting them into a supplied `container`.
@@ -14189,6 +16275,7 @@ function findDeepestCachedAncestor(targetID) {
 var ReactMount = {
   /** Exposed for debugging purposes **/
   _instancesByReactRootID: instancesByReactRootID,
+
   /**
    * This is a hook provided to support rendering React components while
    * ensuring that the apparent scroll position of its `container` does not
@@ -14200,6 +16287,7 @@ var ReactMount = {
   scrollMonitor: function(container, renderCallback) {
     renderCallback();
   },
+
   /**
    * Take a component that's already mounted into the DOM and replace its props
    * @param {ReactComponent} prevComponent component instance already in the DOM
@@ -14216,13 +16304,16 @@ var ReactMount = {
     ReactMount.scrollMonitor(container, function() {
       prevComponent.replaceProps(nextProps, callback);
     });
+
     if ("production" !== process.env.NODE_ENV) {
       // Record the root element in case it later gets transplanted.
       rootElementsByReactRootID[getReactRootID(container)] =
         getReactRootElementInContainer(container);
     }
+
     return prevComponent;
   },
+
   /**
    * Register a component into the instance map and starts scroll value
    * monitoring
@@ -14241,11 +16332,14 @@ var ReactMount = {
       container.nodeType === ELEMENT_NODE_TYPE ||
       container.nodeType === DOC_NODE_TYPE
     )));
+
     ReactBrowserEventEmitter.ensureScrollValueMonitoring();
+
     var reactRootID = ReactMount.registerContainer(container);
     instancesByReactRootID[reactRootID] = nextComponent;
     return reactRootID;
   },
+
   /**
    * Render a new component into the DOM.
    * @param {ReactComponent} nextComponent component instance to render
@@ -14270,6 +16364,7 @@ var ReactMount = {
         'render is not allowed. If necessary, trigger nested updates in ' +
         'componentDidUpdate.'
       ) : null);
+
       var componentInstance = instantiateReactComponent(nextComponent, null);
       var reactRootID = ReactMount._registerComponent(
         componentInstance,
@@ -14280,14 +16375,17 @@ var ReactMount = {
         container,
         shouldReuseMarkup
       );
+
       if ("production" !== process.env.NODE_ENV) {
         // Record the root element in case it later gets transplanted.
         rootElementsByReactRootID[reactRootID] =
           getReactRootElementInContainer(container);
       }
+
       return componentInstance;
     }
   ),
+
   /**
    * Renders a React component into the DOM in the supplied `container`.
    *
@@ -14318,7 +16416,9 @@ var ReactMount = {
           ''
       )
     ) : invariant(ReactElement.isValidElement(nextElement)));
+
     var prevComponent = instancesByReactRootID[getReactRootID(container)];
+
     if (prevComponent) {
       var prevElement = prevComponent._currentElement;
       if (shouldUpdateReactComponent(prevElement, nextElement)) {
@@ -14332,10 +16432,13 @@ var ReactMount = {
         ReactMount.unmountComponentAtNode(container);
       }
     }
+
     var reactRootElement = getReactRootElementInContainer(container);
     var containerHasReactMarkup =
       reactRootElement && ReactMount.isRenderedByReact(reactRootElement);
+
     var shouldReuseMarkup = containerHasReactMarkup && !prevComponent;
+
     var component = ReactMount._renderNewRootComponent(
       nextElement,
       container,
@@ -14344,6 +16447,7 @@ var ReactMount = {
     callback && callback.call(component);
     return component;
   },
+
   /**
    * Constructs a component instance of `constructor` with `initialProps` and
    * renders it into the supplied `container`.
@@ -14357,6 +16461,7 @@ var ReactMount = {
     var element = createElement(constructor, props);
     return ReactMount.render(element, container);
   },
+
   /**
    * Constructs a component instance of `constructor` with `initialProps` and
    * renders it into a container node identified by supplied `id`.
@@ -14375,6 +16480,7 @@ var ReactMount = {
     ) : invariant(domNode));
     return ReactMount.constructAndRenderComponent(constructor, props, domNode);
   },
+
   /**
    * Registers a container node into which React components will be rendered.
    * This also creates the "reactRoot" ID that will be assigned to the element
@@ -14396,6 +16502,7 @@ var ReactMount = {
     containersByReactRootID[reactRootID] = container;
     return reactRootID;
   },
+
   /**
    * Unmounts and destroys the React component rendered in the `container`.
    *
@@ -14415,6 +16522,7 @@ var ReactMount = {
       'not allowed. If necessary, trigger nested updates in ' +
       'componentDidUpdate.'
     ) : null);
+
     var reactRootID = getReactRootID(container);
     var component = instancesByReactRootID[reactRootID];
     if (!component) {
@@ -14428,6 +16536,7 @@ var ReactMount = {
     }
     return true;
   },
+
   /**
    * Unmounts a component and removes it from the DOM.
    *
@@ -14439,14 +16548,17 @@ var ReactMount = {
    */
   unmountComponentFromNode: function(instance, container) {
     instance.unmountComponent();
+
     if (container.nodeType === DOC_NODE_TYPE) {
       container = container.documentElement;
     }
+
     // http://jsperf.com/emptying-a-node
     while (container.lastChild) {
       container.removeChild(container.lastChild);
     }
   },
+
   /**
    * Finds the container DOM element that contains React component to which the
    * supplied DOM `id` belongs.
@@ -14457,6 +16569,7 @@ var ReactMount = {
   findReactContainerForID: function(id) {
     var reactRootID = ReactInstanceHandles.getReactRootIDFromNodeID(id);
     var container = containersByReactRootID[reactRootID];
+
     if ("production" !== process.env.NODE_ENV) {
       var rootElement = rootElementsByReactRootID[reactRootID];
       if (rootElement && rootElement.parentNode !== container) {
@@ -14468,6 +16581,7 @@ var ReactMount = {
         ) : invariant(// Call internalGetID here because getID calls isValid which calls
         // findReactContainerForID (this function).
         internalGetID(rootElement) === reactRootID));
+
         var containerChild = container.firstChild;
         if (containerChild &&
             reactRootID === internalGetID(containerChild)) {
@@ -14484,8 +16598,10 @@ var ReactMount = {
         }
       }
     }
+
     return container;
   },
+
   /**
    * Finds an element rendered by React with the supplied ID.
    *
@@ -14496,6 +16612,7 @@ var ReactMount = {
     var reactRoot = ReactMount.findReactContainerForID(id);
     return ReactMount.findComponentRoot(reactRoot, id);
   },
+
   /**
    * True if the supplied `node` is rendered by React.
    *
@@ -14511,6 +16628,7 @@ var ReactMount = {
     var id = ReactMount.getID(node);
     return id ? id.charAt(0) === SEPARATOR : false;
   },
+
   /**
    * Traverses up the ancestors of the supplied node to find a node that is a
    * DOM representation of a React component.
@@ -14529,6 +16647,7 @@ var ReactMount = {
     }
     return null;
   },
+
   /**
    * Finds a node with the supplied `targetID` inside of the supplied
    * `ancestorNode`.  Exploits the ID naming scheme to perform the search
@@ -14542,12 +16661,16 @@ var ReactMount = {
   findComponentRoot: function(ancestorNode, targetID) {
     var firstChildren = findComponentRootReusableArray;
     var childIndex = 0;
+
     var deepestAncestor = findDeepestCachedAncestor(targetID) || ancestorNode;
+
     firstChildren[0] = deepestAncestor.firstChild;
     firstChildren.length = 1;
+
     while (childIndex < firstChildren.length) {
       var child = firstChildren[childIndex++];
       var targetChild;
+
       while (child) {
         var childID = ReactMount.getID(child);
         if (childID) {
@@ -14555,6 +16678,7 @@ var ReactMount = {
           // through its siblings to ensure they're cached so that we don't have
           // to revisit this node again. Otherwise, we make n^2 calls to getID
           // when visiting the many children of a single node in order.
+
           if (targetID === childID) {
             targetChild = child;
           } else if (ReactInstanceHandles.isAncestorIDOf(childID, targetID)) {
@@ -14565,6 +16689,7 @@ var ReactMount = {
             firstChildren.length = childIndex = 0;
             firstChildren.push(child.firstChild);
           }
+
         } else {
           // If this child had no ID, then there's a chance that it was
           // injected automatically by the browser, as when a `<table>`
@@ -14573,17 +16698,22 @@ var ReactMount = {
           // branch, but not before examining the other siblings.
           firstChildren.push(child.firstChild);
         }
+
         child = child.nextSibling;
       }
+
       if (targetChild) {
         // Emptying firstChildren/findComponentRootReusableArray is
         // not necessary for correctness, but it helps the GC reclaim
         // any nodes that were left at the end of the search.
         firstChildren.length = 0;
+
         return targetChild;
       }
     }
+
     firstChildren.length = 0;
+
     ("production" !== process.env.NODE_ENV ? invariant(
       false,
       'findComponentRoot(..., %s): Unable to find element. This probably ' +
@@ -14596,15 +16726,23 @@ var ReactMount = {
       ReactMount.getID(ancestorNode)
     ) : invariant(false));
   },
+
+
   /**
    * React ID utilities.
    */
+
   getReactRootID: getReactRootID,
+
   getID: getID,
+
   setID: setID,
+
   getNode: getNode,
+
   purgeID: purgeID
 };
+
 // Deprecations (remove for 0.13)
 ReactMount.renderComponent = deprecated(
   'ReactMount',
@@ -14613,7 +16751,9 @@ ReactMount.renderComponent = deprecated(
   this,
   ReactMount.render
 );
+
 module.exports = ReactMount;
+
 }).call(this,require("JkpR2F"))
 },{"./DOMProperty":13,"./ReactBrowserEventEmitter":33,"./ReactCurrentOwner":39,"./ReactElement":55,"./ReactInstanceHandles":63,"./ReactLegacyElement":64,"./ReactPerf":71,"./containsNode":104,"./deprecated":109,"./getReactRootElementInContainer":123,"./instantiateReactComponent":128,"./invariant":129,"./shouldUpdateReactComponent":145,"./warning":148,"JkpR2F":3}],67:[function(require,module,exports){
 /**
@@ -14627,12 +16767,16 @@ module.exports = ReactMount;
  * @providesModule ReactMultiChild
  * @typechecks static-only
  */
+
 "use strict";
+
 var ReactComponent = require("./ReactComponent");
 var ReactMultiChildUpdateTypes = require("./ReactMultiChildUpdateTypes");
+
 var flattenChildren = require("./flattenChildren");
 var instantiateReactComponent = require("./instantiateReactComponent");
 var shouldUpdateReactComponent = require("./shouldUpdateReactComponent");
+
 /**
  * Updating children of a component may trigger recursive updates. The depth is
  * used to batch recursive updates to render markup more efficiently.
@@ -14641,6 +16785,7 @@ var shouldUpdateReactComponent = require("./shouldUpdateReactComponent");
  * @private
  */
 var updateDepth = 0;
+
 /**
  * Queue of update configuration objects.
  *
@@ -14650,6 +16795,7 @@ var updateDepth = 0;
  * @private
  */
 var updateQueue = [];
+
 /**
  * Queue of markup to be rendered.
  *
@@ -14657,6 +16803,7 @@ var updateQueue = [];
  * @private
  */
 var markupQueue = [];
+
 /**
  * Enqueues markup to be rendered and inserted at a supplied index.
  *
@@ -14677,6 +16824,7 @@ function enqueueMarkup(parentID, markup, toIndex) {
     toIndex: toIndex
   });
 }
+
 /**
  * Enqueues moving an existing element to another index.
  *
@@ -14697,6 +16845,7 @@ function enqueueMove(parentID, fromIndex, toIndex) {
     toIndex: toIndex
   });
 }
+
 /**
  * Enqueues removing an element at an index.
  *
@@ -14716,6 +16865,7 @@ function enqueueRemove(parentID, fromIndex) {
     toIndex: null
   });
 }
+
 /**
  * Enqueues setting the text content.
  *
@@ -14735,6 +16885,7 @@ function enqueueTextContent(parentID, textContent) {
     toIndex: null
   });
 }
+
 /**
  * Processes any enqueued updates.
  *
@@ -14749,6 +16900,7 @@ function processQueue() {
     clearQueue();
   }
 }
+
 /**
  * Clears any enqueued updates.
  *
@@ -14758,6 +16910,7 @@ function clearQueue() {
   updateQueue.length = 0;
   markupQueue.length = 0;
 }
+
 /**
  * ReactMultiChild are capable of reconciling multiple children.
  *
@@ -14765,6 +16918,7 @@ function clearQueue() {
  * @internal
  */
 var ReactMultiChild = {
+
   /**
    * Provides common functionality for components that must reconcile multiple
    * children. This is used by `ReactDOMComponent` to mount, update, and
@@ -14773,6 +16927,7 @@ var ReactMultiChild = {
    * @lends {ReactMultiChild.prototype}
    */
   Mixin: {
+
     /**
      * Generates a "mount image" for each of the supplied children. In the case
      * of `ReactDOMComponent`, a mount image is a string of markup.
@@ -14807,6 +16962,7 @@ var ReactMultiChild = {
       }
       return mountImages;
     },
+
     /**
      * Replaces any rendered children with a text content string.
      *
@@ -14834,6 +16990,7 @@ var ReactMultiChild = {
         }
       }
     },
+
     /**
      * Updates the rendered children with new children.
      *
@@ -14854,6 +17011,7 @@ var ReactMultiChild = {
         }
       }
     },
+
     /**
      * Improve performance by isolating this hot code path from the try/catch
      * block in `updateChildren`.
@@ -14911,6 +17069,7 @@ var ReactMultiChild = {
         }
       }
     },
+
     /**
      * Unmounts all rendered children. This should be used to clean up children
      * when this component is unmounted.
@@ -14928,6 +17087,7 @@ var ReactMultiChild = {
       }
       this._renderedChildren = null;
     },
+
     /**
      * Moves a child component to the supplied index.
      *
@@ -14944,6 +17104,7 @@ var ReactMultiChild = {
         enqueueMove(this._rootNodeID, child._mountIndex, toIndex);
       }
     },
+
     /**
      * Creates a child component.
      *
@@ -14954,6 +17115,7 @@ var ReactMultiChild = {
     createChild: function(child, mountImage) {
       enqueueMarkup(this._rootNodeID, mountImage, child._mountIndex);
     },
+
     /**
      * Removes a child component.
      *
@@ -14963,6 +17125,7 @@ var ReactMultiChild = {
     removeChild: function(child) {
       enqueueRemove(this._rootNodeID, child._mountIndex);
     },
+
     /**
      * Sets this text content string.
      *
@@ -14972,6 +17135,7 @@ var ReactMultiChild = {
     setTextContent: function(textContent) {
       enqueueTextContent(this._rootNodeID, textContent);
     },
+
     /**
      * Mounts a child with the supplied name.
      *
@@ -14996,6 +17160,7 @@ var ReactMultiChild = {
       this._renderedChildren = this._renderedChildren || {};
       this._renderedChildren[name] = child;
     },
+
     /**
      * Unmounts a rendered child by name.
      *
@@ -15011,9 +17176,13 @@ var ReactMultiChild = {
       child.unmountComponent();
       delete this._renderedChildren[name];
     }
+
   }
+
 };
+
 module.exports = ReactMultiChild;
+
 },{"./ReactComponent":35,"./ReactMultiChildUpdateTypes":68,"./flattenChildren":113,"./instantiateReactComponent":128,"./shouldUpdateReactComponent":145}],68:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -15025,8 +17194,11 @@ module.exports = ReactMultiChild;
  *
  * @providesModule ReactMultiChildUpdateTypes
  */
+
 "use strict";
+
 var keyMirror = require("./keyMirror");
+
 /**
  * When a component's children are updated, a series of update configuration
  * objects are created in order to batch and serialize the required changes.
@@ -15041,7 +17213,9 @@ var ReactMultiChildUpdateTypes = keyMirror({
   REMOVE_NODE: null,
   TEXT_CONTENT: null
 });
+
 module.exports = ReactMultiChildUpdateTypes;
+
 },{"./keyMirror":135}],69:[function(require,module,exports){
 (function (process){
 /**
@@ -15054,12 +17228,16 @@ module.exports = ReactMultiChildUpdateTypes;
  *
  * @providesModule ReactNativeComponent
  */
+
 "use strict";
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
+
 var genericComponentClass = null;
 // This registry keeps track of wrapper classes around native tags
 var tagToComponentClass = {};
+
 var ReactNativeComponentInjection = {
   // This accepts a class that receives the tag string. This is a catch all
   // that can render any kind of tag.
@@ -15072,6 +17250,7 @@ var ReactNativeComponentInjection = {
     assign(tagToComponentClass, componentClasses);
   }
 };
+
 /**
  * Create an internal class for a specific tag.
  *
@@ -15101,11 +17280,14 @@ function createInstanceForTag(tag, props, parentType) {
   // Unwrap legacy factories
   return new componentClass.type(props);
 }
+
 var ReactNativeComponent = {
   createInstanceForTag: createInstanceForTag,
   injection: ReactNativeComponentInjection
 };
+
 module.exports = ReactNativeComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./invariant":129,"JkpR2F":3}],70:[function(require,module,exports){
 (function (process){
@@ -15119,9 +17301,12 @@ module.exports = ReactNativeComponent;
  *
  * @providesModule ReactOwner
  */
+
 "use strict";
+
 var emptyObject = require("./emptyObject");
 var invariant = require("./invariant");
+
 /**
  * ReactOwners are capable of storing references to owned components.
  *
@@ -15153,6 +17338,7 @@ var invariant = require("./invariant");
  * @class ReactOwner
  */
 var ReactOwner = {
+
   /**
    * @param {?object} object
    * @return {boolean} True if `object` is a valid owner.
@@ -15165,6 +17351,7 @@ var ReactOwner = {
       typeof object.detachRef === 'function'
     );
   },
+
   /**
    * Adds a component by ref to an owner component.
    *
@@ -15185,6 +17372,7 @@ var ReactOwner = {
     ) : invariant(ReactOwner.isValidOwner(owner)));
     owner.attachRef(ref, component);
   },
+
   /**
    * Removes a component by ref from an owner component.
    *
@@ -15209,15 +17397,18 @@ var ReactOwner = {
       owner.detachRef(ref);
     }
   },
+
   /**
    * A ReactComponent must mix this in to have refs.
    *
    * @lends {ReactOwner.prototype}
    */
   Mixin: {
+
     construct: function() {
       this.refs = emptyObject;
     },
+
     /**
      * Lazily allocates the refs object and stores `component` as `ref`.
      *
@@ -15235,6 +17426,7 @@ var ReactOwner = {
       var refs = this.refs === emptyObject ? (this.refs = {}) : this.refs;
       refs[ref] = component;
     },
+
     /**
      * Detaches a reference name.
      *
@@ -15245,9 +17437,13 @@ var ReactOwner = {
     detachRef: function(ref) {
       delete this.refs[ref];
     }
+
   }
+
 };
+
 module.exports = ReactOwner;
+
 }).call(this,require("JkpR2F"))
 },{"./emptyObject":111,"./invariant":129,"JkpR2F":3}],71:[function(require,module,exports){
 (function (process){
@@ -15262,7 +17458,9 @@ module.exports = ReactOwner;
  * @providesModule ReactPerf
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * ReactPerf is a general AOP system designed to measure performance. This
  * module only has the hooks: see ReactDefaultPerf for the analysis tool.
@@ -15273,11 +17471,13 @@ var ReactPerf = {
    * accidental logging and perf loss.
    */
   enableMeasure: false,
+
   /**
    * Holds onto the measure function in use. By default, don't measure
    * anything, but we'll override this if we inject a measure function.
    */
   storedMeasure: _noMeasure,
+
   /**
    * Use this to wrap methods you want to measure. Zero overhead in production.
    *
@@ -15303,6 +17503,7 @@ var ReactPerf = {
     }
     return func;
   },
+
   injection: {
     /**
      * @param {function} measure
@@ -15312,6 +17513,7 @@ var ReactPerf = {
     }
   }
 };
+
 /**
  * Simply passes through the measured function, without measuring it.
  *
@@ -15323,7 +17525,9 @@ var ReactPerf = {
 function _noMeasure(objName, fnName, func) {
   return func;
 }
+
 module.exports = ReactPerf;
+
 }).call(this,require("JkpR2F"))
 },{"JkpR2F":3}],72:[function(require,module,exports){
 (function (process){
@@ -15337,13 +17541,17 @@ module.exports = ReactPerf;
  *
  * @providesModule ReactPropTransferer
  */
+
 "use strict";
+
 var assign = require("./Object.assign");
 var emptyFunction = require("./emptyFunction");
 var invariant = require("./invariant");
 var joinClasses = require("./joinClasses");
 var warning = require("./warning");
+
 var didWarn = false;
+
 /**
  * Creates a transfer strategy that will merge prop values using the supplied
  * `mergeStrategy`. If a prop was previously unset, this just sets it.
@@ -15360,12 +17568,14 @@ function createTransferStrategy(mergeStrategy) {
     }
   };
 }
+
 var transferStrategyMerge = createTransferStrategy(function(a, b) {
   // `merge` overrides the first object's (`props[key]` above) keys using the
   // second object's (`value`) keys. An object's style's existing `propA` would
   // get overridden. Flip the order here.
   return assign({}, b, a);
 });
+
 /**
  * Transfer strategies dictate how props are transferred by `transferPropsTo`.
  * NOTE: if you add any more exceptions to this list you should be sure to
@@ -15385,6 +17595,7 @@ var TransferStrategies = {
    */
   style: transferStrategyMerge
 };
+
 /**
  * Mutates the first argument by transferring the properties from the second
  * argument.
@@ -15398,7 +17609,9 @@ function transferInto(props, newProps) {
     if (!newProps.hasOwnProperty(thisKey)) {
       continue;
     }
+
     var transferStrategy = TransferStrategies[thisKey];
+
     if (transferStrategy && TransferStrategies.hasOwnProperty(thisKey)) {
       transferStrategy(props, thisKey, newProps[thisKey]);
     } else if (!props.hasOwnProperty(thisKey)) {
@@ -15407,6 +17620,7 @@ function transferInto(props, newProps) {
   }
   return props;
 }
+
 /**
  * ReactPropTransferer are capable of transferring props to another component
  * using a `transferPropsTo` method.
@@ -15414,7 +17628,9 @@ function transferInto(props, newProps) {
  * @class ReactPropTransferer
  */
 var ReactPropTransferer = {
+
   TransferStrategies: TransferStrategies,
+
   /**
    * Merge two props objects using TransferStrategies.
    *
@@ -15425,10 +17641,12 @@ var ReactPropTransferer = {
   mergeProps: function(oldProps, newProps) {
     return transferInto(assign({}, oldProps), newProps);
   },
+
   /**
    * @lends {ReactPropTransferer.prototype}
    */
   Mixin: {
+
     /**
      * Transfer props from this component to a target component.
      *
@@ -15453,6 +17671,7 @@ var ReactPropTransferer = {
         element.type :
         element.type.displayName
       ) : invariant(element._owner === this));
+
       if ("production" !== process.env.NODE_ENV) {
         if (!didWarn) {
           didWarn = true;
@@ -15463,14 +17682,19 @@ var ReactPropTransferer = {
           ) : null);
         }
       }
+
       // Because elements are immutable we have to merge into the existing
       // props object rather than clone it.
       transferInto(element.props, this.props);
+
       return element;
     }
+
   }
 };
+
 module.exports = ReactPropTransferer;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./emptyFunction":110,"./invariant":129,"./joinClasses":134,"./warning":148,"JkpR2F":3}],73:[function(require,module,exports){
 (function (process){
@@ -15484,8 +17708,11 @@ module.exports = ReactPropTransferer;
  *
  * @providesModule ReactPropTypeLocationNames
  */
+
 "use strict";
+
 var ReactPropTypeLocationNames = {};
+
 if ("production" !== process.env.NODE_ENV) {
   ReactPropTypeLocationNames = {
     prop: 'prop',
@@ -15493,7 +17720,9 @@ if ("production" !== process.env.NODE_ENV) {
     childContext: 'child context'
   };
 }
+
 module.exports = ReactPropTypeLocationNames;
+
 }).call(this,require("JkpR2F"))
 },{"JkpR2F":3}],74:[function(require,module,exports){
 /**
@@ -15506,14 +17735,19 @@ module.exports = ReactPropTypeLocationNames;
  *
  * @providesModule ReactPropTypeLocations
  */
+
 "use strict";
+
 var keyMirror = require("./keyMirror");
+
 var ReactPropTypeLocations = keyMirror({
   prop: null,
   context: null,
   childContext: null
 });
+
 module.exports = ReactPropTypeLocations;
+
 },{"./keyMirror":135}],75:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -15525,11 +17759,15 @@ module.exports = ReactPropTypeLocations;
  *
  * @providesModule ReactPropTypes
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactPropTypeLocationNames = require("./ReactPropTypeLocationNames");
+
 var deprecated = require("./deprecated");
 var emptyFunction = require("./emptyFunction");
+
 /**
  * Collection of methods that allow declaration and validation of props that are
  * supplied to React components. Example usage:
@@ -15576,9 +17814,12 @@ var emptyFunction = require("./emptyFunction");
  *
  * @internal
  */
+
 var ANONYMOUS = '<<anonymous>>';
+
 var elementTypeChecker = createElementTypeChecker();
 var nodeTypeChecker = createNodeChecker();
+
 var ReactPropTypes = {
   array: createPrimitiveTypeChecker('array'),
   bool: createPrimitiveTypeChecker('boolean'),
@@ -15586,6 +17827,7 @@ var ReactPropTypes = {
   number: createPrimitiveTypeChecker('number'),
   object: createPrimitiveTypeChecker('object'),
   string: createPrimitiveTypeChecker('string'),
+
   any: createAnyTypeChecker(),
   arrayOf: createArrayOfTypeChecker,
   element: elementTypeChecker,
@@ -15595,6 +17837,7 @@ var ReactPropTypes = {
   oneOf: createEnumTypeChecker,
   oneOfType: createUnionTypeChecker,
   shape: createShapeTypeChecker,
+
   component: deprecated(
     'React.PropTypes',
     'component',
@@ -15610,6 +17853,7 @@ var ReactPropTypes = {
     nodeTypeChecker
   )
 };
+
 function createChainableTypeChecker(validate) {
   function checkType(isRequired, props, propName, componentName, location) {
     componentName = componentName || ANONYMOUS;
@@ -15625,10 +17869,13 @@ function createChainableTypeChecker(validate) {
       return validate(props, propName, componentName, location);
     }
   }
+
   var chainedCheckType = checkType.bind(null, false);
   chainedCheckType.isRequired = checkType.bind(null, true);
+
   return chainedCheckType;
 }
+
 function createPrimitiveTypeChecker(expectedType) {
   function validate(props, propName, componentName, location) {
     var propValue = props[propName];
@@ -15639,6 +17886,7 @@ function createPrimitiveTypeChecker(expectedType) {
       // check, but we can offer a more precise error message here rather than
       // 'of type `object`'.
       var preciseType = getPreciseType(propValue);
+
       return new Error(
         ("Invalid " + locationName + " `" + propName + "` of type `" + preciseType + "` ") +
         ("supplied to `" + componentName + "`, expected `" + expectedType + "`.")
@@ -15647,9 +17895,11 @@ function createPrimitiveTypeChecker(expectedType) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createAnyTypeChecker() {
   return createChainableTypeChecker(emptyFunction.thatReturns());
 }
+
 function createArrayOfTypeChecker(typeChecker) {
   function validate(props, propName, componentName, location) {
     var propValue = props[propName];
@@ -15670,6 +17920,7 @@ function createArrayOfTypeChecker(typeChecker) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createElementTypeChecker() {
   function validate(props, propName, componentName, location) {
     if (!ReactElement.isValidElement(props[propName])) {
@@ -15682,6 +17933,7 @@ function createElementTypeChecker() {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createInstanceTypeChecker(expectedClass) {
   function validate(props, propName, componentName, location) {
     if (!(props[propName] instanceof expectedClass)) {
@@ -15695,6 +17947,7 @@ function createInstanceTypeChecker(expectedClass) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createEnumTypeChecker(expectedValues) {
   function validate(props, propName, componentName, location) {
     var propValue = props[propName];
@@ -15703,6 +17956,7 @@ function createEnumTypeChecker(expectedValues) {
         return;
       }
     }
+
     var locationName = ReactPropTypeLocationNames[location];
     var valuesString = JSON.stringify(expectedValues);
     return new Error(
@@ -15712,6 +17966,7 @@ function createEnumTypeChecker(expectedValues) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createObjectOfTypeChecker(typeChecker) {
   function validate(props, propName, componentName, location) {
     var propValue = props[propName];
@@ -15734,6 +17989,7 @@ function createObjectOfTypeChecker(typeChecker) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createUnionTypeChecker(arrayOfTypeCheckers) {
   function validate(props, propName, componentName, location) {
     for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
@@ -15742,6 +17998,7 @@ function createUnionTypeChecker(arrayOfTypeCheckers) {
         return;
       }
     }
+
     var locationName = ReactPropTypeLocationNames[location];
     return new Error(
       ("Invalid " + locationName + " `" + propName + "` supplied to ") +
@@ -15750,6 +18007,7 @@ function createUnionTypeChecker(arrayOfTypeCheckers) {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createNodeChecker() {
   function validate(props, propName, componentName, location) {
     if (!isNode(props[propName])) {
@@ -15762,6 +18020,7 @@ function createNodeChecker() {
   }
   return createChainableTypeChecker(validate);
 }
+
 function createShapeTypeChecker(shapeTypes) {
   function validate(props, propName, componentName, location) {
     var propValue = props[propName];
@@ -15786,6 +18045,7 @@ function createShapeTypeChecker(shapeTypes) {
   }
   return createChainableTypeChecker(validate, 'expected `object`');
 }
+
 function isNode(propValue) {
   switch(typeof propValue) {
     case 'number':
@@ -15810,6 +18070,7 @@ function isNode(propValue) {
       return false;
   }
 }
+
 // Equivalent of `typeof` but with special handling for array and regexp.
 function getPropType(propValue) {
   var propType = typeof propValue;
@@ -15824,6 +18085,7 @@ function getPropType(propValue) {
   }
   return propType;
 }
+
 // This handles more types than `getPropType`. Only used for error messages.
 // See `createPrimitiveTypeChecker`.
 function getPreciseType(propValue) {
@@ -15837,7 +18099,9 @@ function getPreciseType(propValue) {
   }
   return propType;
 }
+
 module.exports = ReactPropTypes;
+
 },{"./ReactElement":55,"./ReactPropTypeLocationNames":73,"./deprecated":109,"./emptyFunction":110}],76:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -15849,13 +18113,18 @@ module.exports = ReactPropTypes;
  *
  * @providesModule ReactPutListenerQueue
  */
+
 "use strict";
+
 var PooledClass = require("./PooledClass");
 var ReactBrowserEventEmitter = require("./ReactBrowserEventEmitter");
+
 var assign = require("./Object.assign");
+
 function ReactPutListenerQueue() {
   this.listenersToPut = [];
 }
+
 assign(ReactPutListenerQueue.prototype, {
   enqueuePutListener: function(rootNodeID, propKey, propValue) {
     this.listenersToPut.push({
@@ -15864,6 +18133,7 @@ assign(ReactPutListenerQueue.prototype, {
       propValue: propValue
     });
   },
+
   putListeners: function() {
     for (var i = 0; i < this.listenersToPut.length; i++) {
       var listenerToPut = this.listenersToPut[i];
@@ -15874,15 +18144,20 @@ assign(ReactPutListenerQueue.prototype, {
       );
     }
   },
+
   reset: function() {
     this.listenersToPut.length = 0;
   },
+
   destructor: function() {
     this.reset();
   }
 });
+
 PooledClass.addPoolingTo(ReactPutListenerQueue);
+
 module.exports = ReactPutListenerQueue;
+
 },{"./Object.assign":29,"./PooledClass":30,"./ReactBrowserEventEmitter":33}],77:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -15895,14 +18170,18 @@ module.exports = ReactPutListenerQueue;
  * @providesModule ReactReconcileTransaction
  * @typechecks static-only
  */
+
 "use strict";
+
 var CallbackQueue = require("./CallbackQueue");
 var PooledClass = require("./PooledClass");
 var ReactBrowserEventEmitter = require("./ReactBrowserEventEmitter");
 var ReactInputSelection = require("./ReactInputSelection");
 var ReactPutListenerQueue = require("./ReactPutListenerQueue");
 var Transaction = require("./Transaction");
+
 var assign = require("./Object.assign");
+
 /**
  * Ensures that, when possible, the selection range (currently selected text
  * input) is not disturbed by performing the transaction.
@@ -15917,6 +18196,7 @@ var SELECTION_RESTORATION = {
    */
   close: ReactInputSelection.restoreSelection
 };
+
 /**
  * Suppresses events (blur/focus) that could be inadvertently dispatched due to
  * high level DOM manipulations (like temporarily removing a text input from the
@@ -15932,6 +18212,7 @@ var EVENT_SUPPRESSION = {
     ReactBrowserEventEmitter.setEnabled(false);
     return currentlyEnabled;
   },
+
   /**
    * @param {boolean} previouslyEnabled Enabled status of
    *   `ReactBrowserEventEmitter` before the reconciliation occured. `close`
@@ -15941,6 +18222,7 @@ var EVENT_SUPPRESSION = {
     ReactBrowserEventEmitter.setEnabled(previouslyEnabled);
   }
 };
+
 /**
  * Provides a queue for collecting `componentDidMount` and
  * `componentDidUpdate` callbacks during the the transaction.
@@ -15952,6 +18234,7 @@ var ON_DOM_READY_QUEUEING = {
   initialize: function() {
     this.reactMountReady.reset();
   },
+
   /**
    * After DOM is flushed, invoke all registered `onDOMReady` callbacks.
    */
@@ -15959,14 +18242,17 @@ var ON_DOM_READY_QUEUEING = {
     this.reactMountReady.notifyAll();
   }
 };
+
 var PUT_LISTENER_QUEUEING = {
   initialize: function() {
     this.putListenerQueue.reset();
   },
+
   close: function() {
     this.putListenerQueue.putListeners();
   }
 };
+
 /**
  * Executed within the scope of the `Transaction` instance. Consider these as
  * being member methods, but with an implied ordering while being isolated from
@@ -15978,6 +18264,7 @@ var TRANSACTION_WRAPPERS = [
   EVENT_SUPPRESSION,
   ON_DOM_READY_QUEUEING
 ];
+
 /**
  * Currently:
  * - The order that these are listed in the transaction is critical:
@@ -16003,6 +18290,7 @@ function ReactReconcileTransaction() {
   this.reactMountReady = CallbackQueue.getPooled(null);
   this.putListenerQueue = ReactPutListenerQueue.getPooled();
 }
+
 var Mixin = {
   /**
    * @see Transaction
@@ -16014,15 +18302,18 @@ var Mixin = {
   getTransactionWrappers: function() {
     return TRANSACTION_WRAPPERS;
   },
+
   /**
    * @return {object} The queue to collect `onDOMReady` callbacks with.
    */
   getReactMountReady: function() {
     return this.reactMountReady;
   },
+
   getPutListenerQueue: function() {
     return this.putListenerQueue;
   },
+
   /**
    * `PooledClass` looks for this, and will invoke this before allowing this
    * instance to be resused.
@@ -16030,13 +18321,19 @@ var Mixin = {
   destructor: function() {
     CallbackQueue.release(this.reactMountReady);
     this.reactMountReady = null;
+
     ReactPutListenerQueue.release(this.putListenerQueue);
     this.putListenerQueue = null;
   }
 };
+
+
 assign(ReactReconcileTransaction.prototype, Transaction.Mixin, Mixin);
+
 PooledClass.addPoolingTo(ReactReconcileTransaction);
+
 module.exports = ReactReconcileTransaction;
+
 },{"./CallbackQueue":8,"./Object.assign":29,"./PooledClass":30,"./ReactBrowserEventEmitter":33,"./ReactInputSelection":62,"./ReactPutListenerQueue":76,"./Transaction":98}],78:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -16049,7 +18346,9 @@ module.exports = ReactReconcileTransaction;
  * @providesModule ReactRootIndex
  * @typechecks
  */
+
 "use strict";
+
 var ReactRootIndexInjection = {
   /**
    * @param {function} _createReactRootIndex
@@ -16058,11 +18357,14 @@ var ReactRootIndexInjection = {
     ReactRootIndex.createReactRootIndex = _createReactRootIndex;
   }
 };
+
 var ReactRootIndex = {
   createReactRootIndex: null,
   injection: ReactRootIndexInjection
 };
+
 module.exports = ReactRootIndex;
+
 },{}],79:[function(require,module,exports){
 (function (process){
 /**
@@ -16077,13 +18379,16 @@ module.exports = ReactRootIndex;
  * @providesModule ReactServerRendering
  */
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactInstanceHandles = require("./ReactInstanceHandles");
 var ReactMarkupChecksum = require("./ReactMarkupChecksum");
 var ReactServerRenderingTransaction =
   require("./ReactServerRenderingTransaction");
+
 var instantiateReactComponent = require("./instantiateReactComponent");
 var invariant = require("./invariant");
+
 /**
  * @param {ReactElement} element
  * @return {string} the HTML markup
@@ -16093,10 +18398,12 @@ function renderToString(element) {
     ReactElement.isValidElement(element),
     'renderToString(): You must pass a valid ReactElement.'
   ) : invariant(ReactElement.isValidElement(element)));
+
   var transaction;
   try {
     var id = ReactInstanceHandles.createReactRootID();
     transaction = ReactServerRenderingTransaction.getPooled(false);
+
     return transaction.perform(function() {
       var componentInstance = instantiateReactComponent(element, null);
       var markup = componentInstance.mountComponent(id, transaction, 0);
@@ -16106,6 +18413,7 @@ function renderToString(element) {
     ReactServerRenderingTransaction.release(transaction);
   }
 }
+
 /**
  * @param {ReactElement} element
  * @return {string} the HTML markup, without the extra React ID and checksum
@@ -16116,10 +18424,12 @@ function renderToStaticMarkup(element) {
     ReactElement.isValidElement(element),
     'renderToStaticMarkup(): You must pass a valid ReactElement.'
   ) : invariant(ReactElement.isValidElement(element)));
+
   var transaction;
   try {
     var id = ReactInstanceHandles.createReactRootID();
     transaction = ReactServerRenderingTransaction.getPooled(true);
+
     return transaction.perform(function() {
       var componentInstance = instantiateReactComponent(element, null);
       return componentInstance.mountComponent(id, transaction, 0);
@@ -16128,10 +18438,12 @@ function renderToStaticMarkup(element) {
     ReactServerRenderingTransaction.release(transaction);
   }
 }
+
 module.exports = {
   renderToString: renderToString,
   renderToStaticMarkup: renderToStaticMarkup
 };
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./ReactInstanceHandles":63,"./ReactMarkupChecksum":65,"./ReactServerRenderingTransaction":80,"./instantiateReactComponent":128,"./invariant":129,"JkpR2F":3}],80:[function(require,module,exports){
 /**
@@ -16145,13 +18457,17 @@ module.exports = {
  * @providesModule ReactServerRenderingTransaction
  * @typechecks
  */
+
 "use strict";
+
 var PooledClass = require("./PooledClass");
 var CallbackQueue = require("./CallbackQueue");
 var ReactPutListenerQueue = require("./ReactPutListenerQueue");
 var Transaction = require("./Transaction");
+
 var assign = require("./Object.assign");
 var emptyFunction = require("./emptyFunction");
+
 /**
  * Provides a `CallbackQueue` queue for collecting `onDOMReady` callbacks
  * during the performing of the transaction.
@@ -16163,14 +18479,18 @@ var ON_DOM_READY_QUEUEING = {
   initialize: function() {
     this.reactMountReady.reset();
   },
+
   close: emptyFunction
 };
+
 var PUT_LISTENER_QUEUEING = {
   initialize: function() {
     this.putListenerQueue.reset();
   },
+
   close: emptyFunction
 };
+
 /**
  * Executed within the scope of the `Transaction` instance. Consider these as
  * being member methods, but with an implied ordering while being isolated from
@@ -16180,6 +18500,7 @@ var TRANSACTION_WRAPPERS = [
   PUT_LISTENER_QUEUEING,
   ON_DOM_READY_QUEUEING
 ];
+
 /**
  * @class ReactServerRenderingTransaction
  * @param {boolean} renderToStaticMarkup
@@ -16190,6 +18511,7 @@ function ReactServerRenderingTransaction(renderToStaticMarkup) {
   this.reactMountReady = CallbackQueue.getPooled(null);
   this.putListenerQueue = ReactPutListenerQueue.getPooled();
 }
+
 var Mixin = {
   /**
    * @see Transaction
@@ -16200,15 +18522,18 @@ var Mixin = {
   getTransactionWrappers: function() {
     return TRANSACTION_WRAPPERS;
   },
+
   /**
    * @return {object} The queue to collect `onDOMReady` callbacks with.
    */
   getReactMountReady: function() {
     return this.reactMountReady;
   },
+
   getPutListenerQueue: function() {
     return this.putListenerQueue;
   },
+
   /**
    * `PooledClass` looks for this, and will invoke this before allowing this
    * instance to be resused.
@@ -16216,17 +18541,23 @@ var Mixin = {
   destructor: function() {
     CallbackQueue.release(this.reactMountReady);
     this.reactMountReady = null;
+
     ReactPutListenerQueue.release(this.putListenerQueue);
     this.putListenerQueue = null;
   }
 };
+
+
 assign(
   ReactServerRenderingTransaction.prototype,
   Transaction.Mixin,
   Mixin
 );
+
 PooledClass.addPoolingTo(ReactServerRenderingTransaction);
+
 module.exports = ReactServerRenderingTransaction;
+
 },{"./CallbackQueue":8,"./Object.assign":29,"./PooledClass":30,"./ReactPutListenerQueue":76,"./Transaction":98,"./emptyFunction":110}],81:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -16239,12 +18570,16 @@ module.exports = ReactServerRenderingTransaction;
  * @providesModule ReactTextComponent
  * @typechecks static-only
  */
+
 "use strict";
+
 var DOMPropertyOperations = require("./DOMPropertyOperations");
 var ReactComponent = require("./ReactComponent");
 var ReactElement = require("./ReactElement");
+
 var assign = require("./Object.assign");
 var escapeTextForBrowser = require("./escapeTextForBrowser");
+
 /**
  * Text nodes violate a couple assumptions that React makes about components:
  *
@@ -16263,7 +18598,9 @@ var escapeTextForBrowser = require("./escapeTextForBrowser");
 var ReactTextComponent = function(props) {
   // This constructor and it's argument is currently used by mocks.
 };
+
 assign(ReactTextComponent.prototype, ReactComponent.Mixin, {
+
   /**
    * Creates the markup for this text node. This node is not intended to have
    * any features besides containing text content.
@@ -16281,19 +18618,23 @@ assign(ReactTextComponent.prototype, ReactComponent.Mixin, {
       transaction,
       mountDepth
     );
+
     var escapedText = escapeTextForBrowser(this.props);
+
     if (transaction.renderToStaticMarkup) {
       // Normally we'd wrap this in a `span` for the reasons stated above, but
       // since this is a situation where React won't take over (static pages),
       // we can simply return the text as it is.
       return escapedText;
     }
+
     return (
       '<span ' + DOMPropertyOperations.createMarkupForID(rootID) + '>' +
         escapedText +
       '</span>'
     );
   },
+
   /**
    * Updates this component by updating the text content.
    *
@@ -16311,13 +18652,18 @@ assign(ReactTextComponent.prototype, ReactComponent.Mixin, {
       );
     }
   }
+
 });
+
 var ReactTextComponentFactory = function(text) {
   // Bypass validation and configuration
   return new ReactElement(ReactTextComponent, null, null, null, null, text);
 };
+
 ReactTextComponentFactory.type = ReactTextComponent;
+
 module.exports = ReactTextComponentFactory;
+
 },{"./DOMPropertyOperations":14,"./Object.assign":29,"./ReactComponent":35,"./ReactElement":55,"./escapeTextForBrowser":112}],82:[function(require,module,exports){
 (function (process){
 /**
@@ -16330,19 +18676,25 @@ module.exports = ReactTextComponentFactory;
  *
  * @providesModule ReactUpdates
  */
+
 "use strict";
+
 var CallbackQueue = require("./CallbackQueue");
 var PooledClass = require("./PooledClass");
 var ReactCurrentOwner = require("./ReactCurrentOwner");
 var ReactPerf = require("./ReactPerf");
 var Transaction = require("./Transaction");
+
 var assign = require("./Object.assign");
 var invariant = require("./invariant");
 var warning = require("./warning");
+
 var dirtyComponents = [];
 var asapCallbackQueue = CallbackQueue.getPooled();
 var asapEnqueued = false;
+
 var batchingStrategy = null;
+
 function ensureInjected() {
   ("production" !== process.env.NODE_ENV ? invariant(
     ReactUpdates.ReactReconcileTransaction && batchingStrategy,
@@ -16350,6 +18702,7 @@ function ensureInjected() {
     'strategy'
   ) : invariant(ReactUpdates.ReactReconcileTransaction && batchingStrategy));
 }
+
 var NESTED_UPDATES = {
   initialize: function() {
     this.dirtyComponentsLength = dirtyComponents.length;
@@ -16368,6 +18721,7 @@ var NESTED_UPDATES = {
     }
   }
 };
+
 var UPDATE_QUEUEING = {
   initialize: function() {
     this.callbackQueue.reset();
@@ -16376,7 +18730,9 @@ var UPDATE_QUEUEING = {
     this.callbackQueue.notifyAll();
   }
 };
+
 var TRANSACTION_WRAPPERS = [NESTED_UPDATES, UPDATE_QUEUEING];
+
 function ReactUpdatesFlushTransaction() {
   this.reinitializeTransaction();
   this.dirtyComponentsLength = null;
@@ -16384,12 +18740,14 @@ function ReactUpdatesFlushTransaction() {
   this.reconcileTransaction =
     ReactUpdates.ReactReconcileTransaction.getPooled();
 }
+
 assign(
   ReactUpdatesFlushTransaction.prototype,
   Transaction.Mixin, {
   getTransactionWrappers: function() {
     return TRANSACTION_WRAPPERS;
   },
+
   destructor: function() {
     this.dirtyComponentsLength = null;
     CallbackQueue.release(this.callbackQueue);
@@ -16397,6 +18755,7 @@ assign(
     ReactUpdates.ReactReconcileTransaction.release(this.reconcileTransaction);
     this.reconcileTransaction = null;
   },
+
   perform: function(method, scope, a) {
     // Essentially calls `this.reconcileTransaction.perform(method, scope, a)`
     // with this transaction's wrappers around it.
@@ -16410,11 +18769,14 @@ assign(
     );
   }
 });
+
 PooledClass.addPoolingTo(ReactUpdatesFlushTransaction);
+
 function batchedUpdates(callback, a, b) {
   ensureInjected();
   batchingStrategy.batchedUpdates(callback, a, b);
 }
+
 /**
  * Array comparator for ReactComponents by owner depth
  *
@@ -16425,6 +18787,7 @@ function batchedUpdates(callback, a, b) {
 function mountDepthComparator(c1, c2) {
   return c1._mountDepth - c2._mountDepth;
 }
+
 function runBatchedUpdates(transaction) {
   var len = transaction.dirtyComponentsLength;
   ("production" !== process.env.NODE_ENV ? invariant(
@@ -16434,10 +18797,12 @@ function runBatchedUpdates(transaction) {
     len,
     dirtyComponents.length
   ) : invariant(len === dirtyComponents.length));
+
   // Since reconciling a component higher in the owner hierarchy usually (not
   // always -- see shouldComponentUpdate()) will reconcile children, reconcile
   // them before their children by sorting the array.
   dirtyComponents.sort(mountDepthComparator);
+
   for (var i = 0; i < len; i++) {
     // If a component is unmounted before pending changes apply, ignore them
     // TODO: Queue unmounts in the same list to avoid this happening at all
@@ -16449,6 +18814,7 @@ function runBatchedUpdates(transaction) {
       var callbacks = component._pendingCallbacks;
       component._pendingCallbacks = null;
       component.performUpdateIfNecessary(transaction.reconcileTransaction);
+
       if (callbacks) {
         for (var j = 0; j < callbacks.length; j++) {
           transaction.callbackQueue.enqueue(
@@ -16460,6 +18826,7 @@ function runBatchedUpdates(transaction) {
     }
   }
 }
+
 var flushBatchedUpdates = ReactPerf.measure(
   'ReactUpdates',
   'flushBatchedUpdates',
@@ -16474,6 +18841,7 @@ var flushBatchedUpdates = ReactPerf.measure(
         transaction.perform(runBatchedUpdates, null, transaction);
         ReactUpdatesFlushTransaction.release(transaction);
       }
+
       if (asapEnqueued) {
         asapEnqueued = false;
         var queue = asapCallbackQueue;
@@ -16484,6 +18852,7 @@ var flushBatchedUpdates = ReactPerf.measure(
     }
   }
 );
+
 /**
  * Mark a component as needing a rerender, adding an optional callback to a
  * list of functions which will be executed once the rerender occurs.
@@ -16496,6 +18865,7 @@ function enqueueUpdate(component, callback) {
     'isn\'t callable.'
   ) : invariant(!callback || typeof callback === "function"));
   ensureInjected();
+
   // Various parts of our code (such as ReactCompositeComponent's
   // _renderValidatedComponent) assume that calls to render aren't nested;
   // verify that that's the case. (This is called by each top-level update
@@ -16508,11 +18878,14 @@ function enqueueUpdate(component, callback) {
     'allowed. If necessary, trigger nested updates in ' +
     'componentDidUpdate.'
   ) : null);
+
   if (!batchingStrategy.isBatchingUpdates) {
     batchingStrategy.batchedUpdates(enqueueUpdate, component, callback);
     return;
   }
+
   dirtyComponents.push(component);
+
   if (callback) {
     if (component._pendingCallbacks) {
       component._pendingCallbacks.push(callback);
@@ -16521,6 +18894,7 @@ function enqueueUpdate(component, callback) {
     }
   }
 }
+
 /**
  * Enqueue a callback to be run at the end of the current batching cycle. Throws
  * if no updates are currently being performed.
@@ -16534,6 +18908,7 @@ function asap(callback, context) {
   asapCallbackQueue.enqueue(callback, context);
   asapEnqueued = true;
 }
+
 var ReactUpdatesInjection = {
   injectReconcileTransaction: function(ReconcileTransaction) {
     ("production" !== process.env.NODE_ENV ? invariant(
@@ -16542,6 +18917,7 @@ var ReactUpdatesInjection = {
     ) : invariant(ReconcileTransaction));
     ReactUpdates.ReactReconcileTransaction = ReconcileTransaction;
   },
+
   injectBatchingStrategy: function(_batchingStrategy) {
     ("production" !== process.env.NODE_ENV ? invariant(
       _batchingStrategy,
@@ -16558,6 +18934,7 @@ var ReactUpdatesInjection = {
     batchingStrategy = _batchingStrategy;
   }
 };
+
 var ReactUpdates = {
   /**
    * React references `ReactReconcileTransaction` using this property in order
@@ -16566,13 +18943,16 @@ var ReactUpdates = {
    * @internal
    */
   ReactReconcileTransaction: null,
+
   batchedUpdates: batchedUpdates,
   enqueueUpdate: enqueueUpdate,
   flushBatchedUpdates: flushBatchedUpdates,
   injection: ReactUpdatesInjection,
   asap: asap
 };
+
 module.exports = ReactUpdates;
+
 }).call(this,require("JkpR2F"))
 },{"./CallbackQueue":8,"./Object.assign":29,"./PooledClass":30,"./ReactCurrentOwner":39,"./ReactPerf":71,"./Transaction":98,"./invariant":129,"./warning":148,"JkpR2F":3}],83:[function(require,module,exports){
 /**
@@ -16585,10 +18965,15 @@ module.exports = ReactUpdates;
  *
  * @providesModule SVGDOMPropertyConfig
  */
+
 /*jslint bitwise: true*/
+
 "use strict";
+
 var DOMProperty = require("./DOMProperty");
+
 var MUST_USE_ATTRIBUTE = DOMProperty.injection.MUST_USE_ATTRIBUTE;
+
 var SVGDOMPropertyConfig = {
   Properties: {
     cx: MUST_USE_ATTRIBUTE,
@@ -16658,7 +19043,9 @@ var SVGDOMPropertyConfig = {
     viewBox: 'viewBox'
   }
 };
+
 module.exports = SVGDOMPropertyConfig;
+
 },{"./DOMProperty":13}],84:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -16670,16 +19057,21 @@ module.exports = SVGDOMPropertyConfig;
  *
  * @providesModule SelectEventPlugin
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPropagators = require("./EventPropagators");
 var ReactInputSelection = require("./ReactInputSelection");
 var SyntheticEvent = require("./SyntheticEvent");
+
 var getActiveElement = require("./getActiveElement");
 var isTextInputElement = require("./isTextInputElement");
 var keyOf = require("./keyOf");
 var shallowEqual = require("./shallowEqual");
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 var eventTypes = {
   select: {
     phasedRegistrationNames: {
@@ -16697,10 +19089,12 @@ var eventTypes = {
     ]
   }
 };
+
 var activeElement = null;
 var activeElementID = null;
 var lastSelection = null;
 var mouseDown = false;
+
 /**
  * Get an object which is a unique representation of the current selection.
  *
@@ -16735,6 +19129,7 @@ function getSelection(node) {
     };
   }
 }
+
 /**
  * Poll selection to see whether it's changed.
  *
@@ -16751,21 +19146,27 @@ function constructSelectEvent(nativeEvent) {
       activeElement != getActiveElement()) {
     return;
   }
+
   // Only fire when selection has actually changed.
   var currentSelection = getSelection(activeElement);
   if (!lastSelection || !shallowEqual(lastSelection, currentSelection)) {
     lastSelection = currentSelection;
+
     var syntheticEvent = SyntheticEvent.getPooled(
       eventTypes.select,
       activeElementID,
       nativeEvent
     );
+
     syntheticEvent.type = 'select';
     syntheticEvent.target = activeElement;
+
     EventPropagators.accumulateTwoPhaseDispatches(syntheticEvent);
+
     return syntheticEvent;
   }
 }
+
 /**
  * This plugin creates an `onSelect` event that normalizes select events
  * across form elements.
@@ -16781,7 +19182,9 @@ function constructSelectEvent(nativeEvent) {
  * - Fires after user input.
  */
 var SelectEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -16795,6 +19198,7 @@ var SelectEventPlugin = {
       topLevelTarget,
       topLevelTargetID,
       nativeEvent) {
+
     switch (topLevelType) {
       // Track the input node that has focus.
       case topLevelTypes.topFocus:
@@ -16810,6 +19214,7 @@ var SelectEventPlugin = {
         activeElementID = null;
         lastSelection = null;
         break;
+
       // Don't fire the event while the user is dragging. This matches the
       // semantics of the native select event.
       case topLevelTypes.topMouseDown:
@@ -16819,6 +19224,7 @@ var SelectEventPlugin = {
       case topLevelTypes.topMouseUp:
         mouseDown = false;
         return constructSelectEvent(nativeEvent);
+
       // Chrome and IE fire non-standard event when selection is changed (and
       // sometimes when it hasn't).
       // Firefox doesn't support selectionchange, so check selection status
@@ -16832,7 +19238,9 @@ var SelectEventPlugin = {
     }
   }
 };
+
 module.exports = SelectEventPlugin;
+
 },{"./EventConstants":18,"./EventPropagators":23,"./ReactInputSelection":62,"./SyntheticEvent":90,"./getActiveElement":116,"./isTextInputElement":132,"./keyOf":136,"./shallowEqual":144}],85:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -16845,7 +19253,9 @@ module.exports = SelectEventPlugin;
  * @providesModule ServerReactRootIndex
  * @typechecks
  */
+
 "use strict";
+
 /**
  * Size of the reactRoot ID space. We generate random numbers for React root
  * IDs and if there's a collision the events and DOM update system will
@@ -16853,12 +19263,15 @@ module.exports = SelectEventPlugin;
  * now this will work on a smaller scale.
  */
 var GLOBAL_MOUNT_POINT_MAX = Math.pow(2, 53);
+
 var ServerReactRootIndex = {
   createReactRootIndex: function() {
     return Math.ceil(Math.random() * GLOBAL_MOUNT_POINT_MAX);
   }
 };
+
 module.exports = ServerReactRootIndex;
+
 },{}],86:[function(require,module,exports){
 (function (process){
 /**
@@ -16871,7 +19284,9 @@ module.exports = ServerReactRootIndex;
  *
  * @providesModule SimpleEventPlugin
  */
+
 "use strict";
+
 var EventConstants = require("./EventConstants");
 var EventPluginUtils = require("./EventPluginUtils");
 var EventPropagators = require("./EventPropagators");
@@ -16884,11 +19299,15 @@ var SyntheticDragEvent = require("./SyntheticDragEvent");
 var SyntheticTouchEvent = require("./SyntheticTouchEvent");
 var SyntheticUIEvent = require("./SyntheticUIEvent");
 var SyntheticWheelEvent = require("./SyntheticWheelEvent");
+
 var getEventCharCode = require("./getEventCharCode");
+
 var invariant = require("./invariant");
 var keyOf = require("./keyOf");
 var warning = require("./warning");
+
 var topLevelTypes = EventConstants.topLevelTypes;
+
 var eventTypes = {
   blur: {
     phasedRegistrationNames: {
@@ -17103,6 +19522,7 @@ var eventTypes = {
     }
   }
 };
+
 var topLevelEventsToDispatchConfig = {
   topBlur: eventTypes.blur,
   topClick: eventTypes.click,
@@ -17140,11 +19560,15 @@ var topLevelEventsToDispatchConfig = {
   topTouchStart: eventTypes.touchStart,
   topWheel: eventTypes.wheel
 };
+
 for (var topLevelType in topLevelEventsToDispatchConfig) {
   topLevelEventsToDispatchConfig[topLevelType].dependencies = [topLevelType];
 }
+
 var SimpleEventPlugin = {
+
   eventTypes: eventTypes,
+
   /**
    * Same as the default implementation, except cancels the event when return
    * value is false. This behavior will be disabled in a future release.
@@ -17155,17 +19579,20 @@ var SimpleEventPlugin = {
    */
   executeDispatch: function(event, listener, domID) {
     var returnValue = EventPluginUtils.executeDispatch(event, listener, domID);
+
     ("production" !== process.env.NODE_ENV ? warning(
       typeof returnValue !== 'boolean',
       'Returning `false` from an event handler is deprecated and will be ' +
       'ignored in a future release. Instead, manually call ' +
       'e.stopPropagation() or e.preventDefault(), as appropriate.'
     ) : null);
+
     if (returnValue === false) {
       event.stopPropagation();
       event.preventDefault();
     }
   },
+
   /**
    * @param {string} topLevelType Record from `EventConstants`.
    * @param {DOMEventTarget} topLevelTarget The listening component root node.
@@ -17267,8 +19694,11 @@ var SimpleEventPlugin = {
     EventPropagators.accumulateTwoPhaseDispatches(event);
     return event;
   }
+
 };
+
 module.exports = SimpleEventPlugin;
+
 }).call(this,require("JkpR2F"))
 },{"./EventConstants":18,"./EventPluginUtils":22,"./EventPropagators":23,"./SyntheticClipboardEvent":87,"./SyntheticDragEvent":89,"./SyntheticEvent":90,"./SyntheticFocusEvent":91,"./SyntheticKeyboardEvent":93,"./SyntheticMouseEvent":94,"./SyntheticTouchEvent":95,"./SyntheticUIEvent":96,"./SyntheticWheelEvent":97,"./getEventCharCode":117,"./invariant":129,"./keyOf":136,"./warning":148,"JkpR2F":3}],87:[function(require,module,exports){
 /**
@@ -17282,8 +19712,11 @@ module.exports = SimpleEventPlugin;
  * @providesModule SyntheticClipboardEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticEvent = require("./SyntheticEvent");
+
 /**
  * @interface Event
  * @see http://www.w3.org/TR/clipboard-apis/
@@ -17297,6 +19730,7 @@ var ClipboardEventInterface = {
     );
   }
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17306,8 +19740,12 @@ var ClipboardEventInterface = {
 function SyntheticClipboardEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticEvent.augmentClass(SyntheticClipboardEvent, ClipboardEventInterface);
+
 module.exports = SyntheticClipboardEvent;
+
+
 },{"./SyntheticEvent":90}],88:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17320,8 +19758,11 @@ module.exports = SyntheticClipboardEvent;
  * @providesModule SyntheticCompositionEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticEvent = require("./SyntheticEvent");
+
 /**
  * @interface Event
  * @see http://www.w3.org/TR/DOM-Level-3-Events/#events-compositionevents
@@ -17329,6 +19770,7 @@ var SyntheticEvent = require("./SyntheticEvent");
 var CompositionEventInterface = {
   data: null
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17341,11 +19783,15 @@ function SyntheticCompositionEvent(
   nativeEvent) {
   SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticEvent.augmentClass(
   SyntheticCompositionEvent,
   CompositionEventInterface
 );
+
 module.exports = SyntheticCompositionEvent;
+
+
 },{"./SyntheticEvent":90}],89:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17358,8 +19804,11 @@ module.exports = SyntheticCompositionEvent;
  * @providesModule SyntheticDragEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticMouseEvent = require("./SyntheticMouseEvent");
+
 /**
  * @interface DragEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17367,6 +19816,7 @@ var SyntheticMouseEvent = require("./SyntheticMouseEvent");
 var DragEventInterface = {
   dataTransfer: null
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17376,8 +19826,11 @@ var DragEventInterface = {
 function SyntheticDragEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticMouseEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticMouseEvent.augmentClass(SyntheticDragEvent, DragEventInterface);
+
 module.exports = SyntheticDragEvent;
+
 },{"./SyntheticMouseEvent":94}],90:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17390,11 +19843,15 @@ module.exports = SyntheticDragEvent;
  * @providesModule SyntheticEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var PooledClass = require("./PooledClass");
+
 var assign = require("./Object.assign");
 var emptyFunction = require("./emptyFunction");
 var getEventTarget = require("./getEventTarget");
+
 /**
  * @interface Event
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17413,6 +19870,7 @@ var EventInterface = {
   defaultPrevented: null,
   isTrusted: null
 };
+
 /**
  * Synthetic events are dispatched by event plugins, typically in response to a
  * top-level event delegation handler.
@@ -17434,6 +19892,7 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   this.dispatchConfig = dispatchConfig;
   this.dispatchMarker = dispatchMarker;
   this.nativeEvent = nativeEvent;
+
   var Interface = this.constructor.Interface;
   for (var propName in Interface) {
     if (!Interface.hasOwnProperty(propName)) {
@@ -17446,6 +19905,7 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent) {
       this[propName] = nativeEvent[propName];
     }
   }
+
   var defaultPrevented = nativeEvent.defaultPrevented != null ?
     nativeEvent.defaultPrevented :
     nativeEvent.returnValue === false;
@@ -17456,18 +19916,22 @@ function SyntheticEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   }
   this.isPropagationStopped = emptyFunction.thatReturnsFalse;
 }
+
 assign(SyntheticEvent.prototype, {
+
   preventDefault: function() {
     this.defaultPrevented = true;
     var event = this.nativeEvent;
     event.preventDefault ? event.preventDefault() : event.returnValue = false;
     this.isDefaultPrevented = emptyFunction.thatReturnsTrue;
   },
+
   stopPropagation: function() {
     var event = this.nativeEvent;
     event.stopPropagation ? event.stopPropagation() : event.cancelBubble = true;
     this.isPropagationStopped = emptyFunction.thatReturnsTrue;
   },
+
   /**
    * We release all dispatched `SyntheticEvent`s after each event loop, adding
    * them back into the pool. This allows a way to hold onto a reference that
@@ -17476,12 +19940,14 @@ assign(SyntheticEvent.prototype, {
   persist: function() {
     this.isPersistent = emptyFunction.thatReturnsTrue;
   },
+
   /**
    * Checks if this event should be released back into the pool.
    *
    * @return {boolean} True if this should not be released, false otherwise.
    */
   isPersistent: emptyFunction.thatReturnsFalse,
+
   /**
    * `PooledClass` looks for `destructor` on each instance it releases.
    */
@@ -17494,8 +19960,11 @@ assign(SyntheticEvent.prototype, {
     this.dispatchMarker = null;
     this.nativeEvent = null;
   }
+
 });
+
 SyntheticEvent.Interface = EventInterface;
+
 /**
  * Helper to reduce boilerplate when creating subclasses.
  *
@@ -17504,16 +19973,22 @@ SyntheticEvent.Interface = EventInterface;
  */
 SyntheticEvent.augmentClass = function(Class, Interface) {
   var Super = this;
+
   var prototype = Object.create(Super.prototype);
   assign(prototype, Class.prototype);
   Class.prototype = prototype;
   Class.prototype.constructor = Class;
+
   Class.Interface = assign({}, Super.Interface, Interface);
   Class.augmentClass = Super.augmentClass;
+
   PooledClass.addPoolingTo(Class, PooledClass.threeArgumentPooler);
 };
+
 PooledClass.addPoolingTo(SyntheticEvent, PooledClass.threeArgumentPooler);
+
 module.exports = SyntheticEvent;
+
 },{"./Object.assign":29,"./PooledClass":30,"./emptyFunction":110,"./getEventTarget":120}],91:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17526,8 +20001,11 @@ module.exports = SyntheticEvent;
  * @providesModule SyntheticFocusEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticUIEvent = require("./SyntheticUIEvent");
+
 /**
  * @interface FocusEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17535,6 +20013,7 @@ var SyntheticUIEvent = require("./SyntheticUIEvent");
 var FocusEventInterface = {
   relatedTarget: null
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17544,8 +20023,11 @@ var FocusEventInterface = {
 function SyntheticFocusEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticUIEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticUIEvent.augmentClass(SyntheticFocusEvent, FocusEventInterface);
+
 module.exports = SyntheticFocusEvent;
+
 },{"./SyntheticUIEvent":96}],92:[function(require,module,exports){
 /**
  * Copyright 2013 Facebook, Inc.
@@ -17558,8 +20040,11 @@ module.exports = SyntheticFocusEvent;
  * @providesModule SyntheticInputEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticEvent = require("./SyntheticEvent");
+
 /**
  * @interface Event
  * @see http://www.w3.org/TR/2013/WD-DOM-Level-3-Events-20131105
@@ -17568,6 +20053,7 @@ var SyntheticEvent = require("./SyntheticEvent");
 var InputEventInterface = {
   data: null
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17580,11 +20066,15 @@ function SyntheticInputEvent(
   nativeEvent) {
   SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticEvent.augmentClass(
   SyntheticInputEvent,
   InputEventInterface
 );
+
 module.exports = SyntheticInputEvent;
+
+
 },{"./SyntheticEvent":90}],93:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17597,11 +20087,15 @@ module.exports = SyntheticInputEvent;
  * @providesModule SyntheticKeyboardEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticUIEvent = require("./SyntheticUIEvent");
+
 var getEventCharCode = require("./getEventCharCode");
 var getEventKey = require("./getEventKey");
 var getEventModifierState = require("./getEventModifierState");
+
 /**
  * @interface KeyboardEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17620,6 +20114,7 @@ var KeyboardEventInterface = {
   charCode: function(event) {
     // `charCode` is the result of a KeyPress event and represents the value of
     // the actual printable character.
+
     // KeyPress is deprecated, but its replacement is not yet final and not
     // implemented in any major browser. Only KeyPress has charCode.
     if (event.type === 'keypress') {
@@ -17630,6 +20125,7 @@ var KeyboardEventInterface = {
   keyCode: function(event) {
     // `keyCode` is the result of a KeyDown/Up event and represents the value of
     // physical keyboard key.
+
     // The actual meaning of the value depends on the users' keyboard layout
     // which cannot be detected. Assuming that it is a US keyboard layout
     // provides a surprisingly accurate mapping for US and European users.
@@ -17651,6 +20147,7 @@ var KeyboardEventInterface = {
     return 0;
   }
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17660,8 +20157,11 @@ var KeyboardEventInterface = {
 function SyntheticKeyboardEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticUIEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticUIEvent.augmentClass(SyntheticKeyboardEvent, KeyboardEventInterface);
+
 module.exports = SyntheticKeyboardEvent;
+
 },{"./SyntheticUIEvent":96,"./getEventCharCode":117,"./getEventKey":118,"./getEventModifierState":119}],94:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17674,10 +20174,14 @@ module.exports = SyntheticKeyboardEvent;
  * @providesModule SyntheticMouseEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticUIEvent = require("./SyntheticUIEvent");
 var ViewportMetrics = require("./ViewportMetrics");
+
 var getEventModifierState = require("./getEventModifierState");
+
 /**
  * @interface MouseEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17726,6 +20230,7 @@ var MouseEventInterface = {
       event.clientY + ViewportMetrics.currentScrollTop;
   }
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17735,8 +20240,11 @@ var MouseEventInterface = {
 function SyntheticMouseEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticUIEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticUIEvent.augmentClass(SyntheticMouseEvent, MouseEventInterface);
+
 module.exports = SyntheticMouseEvent;
+
 },{"./SyntheticUIEvent":96,"./ViewportMetrics":99,"./getEventModifierState":119}],95:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17749,9 +20257,13 @@ module.exports = SyntheticMouseEvent;
  * @providesModule SyntheticTouchEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticUIEvent = require("./SyntheticUIEvent");
+
 var getEventModifierState = require("./getEventModifierState");
+
 /**
  * @interface TouchEvent
  * @see http://www.w3.org/TR/touch-events/
@@ -17766,6 +20278,7 @@ var TouchEventInterface = {
   shiftKey: null,
   getModifierState: getEventModifierState
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17775,8 +20288,11 @@ var TouchEventInterface = {
 function SyntheticTouchEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticUIEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticUIEvent.augmentClass(SyntheticTouchEvent, TouchEventInterface);
+
 module.exports = SyntheticTouchEvent;
+
 },{"./SyntheticUIEvent":96,"./getEventModifierState":119}],96:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17789,9 +20305,13 @@ module.exports = SyntheticTouchEvent;
  * @providesModule SyntheticUIEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticEvent = require("./SyntheticEvent");
+
 var getEventTarget = require("./getEventTarget");
+
 /**
  * @interface UIEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17801,11 +20321,13 @@ var UIEventInterface = {
     if (event.view) {
       return event.view;
     }
+
     var target = getEventTarget(event);
     if (target != null && target.window === target) {
       // target is a window object
       return target;
     }
+
     var doc = target.ownerDocument;
     // TODO: Figure out why `ownerDocument` is sometimes undefined in IE8.
     if (doc) {
@@ -17818,6 +20340,7 @@ var UIEventInterface = {
     return event.detail || 0;
   }
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17827,8 +20350,11 @@ var UIEventInterface = {
 function SyntheticUIEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticEvent.augmentClass(SyntheticUIEvent, UIEventInterface);
+
 module.exports = SyntheticUIEvent;
+
 },{"./SyntheticEvent":90,"./getEventTarget":120}],97:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -17841,8 +20367,11 @@ module.exports = SyntheticUIEvent;
  * @providesModule SyntheticWheelEvent
  * @typechecks static-only
  */
+
 "use strict";
+
 var SyntheticMouseEvent = require("./SyntheticMouseEvent");
+
 /**
  * @interface WheelEvent
  * @see http://www.w3.org/TR/DOM-Level-3-Events/
@@ -17865,12 +20394,14 @@ var WheelEventInterface = {
     );
   },
   deltaZ: null,
+
   // Browsers without "deltaMode" is reporting in raw wheel delta where one
   // notch on the scroll is always +/- 120, roughly equivalent to pixels.
   // A good approximation of DOM_DELTA_LINE (1) is 5% of viewport size or
   // ~40 pixels, for DOM_DELTA_SCREEN (2) it is 87.5% of viewport size.
   deltaMode: null
 };
+
 /**
  * @param {object} dispatchConfig Configuration used to dispatch this event.
  * @param {string} dispatchMarker Marker identifying the event target.
@@ -17880,8 +20411,11 @@ var WheelEventInterface = {
 function SyntheticWheelEvent(dispatchConfig, dispatchMarker, nativeEvent) {
   SyntheticMouseEvent.call(this, dispatchConfig, dispatchMarker, nativeEvent);
 }
+
 SyntheticMouseEvent.augmentClass(SyntheticWheelEvent, WheelEventInterface);
+
 module.exports = SyntheticWheelEvent;
+
 },{"./SyntheticMouseEvent":94}],98:[function(require,module,exports){
 (function (process){
 /**
@@ -17894,8 +20428,11 @@ module.exports = SyntheticWheelEvent;
  *
  * @providesModule Transaction
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  * `Transaction` creates a black box that is able to wrap any method such that
  * certain invariants are maintained before and after the method is invoked
@@ -17974,15 +20511,19 @@ var Mixin = {
     }
     this._isInTransaction = false;
   },
+
   _isInTransaction: false,
+
   /**
    * @abstract
    * @return {Array<TransactionWrapper>} Array of transaction wrappers.
    */
   getTransactionWrappers: null,
+
   isInTransaction: function() {
     return !!this._isInTransaction;
   },
+
   /**
    * Executes the function within a safety window. Use this for the top level
    * methods that result in large amounts of computation/mutations that would
@@ -18032,6 +20573,7 @@ var Mixin = {
     }
     return ret;
   },
+
   initializeAll: function(startIndex) {
     var transactionWrappers = this.transactionWrappers;
     for (var i = startIndex; i < transactionWrappers.length; i++) {
@@ -18058,6 +20600,7 @@ var Mixin = {
       }
     }
   },
+
   /**
    * Invokes each of `this.transactionWrappers.close[i]` functions, passing into
    * them the respective return values of `this.transactionWrappers.init[i]`
@@ -18099,14 +20642,20 @@ var Mixin = {
     this.wrapperInitData.length = 0;
   }
 };
+
 var Transaction = {
+
   Mixin: Mixin,
+
   /**
    * Token to look for to determine if an error occured.
    */
   OBSERVED_ERROR: {}
+
 };
+
 module.exports = Transaction;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],99:[function(require,module,exports){
 /**
@@ -18119,18 +20668,27 @@ module.exports = Transaction;
  *
  * @providesModule ViewportMetrics
  */
+
 "use strict";
+
 var getUnboundedScrollPosition = require("./getUnboundedScrollPosition");
+
 var ViewportMetrics = {
+
   currentScrollLeft: 0,
+
   currentScrollTop: 0,
+
   refreshScrollValues: function() {
     var scrollPosition = getUnboundedScrollPosition(window);
     ViewportMetrics.currentScrollLeft = scrollPosition.x;
     ViewportMetrics.currentScrollTop = scrollPosition.y;
   }
+
 };
+
 module.exports = ViewportMetrics;
+
 },{"./getUnboundedScrollPosition":125}],100:[function(require,module,exports){
 (function (process){
 /**
@@ -18143,8 +20701,11 @@ module.exports = ViewportMetrics;
  *
  * @providesModule accumulateInto
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  *
  * Accumulates items that must not be null or undefined into the first one. This
@@ -18158,6 +20719,7 @@ var invariant = require("./invariant");
  *
  * @return {*|array<*>} An accumulation of items.
  */
+
 function accumulateInto(current, next) {
   ("production" !== process.env.NODE_ENV ? invariant(
     next != null,
@@ -18166,25 +20728,32 @@ function accumulateInto(current, next) {
   if (current == null) {
     return next;
   }
+
   // Both are not empty. Warning: Never call x.concat(y) when you are not
   // certain that x is an Array (x could be a string with concat method).
   var currentIsArray = Array.isArray(current);
   var nextIsArray = Array.isArray(next);
+
   if (currentIsArray && nextIsArray) {
     current.push.apply(current, next);
     return current;
   }
+
   if (currentIsArray) {
     current.push(next);
     return current;
   }
+
   if (nextIsArray) {
     // A bit too dangerous to mutate `next`.
     return [current].concat(next);
   }
+
   return [current, next];
 }
+
 module.exports = accumulateInto;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],101:[function(require,module,exports){
 /**
@@ -18197,9 +20766,13 @@ module.exports = accumulateInto;
  *
  * @providesModule adler32
  */
+
 /* jslint bitwise:true */
+
 "use strict";
+
 var MOD = 65521;
+
 // This is a clean-room implementation of adler32 designed for detecting
 // if markup is not what we expect it to be. It does not need to be
 // cryptographically strong, only reasonably good at detecting if markup
@@ -18213,7 +20786,9 @@ function adler32(data) {
   }
   return a | (b << 16);
 }
+
 module.exports = adler32;
+
 },{}],102:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18226,7 +20801,9 @@ module.exports = adler32;
  * @providesModule camelize
  * @typechecks
  */
+
 var _hyphenPattern = /-(.)/g;
+
 /**
  * Camelcases a hyphenated string, for example:
  *
@@ -18241,7 +20818,9 @@ function camelize(string) {
     return character.toUpperCase();
   });
 }
+
 module.exports = camelize;
+
 },{}],103:[function(require,module,exports){
 /**
  * Copyright 2014, Facebook, Inc.
@@ -18254,9 +20833,13 @@ module.exports = camelize;
  * @providesModule camelizeStyleName
  * @typechecks
  */
+
 "use strict";
+
 var camelize = require("./camelize");
+
 var msPattern = /^-ms-/;
+
 /**
  * Camelcases a hyphenated CSS property name, for example:
  *
@@ -18277,7 +20860,9 @@ var msPattern = /^-ms-/;
 function camelizeStyleName(string) {
   return camelize(string.replace(msPattern, 'ms-'));
 }
+
 module.exports = camelizeStyleName;
+
 },{"./camelize":102}],104:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18290,8 +20875,11 @@ module.exports = camelizeStyleName;
  * @providesModule containsNode
  * @typechecks
  */
+
 var isTextNode = require("./isTextNode");
+
 /*jslint bitwise:true */
+
 /**
  * Checks if a given DOM node contains or is another DOM node.
  *
@@ -18316,7 +20904,9 @@ function containsNode(outerNode, innerNode) {
     return false;
   }
 }
+
 module.exports = containsNode;
+
 },{"./isTextNode":133}],105:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18329,7 +20919,9 @@ module.exports = containsNode;
  * @providesModule createArrayFrom
  * @typechecks
  */
+
 var toArray = require("./toArray");
+
 /**
  * Perform a heuristic test to determine if an object is "array-like".
  *
@@ -18367,6 +20959,7 @@ function hasArrayNature(obj) {
     )
   );
 }
+
 /**
  * Ensure that the argument is an array by wrapping it in an array if it is not.
  * Creates a copy of the argument if it is already an array.
@@ -18397,7 +20990,9 @@ function createArrayFrom(obj) {
     return toArray(obj);
   }
 }
+
 module.exports = createArrayFrom;
+
 },{"./toArray":146}],106:[function(require,module,exports){
 (function (process){
 /**
@@ -18411,11 +21006,15 @@ module.exports = createArrayFrom;
  * @providesModule createFullPageComponent
  * @typechecks
  */
+
 "use strict";
+
 // Defeat circular references by requiring this directly.
 var ReactCompositeComponent = require("./ReactCompositeComponent");
 var ReactElement = require("./ReactElement");
+
 var invariant = require("./invariant");
+
 /**
  * Create a component that will throw an exception when unmounted.
  *
@@ -18429,8 +21028,10 @@ var invariant = require("./invariant");
  */
 function createFullPageComponent(tag) {
   var elementFactory = ReactElement.createFactory(tag);
+
   var FullPageComponent = ReactCompositeComponent.createClass({
     displayName: 'ReactFullPageComponent' + tag,
+
     componentWillUnmount: function() {
       ("production" !== process.env.NODE_ENV ? invariant(
         false,
@@ -18441,13 +21042,17 @@ function createFullPageComponent(tag) {
         this.constructor.displayName
       ) : invariant(false));
     },
+
     render: function() {
       return elementFactory(this.props);
     }
   });
+
   return FullPageComponent;
 }
+
 module.exports = createFullPageComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactCompositeComponent":37,"./ReactElement":55,"./invariant":129,"JkpR2F":3}],107:[function(require,module,exports){
 (function (process){
@@ -18462,20 +21067,26 @@ module.exports = createFullPageComponent;
  * @providesModule createNodesFromMarkup
  * @typechecks
  */
+
 /*jslint evil: true, sub: true */
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var createArrayFrom = require("./createArrayFrom");
 var getMarkupWrap = require("./getMarkupWrap");
 var invariant = require("./invariant");
+
 /**
  * Dummy container used to render all markup.
  */
 var dummyNode =
   ExecutionEnvironment.canUseDOM ? document.createElement('div') : null;
+
 /**
  * Pattern used by `getNodeName`.
  */
 var nodeNamePattern = /^\s*<(\w+)/;
+
 /**
  * Extracts the `nodeName` of the first element in a string of markup.
  *
@@ -18486,6 +21097,7 @@ function getNodeName(markup) {
   var nodeNameMatch = markup.match(nodeNamePattern);
   return nodeNameMatch && nodeNameMatch[1].toLowerCase();
 }
+
 /**
  * Creates an array containing the nodes rendered from the supplied markup. The
  * optionally supplied `handleScript` function will be invoked once for each
@@ -18500,9 +21112,11 @@ function createNodesFromMarkup(markup, handleScript) {
   var node = dummyNode;
   ("production" !== process.env.NODE_ENV ? invariant(!!dummyNode, 'createNodesFromMarkup dummy not initialized') : invariant(!!dummyNode));
   var nodeName = getNodeName(markup);
+
   var wrap = nodeName && getMarkupWrap(nodeName);
   if (wrap) {
     node.innerHTML = wrap[1] + markup + wrap[2];
+
     var wrapDepth = wrap[0];
     while (wrapDepth--) {
       node = node.lastChild;
@@ -18510,6 +21124,7 @@ function createNodesFromMarkup(markup, handleScript) {
   } else {
     node.innerHTML = markup;
   }
+
   var scripts = node.getElementsByTagName('script');
   if (scripts.length) {
     ("production" !== process.env.NODE_ENV ? invariant(
@@ -18518,13 +21133,16 @@ function createNodesFromMarkup(markup, handleScript) {
     ) : invariant(handleScript));
     createArrayFrom(scripts).forEach(handleScript);
   }
+
   var nodes = createArrayFrom(node.childNodes);
   while (node.lastChild) {
     node.removeChild(node.lastChild);
   }
   return nodes;
 }
+
 module.exports = createNodesFromMarkup;
+
 }).call(this,require("JkpR2F"))
 },{"./ExecutionEnvironment":24,"./createArrayFrom":105,"./getMarkupWrap":121,"./invariant":129,"JkpR2F":3}],108:[function(require,module,exports){
 /**
@@ -18538,9 +21156,13 @@ module.exports = createNodesFromMarkup;
  * @providesModule dangerousStyleValue
  * @typechecks static-only
  */
+
 "use strict";
+
 var CSSProperty = require("./CSSProperty");
+
 var isUnitlessNumber = CSSProperty.isUnitlessNumber;
+
 /**
  * Convert a value into the proper css writable value. The style name `name`
  * should be logical (no hyphens), as specified
@@ -18560,21 +21182,26 @@ function dangerousStyleValue(name, value) {
   // This is not an XSS hole but instead a potential CSS injection issue
   // which has lead to a greater discussion about how we're going to
   // trust URLs moving forward. See #2115901
+
   var isEmpty = value == null || typeof value === 'boolean' || value === '';
   if (isEmpty) {
     return '';
   }
+
   var isNonNumeric = isNaN(value);
   if (isNonNumeric || value === 0 ||
       isUnitlessNumber.hasOwnProperty(name) && isUnitlessNumber[name]) {
     return '' + value; // cast to string
   }
+
   if (typeof value === 'string') {
     value = value.trim();
   }
   return value + 'px';
 }
+
 module.exports = dangerousStyleValue;
+
 },{"./CSSProperty":6}],109:[function(require,module,exports){
 (function (process){
 /**
@@ -18587,8 +21214,10 @@ module.exports = dangerousStyleValue;
  *
  * @providesModule deprecated
  */
+
 var assign = require("./Object.assign");
 var warning = require("./warning");
+
 /**
  * This will log a single deprecation notice per function and forward the call
  * on to the new API.
@@ -18617,9 +21246,12 @@ function deprecated(namespace, oldName, newName, ctx, fn) {
     // In particular, this is needed to support PropTypes
     return assign(newFn, fn);
   }
+
   return fn;
 }
+
 module.exports = deprecated;
+
 }).call(this,require("JkpR2F"))
 },{"./Object.assign":29,"./warning":148,"JkpR2F":3}],110:[function(require,module,exports){
 /**
@@ -18632,24 +21264,29 @@ module.exports = deprecated;
  *
  * @providesModule emptyFunction
  */
+
 function makeEmptyFunction(arg) {
   return function() {
     return arg;
   };
 }
+
 /**
  * This function accepts and discards inputs; it has no side effects. This is
  * primarily useful idiomatically for overridable function endpoints which
  * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
  */
 function emptyFunction() {}
+
 emptyFunction.thatReturns = makeEmptyFunction;
 emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
 emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
 emptyFunction.thatReturnsNull = makeEmptyFunction(null);
 emptyFunction.thatReturnsThis = function() { return this; };
 emptyFunction.thatReturnsArgument = function(arg) { return arg; };
+
 module.exports = emptyFunction;
+
 },{}],111:[function(require,module,exports){
 (function (process){
 /**
@@ -18662,12 +21299,17 @@ module.exports = emptyFunction;
  *
  * @providesModule emptyObject
  */
+
 "use strict";
+
 var emptyObject = {};
+
 if ("production" !== process.env.NODE_ENV) {
   Object.freeze(emptyObject);
 }
+
 module.exports = emptyObject;
+
 }).call(this,require("JkpR2F"))
 },{"JkpR2F":3}],112:[function(require,module,exports){
 /**
@@ -18681,7 +21323,9 @@ module.exports = emptyObject;
  * @providesModule escapeTextForBrowser
  * @typechecks static-only
  */
+
 "use strict";
+
 var ESCAPE_LOOKUP = {
   "&": "&amp;",
   ">": "&gt;",
@@ -18689,10 +21333,13 @@ var ESCAPE_LOOKUP = {
   "\"": "&quot;",
   "'": "&#x27;"
 };
+
 var ESCAPE_REGEX = /[&><"']/g;
+
 function escaper(match) {
   return ESCAPE_LOOKUP[match];
 }
+
 /**
  * Escapes text to prevent scripting attacks.
  *
@@ -18702,7 +21349,9 @@ function escaper(match) {
 function escapeTextForBrowser(text) {
   return ('' + text).replace(ESCAPE_REGEX, escaper);
 }
+
 module.exports = escapeTextForBrowser;
+
 },{}],113:[function(require,module,exports){
 (function (process){
 /**
@@ -18715,10 +21364,14 @@ module.exports = escapeTextForBrowser;
  *
  * @providesModule flattenChildren
  */
+
 "use strict";
+
 var ReactTextComponent = require("./ReactTextComponent");
+
 var traverseAllChildren = require("./traverseAllChildren");
 var warning = require("./warning");
+
 /**
  * @param {function} traverseContext Context passed through traversal.
  * @param {?ReactComponent} child React child component.
@@ -18738,6 +21391,7 @@ function flattenSingleChildIntoContext(traverseContext, child, name) {
   if (keyUnique && child != null) {
     var type = typeof child;
     var normalizedValue;
+
     if (type === 'string') {
       normalizedValue = ReactTextComponent(child);
     } else if (type === 'number') {
@@ -18745,9 +21399,11 @@ function flattenSingleChildIntoContext(traverseContext, child, name) {
     } else {
       normalizedValue = child;
     }
+
     result[name] = normalizedValue;
   }
 }
+
 /**
  * Flattens children that are typically specified as `props.children`. Any null
  * children will not be included in the resulting object.
@@ -18761,7 +21417,9 @@ function flattenChildren(children) {
   traverseAllChildren(children, flattenSingleChildIntoContext, result);
   return result;
 }
+
 module.exports = flattenChildren;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactTextComponent":81,"./traverseAllChildren":147,"./warning":148,"JkpR2F":3}],114:[function(require,module,exports){
 /**
@@ -18774,7 +21432,9 @@ module.exports = flattenChildren;
  *
  * @providesModule focusNode
  */
+
 "use strict";
+
 /**
  * @param {DOMElement} node input/textarea to focus
  */
@@ -18787,7 +21447,9 @@ function focusNode(node) {
   } catch(e) {
   }
 }
+
 module.exports = focusNode;
+
 },{}],115:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18799,7 +21461,9 @@ module.exports = focusNode;
  *
  * @providesModule forEachAccumulated
  */
+
 "use strict";
+
 /**
  * @param {array} an "accumulation" of items which is either an Array or
  * a single item. Useful when paired with the `accumulate` module. This is a
@@ -18814,7 +21478,9 @@ var forEachAccumulated = function(arr, cb, scope) {
     cb.call(scope, arr);
   }
 };
+
 module.exports = forEachAccumulated;
+
 },{}],116:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18827,6 +21493,7 @@ module.exports = forEachAccumulated;
  * @providesModule getActiveElement
  * @typechecks
  */
+
 /**
  * Same as document.activeElement but wraps in a try-catch block. In IE it is
  * not safe to call document.activeElement if there is nothing focused.
@@ -18840,7 +21507,9 @@ function getActiveElement() /*?DOMElement*/ {
     return document.body;
   }
 }
+
 module.exports = getActiveElement;
+
 },{}],117:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18853,7 +21522,9 @@ module.exports = getActiveElement;
  * @providesModule getEventCharCode
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * `charCode` represents the actual "character code" and is safe to use with
  * `String.fromCharCode`. As such, only keys that correspond to printable
@@ -18867,8 +21538,10 @@ module.exports = getActiveElement;
 function getEventCharCode(nativeEvent) {
   var charCode;
   var keyCode = nativeEvent.keyCode;
+
   if ('charCode' in nativeEvent) {
     charCode = nativeEvent.charCode;
+
     // FF does not set `charCode` for the Enter-key, check against `keyCode`.
     if (charCode === 0 && keyCode === 13) {
       charCode = 13;
@@ -18877,14 +21550,18 @@ function getEventCharCode(nativeEvent) {
     // IE8 does not implement `charCode`, but `keyCode` has the correct value.
     charCode = keyCode;
   }
+
   // Some non-printable keys are reported in `charCode`/`keyCode`, discard them.
   // Must not discard the (non-)printable Enter-key.
   if (charCode >= 32 || charCode === 13) {
     return charCode;
   }
+
   return 0;
 }
+
 module.exports = getEventCharCode;
+
 },{}],118:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -18897,8 +21574,11 @@ module.exports = getEventCharCode;
  * @providesModule getEventKey
  * @typechecks static-only
  */
+
 "use strict";
+
 var getEventCharCode = require("./getEventCharCode");
+
 /**
  * Normalization of deprecated HTML5 `key` values
  * @see https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Key_names
@@ -18917,6 +21597,7 @@ var normalizeKey = {
   'Scroll': 'ScrollLock',
   'MozPrintableKey': 'Unidentified'
 };
+
 /**
  * Translation from legacy `keyCode` to HTML5 `key`
  * Only special keys supported, all others depend on keyboard layout or browser
@@ -18950,6 +21631,7 @@ var translateToKey = {
   145: 'ScrollLock',
   224: 'Meta'
 };
+
 /**
  * @param {object} nativeEvent Native browser event.
  * @return {string} Normalized `key` property.
@@ -18958,6 +21640,7 @@ function getEventKey(nativeEvent) {
   if (nativeEvent.key) {
     // Normalize inconsistent values reported by browsers due to
     // implementations of a working draft specification.
+
     // FireFox implements `key` but returns `MozPrintableKey` for all
     // printable characters (normalized to `Unidentified`), ignore it.
     var key = normalizeKey[nativeEvent.key] || nativeEvent.key;
@@ -18965,9 +21648,11 @@ function getEventKey(nativeEvent) {
       return key;
     }
   }
+
   // Browser does not implement `key`, polyfill as much of it as we can.
   if (nativeEvent.type === 'keypress') {
     var charCode = getEventCharCode(nativeEvent);
+
     // The enter-key is technically both printable and non-printable and can
     // thus be captured by `keypress`, no other non-printable key should.
     return charCode === 13 ? 'Enter' : String.fromCharCode(charCode);
@@ -18979,7 +21664,9 @@ function getEventKey(nativeEvent) {
   }
   return '';
 }
+
 module.exports = getEventKey;
+
 },{"./getEventCharCode":117}],119:[function(require,module,exports){
 /**
  * Copyright 2013 Facebook, Inc.
@@ -18992,17 +21679,21 @@ module.exports = getEventKey;
  * @providesModule getEventModifierState
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * Translation from modifier key to the associated property in the event.
  * @see http://www.w3.org/TR/DOM-Level-3-Events/#keys-Modifiers
  */
+
 var modifierKeyToProp = {
   'Alt': 'altKey',
   'Control': 'ctrlKey',
   'Meta': 'metaKey',
   'Shift': 'shiftKey'
 };
+
 // IE8 does not implement getModifierState so we simply map it to the only
 // modifier keys exposed by the event itself, does not support Lock-keys.
 // Currently, all major browsers except Chrome seems to support Lock-keys.
@@ -19016,10 +21707,13 @@ function modifierStateGetter(keyArg) {
   var keyProp = modifierKeyToProp[keyArg];
   return keyProp ? !!nativeEvent[keyProp] : false;
 }
+
 function getEventModifierState(nativeEvent) {
   return modifierStateGetter;
 }
+
 module.exports = getEventModifierState;
+
 },{}],120:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19032,7 +21726,9 @@ module.exports = getEventModifierState;
  * @providesModule getEventTarget
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * Gets the target node from a native browser event by accounting for
  * inconsistencies in browser DOM APIs.
@@ -19046,7 +21742,9 @@ function getEventTarget(nativeEvent) {
   // @see http://www.quirksmode.org/js/events_properties.html
   return target.nodeType === 3 ? target.parentNode : target;
 }
+
 module.exports = getEventTarget;
+
 },{}],121:[function(require,module,exports){
 (function (process){
 /**
@@ -19059,13 +21757,17 @@ module.exports = getEventTarget;
  *
  * @providesModule getMarkupWrap
  */
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var invariant = require("./invariant");
+
 /**
  * Dummy container used to detect which wraps are necessary.
  */
 var dummyNode =
   ExecutionEnvironment.canUseDOM ? document.createElement('div') : null;
+
 /**
  * Some browsers cannot use `innerHTML` to render certain elements standalone,
  * so we wrap them, render the wrapped nodes, then extract the desired node.
@@ -19089,26 +21791,34 @@ var shouldWrap = {
   'stop': true,
   'text': true
 };
+
 var selectWrap = [1, '<select multiple="true">', '</select>'];
 var tableWrap = [1, '<table>', '</table>'];
 var trWrap = [3, '<table><tbody><tr>', '</tr></tbody></table>'];
+
 var svgWrap = [1, '<svg>', '</svg>'];
+
 var markupWrap = {
   '*': [1, '?<div>', '</div>'],
+
   'area': [1, '<map>', '</map>'],
   'col': [2, '<table><tbody></tbody><colgroup>', '</colgroup></table>'],
   'legend': [1, '<fieldset>', '</fieldset>'],
   'param': [1, '<object>', '</object>'],
   'tr': [2, '<table><tbody>', '</tbody></table>'],
+
   'optgroup': selectWrap,
   'option': selectWrap,
+
   'caption': tableWrap,
   'colgroup': tableWrap,
   'tbody': tableWrap,
   'tfoot': tableWrap,
   'thead': tableWrap,
+
   'td': trWrap,
   'th': trWrap,
+
   'circle': svgWrap,
   'defs': svgWrap,
   'ellipse': svgWrap,
@@ -19123,6 +21833,7 @@ var markupWrap = {
   'stop': svgWrap,
   'text': svgWrap
 };
+
 /**
  * Gets the markup wrap configuration for the supplied `nodeName`.
  *
@@ -19146,7 +21857,10 @@ function getMarkupWrap(nodeName) {
   }
   return shouldWrap[nodeName] ? markupWrap[nodeName] : null;
 }
+
+
 module.exports = getMarkupWrap;
+
 }).call(this,require("JkpR2F"))
 },{"./ExecutionEnvironment":24,"./invariant":129,"JkpR2F":3}],122:[function(require,module,exports){
 /**
@@ -19159,7 +21873,9 @@ module.exports = getMarkupWrap;
  *
  * @providesModule getNodeForCharacterOffset
  */
+
 "use strict";
+
 /**
  * Given any node return the first leaf node without children.
  *
@@ -19172,6 +21888,7 @@ function getLeafNode(node) {
   }
   return node;
 }
+
 /**
  * Get the next sibling within a container. This will walk up the
  * DOM if a node's siblings have been exhausted.
@@ -19187,6 +21904,7 @@ function getSiblingNode(node) {
     node = node.parentNode;
   }
 }
+
 /**
  * Get object describing the nodes which contain characters at offset.
  *
@@ -19198,21 +21916,27 @@ function getNodeForCharacterOffset(root, offset) {
   var node = getLeafNode(root);
   var nodeStart = 0;
   var nodeEnd = 0;
+
   while (node) {
     if (node.nodeType == 3) {
       nodeEnd = nodeStart + node.textContent.length;
+
       if (nodeStart <= offset && nodeEnd >= offset) {
         return {
           node: node,
           offset: offset - nodeStart
         };
       }
+
       nodeStart = nodeEnd;
     }
+
     node = getLeafNode(getSiblingNode(node));
   }
 }
+
 module.exports = getNodeForCharacterOffset;
+
 },{}],123:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19224,8 +21948,11 @@ module.exports = getNodeForCharacterOffset;
  *
  * @providesModule getReactRootElementInContainer
  */
+
 "use strict";
+
 var DOC_NODE_TYPE = 9;
+
 /**
  * @param {DOMElement|DOMDocument} container DOM element that may contain
  *                                           a React component
@@ -19235,13 +21962,16 @@ function getReactRootElementInContainer(container) {
   if (!container) {
     return null;
   }
+
   if (container.nodeType === DOC_NODE_TYPE) {
     return container.documentElement;
   } else {
     return container.firstChild;
   }
 }
+
 module.exports = getReactRootElementInContainer;
+
 },{}],124:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19253,9 +21983,13 @@ module.exports = getReactRootElementInContainer;
  *
  * @providesModule getTextContentAccessor
  */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var contentKey = null;
+
 /**
  * Gets the key used to access text content on a DOM node.
  *
@@ -19272,7 +22006,9 @@ function getTextContentAccessor() {
   }
   return contentKey;
 }
+
 module.exports = getTextContentAccessor;
+
 },{"./ExecutionEnvironment":24}],125:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19285,7 +22021,9 @@ module.exports = getTextContentAccessor;
  * @providesModule getUnboundedScrollPosition
  * @typechecks
  */
+
 "use strict";
+
 /**
  * Gets the scroll position of the supplied element or window.
  *
@@ -19308,7 +22046,9 @@ function getUnboundedScrollPosition(scrollable) {
     y: scrollable.scrollTop
   };
 }
+
 module.exports = getUnboundedScrollPosition;
+
 },{}],126:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19321,7 +22061,9 @@ module.exports = getUnboundedScrollPosition;
  * @providesModule hyphenate
  * @typechecks
  */
+
 var _uppercasePattern = /([A-Z])/g;
+
 /**
  * Hyphenates a camelcased string, for example:
  *
@@ -19337,7 +22079,9 @@ var _uppercasePattern = /([A-Z])/g;
 function hyphenate(string) {
   return string.replace(_uppercasePattern, '-$1').toLowerCase();
 }
+
 module.exports = hyphenate;
+
 },{}],127:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19350,9 +22094,13 @@ module.exports = hyphenate;
  * @providesModule hyphenateStyleName
  * @typechecks
  */
+
 "use strict";
+
 var hyphenate = require("./hyphenate");
+
 var msPattern = /^ms-/;
+
 /**
  * Hyphenates a camelcased CSS property name, for example:
  *
@@ -19372,7 +22120,9 @@ var msPattern = /^ms-/;
 function hyphenateStyleName(string) {
   return hyphenate(string).replace(msPattern, '-ms-');
 }
+
 module.exports = hyphenateStyleName;
+
 },{"./hyphenate":126}],128:[function(require,module,exports){
 (function (process){
 /**
@@ -19386,12 +22136,16 @@ module.exports = hyphenateStyleName;
  * @providesModule instantiateReactComponent
  * @typechecks static-only
  */
+
 "use strict";
+
 var warning = require("./warning");
+
 var ReactElement = require("./ReactElement");
 var ReactLegacyElement = require("./ReactLegacyElement");
 var ReactNativeComponent = require("./ReactNativeComponent");
 var ReactEmptyComponent = require("./ReactEmptyComponent");
+
 /**
  * Given an `element` create an instance that will actually be mounted.
  *
@@ -19402,12 +22156,14 @@ var ReactEmptyComponent = require("./ReactEmptyComponent");
  */
 function instantiateReactComponent(element, parentCompositeType) {
   var instance;
+
   if ("production" !== process.env.NODE_ENV) {
     ("production" !== process.env.NODE_ENV ? warning(
       element && (typeof element.type === 'function' ||
                      typeof element.type === 'string'),
       'Only functions or strings can be mounted as React components.'
     ) : null);
+
     // Resolve mock instances
     if (element.type._mockedReactClassConstructor) {
       // If this is a mocked class, we treat the legacy factory as if it was the
@@ -19422,11 +22178,13 @@ function instantiateReactComponent(element, parentCompositeType) {
       } finally {
         ReactLegacyElement._isLegacyCallWarningEnabled = true;
       }
+
       // If the mock implementation was a legacy factory, then it returns a
       // element. We need to turn this into a real component instance.
       if (ReactElement.isValidElement(instance)) {
         instance = new instance.type(instance.props);
       }
+
       var render = instance.render;
       if (!render) {
         // For auto-mocked factories, the prototype isn't shimmed and therefore
@@ -19447,6 +22205,7 @@ function instantiateReactComponent(element, parentCompositeType) {
       }
     }
   }
+
   // Special case string values
   if (typeof element.type === 'string') {
     instance = ReactNativeComponent.createInstanceForTag(
@@ -19458,6 +22217,7 @@ function instantiateReactComponent(element, parentCompositeType) {
     // Normal case for non-mocks and non-strings
     instance = new element.type(element.props);
   }
+
   if ("production" !== process.env.NODE_ENV) {
     ("production" !== process.env.NODE_ENV ? warning(
       typeof instance.construct === 'function' &&
@@ -19466,12 +22226,16 @@ function instantiateReactComponent(element, parentCompositeType) {
       'Only React Components can be mounted.'
     ) : null);
   }
+
   // This actually sets up the internal instance. This will become decoupled
   // from the public instance in a future diff.
   instance.construct(element);
+
   return instance;
 }
+
 module.exports = instantiateReactComponent;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./ReactEmptyComponent":57,"./ReactLegacyElement":64,"./ReactNativeComponent":69,"./warning":148,"JkpR2F":3}],129:[function(require,module,exports){
 (function (process){
@@ -19485,7 +22249,9 @@ module.exports = instantiateReactComponent;
  *
  * @providesModule invariant
  */
+
 "use strict";
+
 /**
  * Use invariant() to assert state which your program assumes to be true.
  *
@@ -19496,12 +22262,14 @@ module.exports = instantiateReactComponent;
  * The invariant message will be stripped in production, but the invariant
  * will remain to ensure logic does not differ in production.
  */
+
 var invariant = function(condition, format, a, b, c, d, e, f) {
   if ("production" !== process.env.NODE_ENV) {
     if (format === undefined) {
       throw new Error('invariant requires an error message argument');
     }
   }
+
   if (!condition) {
     var error;
     if (format === undefined) {
@@ -19517,11 +22285,14 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
         format.replace(/%s/g, function() { return args[argIndex++]; })
       );
     }
+
     error.framesToPop = 1; // we don't care about invariant's own frame
     throw error;
   }
 };
+
 module.exports = invariant;
+
 }).call(this,require("JkpR2F"))
 },{"JkpR2F":3}],130:[function(require,module,exports){
 /**
@@ -19534,8 +22305,11 @@ module.exports = invariant;
  *
  * @providesModule isEventSupported
  */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var useHasFeature;
 if (ExecutionEnvironment.canUseDOM) {
   useHasFeature =
@@ -19545,6 +22319,7 @@ if (ExecutionEnvironment.canUseDOM) {
     // @see http://dom.spec.whatwg.org/#dom-domimplementation-hasfeature
     document.implementation.hasFeature('', '') !== true;
 }
+
 /**
  * Checks if an event is supported in the current execution environment.
  *
@@ -19564,20 +22339,26 @@ function isEventSupported(eventNameSuffix, capture) {
       capture && !('addEventListener' in document)) {
     return false;
   }
+
   var eventName = 'on' + eventNameSuffix;
   var isSupported = eventName in document;
+
   if (!isSupported) {
     var element = document.createElement('div');
     element.setAttribute(eventName, 'return;');
     isSupported = typeof element[eventName] === 'function';
   }
+
   if (!isSupported && useHasFeature && eventNameSuffix === 'wheel') {
     // This is the only way to test support for the `wheel` event in IE9+.
     isSupported = document.implementation.hasFeature('Events.wheel', '3.0');
   }
+
   return isSupported;
 }
+
 module.exports = isEventSupported;
+
 },{"./ExecutionEnvironment":24}],131:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19590,6 +22371,7 @@ module.exports = isEventSupported;
  * @providesModule isNode
  * @typechecks
  */
+
 /**
  * @param {*} object The object to check.
  * @return {boolean} Whether or not the object is a DOM node.
@@ -19602,7 +22384,9 @@ function isNode(object) {
       typeof object.nodeName === 'string'
   ));
 }
+
 module.exports = isNode;
+
 },{}],132:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19614,7 +22398,9 @@ module.exports = isNode;
  *
  * @providesModule isTextInputElement
  */
+
 "use strict";
+
 /**
  * @see http://www.whatwg.org/specs/web-apps/current-work/multipage/the-input-element.html#input-type-attr-summary
  */
@@ -19635,13 +22421,16 @@ var supportedInputTypes = {
   'url': true,
   'week': true
 };
+
 function isTextInputElement(elem) {
   return elem && (
     (elem.nodeName === 'INPUT' && supportedInputTypes[elem.type]) ||
     elem.nodeName === 'TEXTAREA'
   );
 }
+
 module.exports = isTextInputElement;
+
 },{}],133:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19654,7 +22443,9 @@ module.exports = isTextInputElement;
  * @providesModule isTextNode
  * @typechecks
  */
+
 var isNode = require("./isNode");
+
 /**
  * @param {*} object The object to check.
  * @return {boolean} Whether or not the object is a DOM text node.
@@ -19662,7 +22453,9 @@ var isNode = require("./isNode");
 function isTextNode(object) {
   return isNode(object) && object.nodeType == 3;
 }
+
 module.exports = isTextNode;
+
 },{"./isNode":131}],134:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19675,7 +22468,9 @@ module.exports = isTextNode;
  * @providesModule joinClasses
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * Combines multiple className strings into one.
  * http://jsperf.com/joinclasses-args-vs-array
@@ -19699,7 +22494,9 @@ function joinClasses(className/*, ... */) {
   }
   return className;
 }
+
 module.exports = joinClasses;
+
 },{}],135:[function(require,module,exports){
 (function (process){
 /**
@@ -19713,8 +22510,11 @@ module.exports = joinClasses;
  * @providesModule keyMirror
  * @typechecks static-only
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  * Constructs an enumeration with keys equal to their value.
  *
@@ -19748,7 +22548,9 @@ var keyMirror = function(obj) {
   }
   return ret;
 };
+
 module.exports = keyMirror;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],136:[function(require,module,exports){
 /**
@@ -19761,6 +22563,7 @@ module.exports = keyMirror;
  *
  * @providesModule keyOf
  */
+
 /**
  * Allows extraction of a minified key. Let's the build system minify keys
  * without loosing the ability to dynamically use key strings as values
@@ -19781,7 +22584,10 @@ var keyOf = function(oneKeyObj) {
   }
   return null;
 };
+
+
 module.exports = keyOf;
+
 },{}],137:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19793,8 +22599,11 @@ module.exports = keyOf;
  *
  * @providesModule mapObject
  */
+
 'use strict';
+
 var hasOwnProperty = Object.prototype.hasOwnProperty;
+
 /**
  * Executes the provided `callback` once for each enumerable own property in the
  * object and constructs a new object from the results. The `callback` is
@@ -19829,7 +22638,9 @@ function mapObject(object, callback, context) {
   }
   return result;
 }
+
 module.exports = mapObject;
+
 },{}],138:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19842,7 +22653,9 @@ module.exports = mapObject;
  * @providesModule memoizeStringOnly
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * Memoizes the return value of a function that accepts one string argument.
  *
@@ -19859,7 +22672,9 @@ function memoizeStringOnly(callback) {
     }
   };
 }
+
 module.exports = memoizeStringOnly;
+
 },{}],139:[function(require,module,exports){
 (function (process){
 /**
@@ -19872,21 +22687,27 @@ module.exports = memoizeStringOnly;
  *
  * @providesModule monitorCodeUse
  */
+
 "use strict";
+
 var invariant = require("./invariant");
+
 /**
  * Provides open-source compatible instrumentation for monitoring certain API
  * uses before we're ready to issue a warning or refactor. It accepts an event
  * name which may only contain the characters [a-z0-9_] and an optional data
  * object with further information.
  */
+
 function monitorCodeUse(eventName, data) {
   ("production" !== process.env.NODE_ENV ? invariant(
     eventName && !/[^a-z0-9_]/.test(eventName),
     'You must provide an eventName using only the characters [a-z0-9_]'
   ) : invariant(eventName && !/[^a-z0-9_]/.test(eventName)));
 }
+
 module.exports = monitorCodeUse;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],140:[function(require,module,exports){
 (function (process){
@@ -19901,8 +22722,11 @@ module.exports = monitorCodeUse;
  * @providesModule onlyChild
  */
 "use strict";
+
 var ReactElement = require("./ReactElement");
+
 var invariant = require("./invariant");
+
 /**
  * Returns the first child in a collection of children and verifies that there
  * is only one child in the collection. The current implementation of this
@@ -19921,7 +22745,9 @@ function onlyChild(children) {
   ) : invariant(ReactElement.isValidElement(children)));
   return children;
 }
+
 module.exports = onlyChild;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./invariant":129,"JkpR2F":3}],141:[function(require,module,exports){
 /**
@@ -19935,16 +22761,22 @@ module.exports = onlyChild;
  * @providesModule performance
  * @typechecks
  */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var performance;
+
 if (ExecutionEnvironment.canUseDOM) {
   performance =
     window.performance ||
     window.msPerformance ||
     window.webkitPerformance;
 }
+
 module.exports = performance || {};
+
 },{"./ExecutionEnvironment":24}],142:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19957,7 +22789,9 @@ module.exports = performance || {};
  * @providesModule performanceNow
  * @typechecks
  */
+
 var performance = require("./performance");
+
 /**
  * Detect if we can use `window.performance.now()` and gracefully fallback to
  * `Date.now()` if it doesn't exist. We need to support Firefox < 15 for now
@@ -19966,8 +22800,11 @@ var performance = require("./performance");
 if (!performance || !performance.now) {
   performance = Date;
 }
+
 var performanceNow = performance.now.bind(performance);
+
 module.exports = performanceNow;
+
 },{"./performance":141}],143:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -19979,10 +22816,14 @@ module.exports = performanceNow;
  *
  * @providesModule setInnerHTML
  */
+
 "use strict";
+
 var ExecutionEnvironment = require("./ExecutionEnvironment");
+
 var WHITESPACE_TEST = /^[ \r\n\t\f]/;
 var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
+
 /**
  * Set the innerHTML property of a node, ensuring that whitespace is preserved
  * even in IE8.
@@ -19994,11 +22835,13 @@ var NONVISIBLE_TEST = /<(!--|link|noscript|meta|script|style)[ \r\n\t\f\/>]/;
 var setInnerHTML = function(node, html) {
   node.innerHTML = html;
 };
+
 if (ExecutionEnvironment.canUseDOM) {
   // IE8: When updating a just created node with innerHTML only leading
   // whitespace is removed. When updating an existing node with innerHTML
   // whitespace in root TextNodes is also collapsed.
   // @see quirksmode.org/bugreports/archives/2004/11/innerhtml_and_t.html
+
   // Feature detection; only IE8 is known to behave improperly like this.
   var testElement = document.createElement('div');
   testElement.innerHTML = ' ';
@@ -20012,6 +22855,7 @@ if (ExecutionEnvironment.canUseDOM) {
       if (node.parentNode) {
         node.parentNode.replaceChild(node, node);
       }
+
       // We also implement a workaround for non-visible tags disappearing into
       // thin air on IE8, this only happens if there is no visible text
       // in-front of the non-visible tags. Piggyback on the whitespace fix
@@ -20021,6 +22865,7 @@ if (ExecutionEnvironment.canUseDOM) {
         // Recover leading whitespace by temporarily prepending any character.
         // \uFEFF has the potential advantage of being zero-width/invisible.
         node.innerHTML = '\uFEFF' + html;
+
         // deleteData leaves an empty `TextNode` which offsets the index of all
         // children. Definitely want to avoid this.
         var textNode = node.firstChild;
@@ -20035,7 +22880,9 @@ if (ExecutionEnvironment.canUseDOM) {
     };
   }
 }
+
 module.exports = setInnerHTML;
+
 },{"./ExecutionEnvironment":24}],144:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -20047,7 +22894,9 @@ module.exports = setInnerHTML;
  *
  * @providesModule shallowEqual
  */
+
 "use strict";
+
 /**
  * Performs equality by iterating through keys on an object and returning
  * false when any key has values which are not strictly equal between
@@ -20075,7 +22924,9 @@ function shallowEqual(objA, objB) {
   }
   return true;
 }
+
 module.exports = shallowEqual;
+
 },{}],145:[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -20088,7 +22939,9 @@ module.exports = shallowEqual;
  * @providesModule shouldUpdateReactComponent
  * @typechecks static-only
  */
+
 "use strict";
+
 /**
  * Given a `prevElement` and `nextElement`, determines if the existing
  * instance should be updated as opposed to being destroyed or replaced by a new
@@ -20109,7 +22962,9 @@ function shouldUpdateReactComponent(prevElement, nextElement) {
   }
   return false;
 }
+
 module.exports = shouldUpdateReactComponent;
+
 },{}],146:[function(require,module,exports){
 (function (process){
 /**
@@ -20123,7 +22978,9 @@ module.exports = shouldUpdateReactComponent;
  * @providesModule toArray
  * @typechecks
  */
+
 var invariant = require("./invariant");
+
 /**
  * Convert array-like objects to arrays.
  *
@@ -20135,6 +22992,7 @@ var invariant = require("./invariant");
  */
 function toArray(obj) {
   var length = obj.length;
+
   // Some browse builtin objects can report typeof 'function' (e.g. NodeList in
   // old versions of Safari).
   ("production" !== process.env.NODE_ENV ? invariant(
@@ -20143,16 +23001,19 @@ function toArray(obj) {
     'toArray: Array-like object expected'
   ) : invariant(!Array.isArray(obj) &&
   (typeof obj === 'object' || typeof obj === 'function')));
+
   ("production" !== process.env.NODE_ENV ? invariant(
     typeof length === 'number',
     'toArray: Object needs a length property'
   ) : invariant(typeof length === 'number'));
+
   ("production" !== process.env.NODE_ENV ? invariant(
     length === 0 ||
     (length - 1) in obj,
     'toArray: Object should have keys for indices'
   ) : invariant(length === 0 ||
   (length - 1) in obj));
+
   // Old IE doesn't give collections access to hasOwnProperty. Assume inputs
   // without method will throw during the slice call and skip straight to the
   // fallback.
@@ -20163,6 +23024,7 @@ function toArray(obj) {
       // IE < 9 does not support Array#slice on collections objects
     }
   }
+
   // Fall back to copying key by key. This assumes all keys have a value,
   // so will not preserve sparsely populated inputs.
   var ret = Array(length);
@@ -20171,7 +23033,9 @@ function toArray(obj) {
   }
   return ret;
 }
+
 module.exports = toArray;
+
 }).call(this,require("JkpR2F"))
 },{"./invariant":129,"JkpR2F":3}],147:[function(require,module,exports){
 (function (process){
@@ -20185,12 +23049,17 @@ module.exports = toArray;
  *
  * @providesModule traverseAllChildren
  */
+
 "use strict";
+
 var ReactElement = require("./ReactElement");
 var ReactInstanceHandles = require("./ReactInstanceHandles");
+
 var invariant = require("./invariant");
+
 var SEPARATOR = ReactInstanceHandles.SEPARATOR;
 var SUBSEPARATOR = ':';
+
 /**
  * TODO: Test that:
  * 1. `mapChildren` transforms strings and numbers into `ReactTextComponent`.
@@ -20198,15 +23067,19 @@ var SUBSEPARATOR = ':';
  * 3. That a single child and an array with one item have the same key pattern.
  * });
  */
+
 var userProvidedKeyEscaperLookup = {
   '=': '=0',
   '.': '=1',
   ':': '=2'
 };
+
 var userProvidedKeyEscapeRegex = /[=.:]/g;
+
 function userProvidedKeyEscaper(match) {
   return userProvidedKeyEscaperLookup[match];
 }
+
 /**
  * Generate a key string that identifies a component within a set.
  *
@@ -20222,6 +23095,7 @@ function getComponentKey(component, index) {
   // Implicit key determined by the index in the set
   return index.toString(36);
 }
+
 /**
  * Escape a component key so that it is safe to use in a reactid.
  *
@@ -20234,6 +23108,7 @@ function escapeUserProvidedKey(text) {
     userProvidedKeyEscaper
   );
 }
+
 /**
  * Wrap a `key` value explicitly provided by the user to distinguish it from
  * implicitly-generated keys generated by a component's index in its parent.
@@ -20244,6 +23119,7 @@ function escapeUserProvidedKey(text) {
 function wrapUserProvidedKey(key) {
   return '$' + escapeUserProvidedKey(key);
 }
+
 /**
  * @param {?*} children Children tree container.
  * @param {!string} nameSoFar Name of the key path so far.
@@ -20316,6 +23192,7 @@ var traverseAllChildrenImpl =
     }
     return subtreeCount;
   };
+
 /**
  * Traverses children that are typically specified as `props.children`, but
  * might also be specified through attributes:
@@ -20336,9 +23213,12 @@ function traverseAllChildren(children, callback, traverseContext) {
   if (children == null) {
     return 0;
   }
+
   return traverseAllChildrenImpl(children, '', 0, callback, traverseContext);
 }
+
 module.exports = traverseAllChildren;
+
 }).call(this,require("JkpR2F"))
 },{"./ReactElement":55,"./ReactInstanceHandles":63,"./invariant":129,"JkpR2F":3}],148:[function(require,module,exports){
 (function (process){
@@ -20352,15 +23232,20 @@ module.exports = traverseAllChildren;
  *
  * @providesModule warning
  */
+
 "use strict";
+
 var emptyFunction = require("./emptyFunction");
+
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
  * This can be used to log issues in development environments in critical
  * paths. Removing the logging code for production environments will keep the
  * same logic and follow the same code paths.
  */
+
 var warning = emptyFunction;
+
 if ("production" !== process.env.NODE_ENV) {
   warning = function(condition, format ) {for (var args=[],$__0=2,$__1=arguments.length;$__0<$__1;$__0++) args.push(arguments[$__0]);
     if (format === undefined) {
@@ -20369,49 +23254,21 @@ if ("production" !== process.env.NODE_ENV) {
         'message argument'
       );
     }
+
     if (!condition) {
       var argIndex = 0;
       console.warn('Warning: ' + format.replace(/%s/g, function() {return args[argIndex++];}));
     }
   };
 }
+
 module.exports = warning;
+
 }).call(this,require("JkpR2F"))
 },{"./emptyFunction":110,"JkpR2F":3}],149:[function(require,module,exports){
 module.exports = require('./lib/React');
+
 },{"./lib/React":31}]},{},[2]);
-/* Copyright (C) 1991-2014 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
-/* This header is separate from features.h so that the compiler can
-   include it implicitly at the start of every compilation.  It must
-   not itself include <features.h> or any other header that includes
-   <features.h> because the implicit include comes before any feature
-   test macros that may be defined in a source file before it first
-   explicitly includes a system header.  GCC knows the name of this
-   header in order to preinclude it.  */
-/* glibc's intent is to support the IEC 559 math functionality, real
-   and complex.  If the GCC (4.9 and later) predefined macros
-   specifying compiler intent are available, use them to determine
-   whether the overall intent is to support these features; otherwise,
-   presume an older compiler has intent to support these features and
-   define these macros by default.  */
-/* wchar_t uses ISO/IEC 10646 (2nd ed., published 2011-03-15) /
-   Unicode 6.0.  */
-/* We do not support C11 <threads.h>.  */
 /*
  * global name for the things we need from the react-js library
  */

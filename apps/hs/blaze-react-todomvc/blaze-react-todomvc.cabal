@@ -1,0 +1,33 @@
+name:                blaze-react-todomvc
+version:             0.2.0.0
+synopsis:            TodoMVC Example for blaze-react.
+description:         It can be run both in development mode on x86 or as a
+                     single-page application in the Browser (compiled with GHCJS).
+
+license:             MIT
+license-file:        LICENSE
+author:              Simon Meier, Alex Sayers
+maintainer:          iridcode@gmail
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable blaze-react-todomvc
+  default-Language: Haskell2010
+  hs-source-dirs:   src
+  build-depends:
+      base                >= 4    &&  < 5
+    , blaze-react-core
+    , blaze-react-examples
+
+  if impl(ghcjs)
+    ghcjs-options:    -Wall
+    main-is:          todomvc-main-ghcjs.hs
+    build-depends:
+      blaze-react-spa
+  else
+    ghc-options:      -threaded -Wall
+    main-is:          todomvc-main-ghc.hs
+    build-depends:
+      blaze-react-dev-mode-server
+

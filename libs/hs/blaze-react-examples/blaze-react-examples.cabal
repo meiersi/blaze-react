@@ -20,14 +20,14 @@ library
   hs-source-dirs:      src
 
   exposed-modules:
-      Blaze.Core.Examples.Clock
-      Blaze.Core.Examples.SocketTest
-      Blaze.Core.Examples.TabbedApps
-      Blaze.Core.Examples.Todo
-      Blaze.Core.Examples.TimeMachine
+      -- Blaze.Core.Examples.Clock
+      -- Blaze.Core.Examples.SocketTest
+      -- Blaze.Core.Examples.TabbedApps
+      Blaze.React.Examples.Todo
+      -- Blaze.Core.Examples.TimeMachine
 
-      Blaze.Core.Service.Socket
-      Blaze.Core.Service.Store
+      -- Blaze.Core.Service.Socket
+      -- Blaze.Core.Service.Store
 
   build-depends:
       aeson

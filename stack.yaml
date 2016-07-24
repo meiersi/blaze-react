@@ -4,7 +4,9 @@ packages:
   - libs/hs/blaze-react-core
   - libs/hs/blaze-react-dev-mode-server
   - libs/hs/blaze-react-dev-mode-shared
+  - libs/hs/blaze-react-examples
   - libs/hs/servant-blaze-react
+  - apps/hs/blaze-react-todomvc
 
 extra-deps: []
 
