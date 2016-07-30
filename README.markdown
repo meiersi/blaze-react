@@ -1,7 +1,6 @@
 # `blaze-react` v0.1
 
-**It's recommended that you use the release-candidate for blaze-react 0.2.
-You can find it in the v0.2-rc1 branch.**
+*** NOTE: Looking for the latest version (**v0.2**)? Check out the **feat-dev-mode** branch (recommended).***
 
 These are experimental bindings for ReactJS using GHCJS. The rendering API is
 modeled analogously to blaze-html and the application architecture is based on
